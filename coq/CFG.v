@@ -12,8 +12,6 @@ From ExtLib Require Import
      Programming.Eqv
      Structures.Monads.
 
-
-
 Import ListNotations.
 Import EqvNotation.
 Import MonadNotation.
