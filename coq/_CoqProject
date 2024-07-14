@@ -1,13 +1,13 @@
 -Q . SE
 
 AstLib.v
-Archi.v
 CFG.v
 Coqlib.v
-Floats.v
-IEEE754_extra.v
-Integers.v
 LLVMAst.v
+Numeric/Archi.v
+Numeric/Floats.v
+Numeric/IEEE754_extra.v
+Numeric/Integers.v
+Numeric/Zbits.v
 Utilities.v
 Utils/
-Zbits.v
