@@ -36,3 +36,5 @@ autom4te.cache/
 *.vok
 *.glob
 *.aux
+*.swp
+*.swo
