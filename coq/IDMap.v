@@ -38,27 +38,21 @@ Qed.
 Lemma update_map_eq : forall (A : Type) (m : total_map A) x v,
   (x !-> v ; m) x = v.
 Proof.
-Admitted.
-(*
   intros A m x v.
   unfold update_map.
-  rewrite eqb_refl.
+  rewrite raw_id_eqb_refl.
   reflexivity.
 Qed.
-*)
 
 Theorem update_map_neq : forall (A : Type) (m : total_map A) x1 x2 v,
   x1 <> x2 -> (x1 !-> v ; m) x2 = m x2.
 Proof.
-Admitted.
-(*
   intros A m x1 x2 v H.
   unfold update_map.
-  apply eqb_neq in H.
+  apply raw_id_eqb_neq in H.
   rewrite H.
   reflexivity.
 Qed.
-*)
 
 Lemma update_map_shadow : forall (A : Type) (m : total_map A) x v1 v2,
   (x !-> v2 ; x !-> v1 ; m) = (x !-> v2 ; m).
@@ -137,8 +131,6 @@ Lemma lemma_multi_update_map_1: forall (A : Type) (m1 m2 : total_map A) x l,
   m1 x = m2 x ->
   (multi_update_map m1 l) x = (multi_update_map m2 l) x.
 Proof.
-Admitted.
-(*
   intros A m1 m2 x l Heq.
   generalize dependent m2.
   generalize dependent m1.
@@ -152,20 +144,19 @@ Admitted.
     intros m1 m2 Heq.
     simpl.
     apply IHt.
-    destruct (y =? x)%raw_id eqn:E.
+    destruct (raw_id_eqb y x) eqn:E.
     {
-      apply eqb_eq in E.
+      apply raw_id_eqb_eq in E.
       rewrite E.
       rewrite update_map_eq, update_map_eq.
       reflexivity.
     }
     {
-      apply eqb_neq in E.
+      apply raw_id_eqb_neq in E.
       rewrite update_map_neq, update_map_neq; try (assumption).
     }
   }
 Qed.
-*)
 
 Lemma lemma_multi_update_map_2: forall (A : Type) (m : total_map A) x y v l,
   x <> y ->
@@ -184,23 +175,20 @@ Lemma map_equiv_shadow: forall (A : Type) (m : total_map A) x v1 v2 l,
     (x !-> v2; (multi_update_map (x !-> v1; m) l))
     (x !-> v2; (multi_update_map m l)).
 Proof.
-Admitted.
-(*
   intros A m x v1 v2 l.
   apply MapEquiv.
   intros y.
-  destruct (x =? y)%raw_id eqn:E.
+  destruct (raw_id_eqb x y) eqn:E.
   {
-    apply eqb_eq in E.
+    apply raw_id_eqb_eq in E.
     rewrite E.
     rewrite update_map_eq, update_map_eq.
     reflexivity.
   }
   {
-    apply eqb_neq in E.
+    apply raw_id_eqb_neq in E.
     rewrite update_map_neq, update_map_neq; try (assumption).
     apply lemma_multi_update_map_2.
     assumption.
   }
 Qed.
-*)
