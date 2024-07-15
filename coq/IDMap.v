@@ -1,11 +1,4 @@
-(* TODO: why is it needed? *)
-From Coq Require Import Arith.Arith.
 From Coq Require Import Bool.Bool.
-Require Export Coq.Strings.String.
-(* TODO: why is it needed? *)
-From Coq Require Import Logic.FunctionalExtensionality.
-From Coq Require Import Lists.List.
-Import ListNotations.
 
 From SE Require Import LLVMAst.
 
@@ -16,8 +9,6 @@ Definition total_map (A : Type) := raw_id -> A.
 
 Definition empty_map {A : Type} (v : A) : total_map A :=
   (fun _ => v).
-
-Check String.eqb.
 
 Definition update_map {A : Type} (m : total_map A) (x : raw_id) (v : A) :=
   fun y => if raw_id_eqb x y then v else m y.

@@ -41,6 +41,31 @@ Variant raw_id : Set :=
 | Raw  (n:int_ast)        (* Used for code generation -- serializes as %_RAW_0 %_RAW_1 etc. *)
 .
 
+(* TODO: use a module type / class *)
+Definition raw_id_eqb (x y : raw_id) : bool :=
+  match x, y with
+  | Name s1, Name s2 => String.eqb s1 s2
+  | Anon n1, Anon n2 => Z.eqb n1 n2
+  | Raw n1, Raw n2 => Z.eqb n1 n2
+  | _, _ => false
+  end
+.
+
+Lemma raw_id_eqb_refl :
+  forall x, raw_id_eqb x x = true.
+Proof.
+Admitted.
+
+Lemma raw_id_eqb_eq :
+  forall x y, raw_id_eqb x y = true <-> x = y.
+Proof.
+Admitted.
+
+Lemma raw_id_eqb_neq :
+  forall x y, raw_id_eqb x y = false <-> x <> y.
+Proof.
+Admitted.
+
 Variant ident : Set :=
 | ID_Global (id:raw_id)   (* @id *)
 | ID_Local  (id:raw_id)   (* %id *)
