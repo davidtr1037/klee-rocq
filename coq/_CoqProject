@@ -1,8 +1,11 @@
 -Q . SE
 
 AstLib.v
+BitVectors.v
 CFG.v
 Coqlib.v
+DynamicValue.v
+IDMap.v
 LLVMAst.v
 Numeric/Archi.v
 Numeric/Floats.v
