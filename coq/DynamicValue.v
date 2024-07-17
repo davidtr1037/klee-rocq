@@ -444,10 +444,100 @@ Fixpoint eval_ibinop (op : ibinop) (v1 v2 : dynamic_value) : option dynamic_valu
   end
 .
 
-Fixpoint eval_icmp (op : icmp) (v1 v2 : dynamic_value) : option dynamic_value :=
-  None
+Definition eval_icmp_generic {Int} `{VInt Int} icmp (x y : Int) : dynamic_value :=
+  if match icmp with
+     | Eq => cmp Ceq x y
+     | Ne => cmp Cne x y
+     | Ugt => cmpu Cgt x y
+     | Uge => cmpu Cge x y
+     | Ult => cmpu Clt x y
+     | Ule => cmpu Cle x y
+     | Sgt => cmp Cgt x y
+     | Sge => cmp Cge x y
+     | Slt => cmp Clt x y
+     | Sle => cmp Cle x y
+     end
+  then
+    DV_I1 (Int1.one)
+  else
+    DV_I1 (Int1.zero)
 .
 
-Definition convert_dv (v : dynamic_value) (t1 t2 : typ) : option dynamic_value :=
-  None
+Fixpoint eval_icmp (op : icmp) (v1 v2 : dynamic_value) : option dynamic_value :=
+  match (v1, v2) with
+  | (DV_I1 n1, DV_I1 n2)
+  | (DV_I8 n1, DV_I8 n2)
+  | (DV_I16 n1, DV_I16 n2)
+  | (DV_I32 n1, DV_I32 n2)
+  | (DV_I64 n1, DV_I64 n2) => Some (eval_icmp_generic op n1 n2)
+  | _ => None
+  end
+.
+
+Definition convert conv x t1 t2 : option dynamic_value :=
+  match conv with
+  | Trunc =>
+    match t1, x, t2 with
+    | TYPE_I 8, DV_I8 i1, TYPE_I 1 =>
+      Some (DV_I1 (repr (unsigned i1)))
+    | TYPE_I 32, DV_I32 i1, TYPE_I 1 =>
+      Some (DV_I1 (repr (unsigned i1)))
+    | TYPE_I 32, DV_I32 i1, TYPE_I 8 =>
+      Some (DV_I8 (repr (unsigned i1)))
+    | TYPE_I 64, DV_I64 i1, TYPE_I 1 =>
+      Some (DV_I1 (repr (unsigned i1)))
+    | TYPE_I 64, DV_I64 i1, TYPE_I 8 =>
+      Some (DV_I8 (repr (unsigned i1)))
+    | TYPE_I 64, DV_I64 i1, TYPE_I 32 =>
+      Some (DV_I32 (repr (unsigned i1)))
+    | _, _, _ => None
+    end
+  | Zext =>
+    match t1, x, t2 with
+    | TYPE_I 1, DV_I1 i1, TYPE_I 8 =>
+      Some (DV_I8 (repr (unsigned i1)))
+    | TYPE_I 1, DV_I1 i1, TYPE_I 32 =>
+      Some (DV_I32 (repr (unsigned i1)))
+    | TYPE_I 1, DV_I1 i1, TYPE_I 64 =>
+      Some (DV_I64 (repr (unsigned i1)))
+    | TYPE_I 8, DV_I8 i1, TYPE_I 32 =>
+      Some (DV_I32 (repr (unsigned i1)))
+    | TYPE_I 8, DV_I8 i1, TYPE_I 64 =>
+      Some (DV_I64 (repr (unsigned i1)))
+    | TYPE_I 32, DV_I32 i1, TYPE_I 64 =>
+      Some (DV_I64 (repr (unsigned i1)))
+    | _, _, _ => None
+    end
+  | Sext =>
+    match t1, x, t2 with
+    | TYPE_I 1, DV_I1 i1, TYPE_I 8 =>
+      Some (DV_I8 (repr (signed i1)))
+    | TYPE_I 1, DV_I1 i1, TYPE_I 32 =>
+      Some (DV_I32 (repr (signed i1)))
+    | TYPE_I 1, DV_I1 i1, TYPE_I 64 =>
+      Some (DV_I64 (repr (signed i1)))
+    | TYPE_I 8, DV_I8 i1, TYPE_I 32 =>
+      Some (DV_I32 (repr (signed i1)))
+    | TYPE_I 8, DV_I8 i1, TYPE_I 64 =>
+      Some (DV_I64 (repr (signed i1)))
+    | TYPE_I 32, DV_I32 i1, TYPE_I 64 =>
+      Some (DV_I64 (repr (signed i1)))
+    | _, _, _ => None
+    end
+  | Bitcast =>
+    match t1, x, t2 with
+    | TYPE_I bits1, x, TYPE_I bits2 =>
+      if (bits1 =? bits2)%N then Some x else None
+    | _, _, _ => None
+    end
+  | Uitofp
+  | Sitofp
+  | Fptoui
+  | Fptosi
+  | Fptrunc
+  | Fpext => None
+  | Inttoptr
+  | Ptrtoint => None
+  | Addrspacecast => None
+  end
 .
