@@ -444,6 +444,7 @@ Fixpoint eval_ibinop (op : ibinop) (v1 v2 : dynamic_value) : option dynamic_valu
   end
 .
 
+(* TODO: compare with the latest version *)
 Definition eval_icmp_generic {Int} `{VInt Int} icmp (x y : Int) : dynamic_value :=
   if match icmp with
      | Eq => cmp Ceq x y
@@ -474,6 +475,8 @@ Fixpoint eval_icmp (op : icmp) (v1 v2 : dynamic_value) : option dynamic_value :=
   end
 .
 
+(* TODO: compare with the latest version *)
+(* TODO: handle i16 *)
 Definition convert conv x t1 t2 : option dynamic_value :=
   match conv with
   | Trunc =>
