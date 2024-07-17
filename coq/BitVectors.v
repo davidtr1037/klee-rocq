@@ -9,9 +9,11 @@ Module Wordsize_1.
 End Wordsize_1.
 
 Module Int1 := Make(Wordsize_1).
+Module Int8 := Byte.
+Module Int32 := Int.
 
 Definition int1 := Int1.int.
-Definition int8 := Byte.int.
+Definition int8 := Int8.int.
 Definition int16 := Int16.int.
-Definition int32 := Int.int.
+Definition int32 := Int32.int.
 Definition int64 := Int64.int.
