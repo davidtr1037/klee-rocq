@@ -27,7 +27,7 @@ Definition lookup_ident (s : state) (id : ident) : option dynamic_value :=
   end
 .
 
-(* TODO: why vellvm passed dtyp? *)
+(* TODO: why vellvm passes dtyp? *)
 Fixpoint eval_exp (s : state) (t : typ) (e : exp typ) : option dynamic_value :=
   match e with
   | EXP_Ident id => lookup_ident s id

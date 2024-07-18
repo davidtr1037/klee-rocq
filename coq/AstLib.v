@@ -726,7 +726,7 @@ Section hiding_notation.
              [Atom "define"; to_sexp ret_t; to_sexp name;
              Atom " {\n";
              (* TODO: Add prefix for indentation? *)
-             to_sexp (df_instrs defn);
+             to_sexp (df_body defn);
              Atom "}\n"]
         | _ => Atom "Invalid type on function"
         end.

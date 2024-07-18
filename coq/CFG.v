@@ -1,3 +1,4 @@
+(* TODO: rename modul --> module *)
 (* begin hide *)
 Require Import Equalities.
 
@@ -41,41 +42,27 @@ Section CFG.
   | Term (t:terminator T)
   .
 
-  (** * Open cfg
-      A potentially open cfg ([ocfg]) is simply a list of blocks.
-   *)
-  Definition ocfg := list (block T).
+  Record cfg := mkCFG {
+    init : block_id;
+    blks : list (block T);
+    args : list raw_id;
+  }.
 
-  (** * cfg
-      Each function definition corresponds to a control-flow graph
-   - init is the entry block
-   - blks is a list of labeled blocks
-   - args is the list of identifiers brought into scope by this function
-   *)
-  Record cfg := mkCFG
-                  {
-                    init : block_id;
-                    blks : ocfg;
-                    args : list raw_id;
-                  }.
-
-  Record modul {FnBody:Set} : Set :=
-    mk_modul
-      {
-        m_name: option string;
-        m_target: option string;
-        m_datalayout: option string;
-        m_type_defs: list (ident * T);
-        m_globals: list (global T);
-        m_declarations: list (declaration T);
-        m_definitions: list (@definition T FnBody);
-      }.
+  Record module {Body : Set} : Set := mk_module {
+    m_name : option string;
+    m_target : option string;
+    m_datalayout : option string;
+    m_type_defs : list (ident * T);
+    m_globals : list (global T);
+    m_declarations : list (declaration T);
+    m_definitions : list (@definition T Body);
+  }.
 
   (** * mcfg
       An [mcfg] is a module where each function body has been converted to a cfg.
       This structure is the internal representation of a VIR program.
-   *)
-  Definition mcfg : Set := @modul cfg.
+  *)
+  Definition llvm_module : Set := @module cfg.
 
   (* We now define the conversion from the output of the parser to the internal
      structure of a [mcfg].
@@ -131,7 +118,7 @@ Section CFG.
     | _ => []
     end.
 
-  Definition modul_of_toplevel_entities {X} (tles : toplevel_entities T X) : @modul X :=
+  Definition modul_of_toplevel_entities {X} (tles : toplevel_entities T X) : @module X :=
     {|
       m_name := find_map filename_of tles;
       m_target := find_map target_of tles;
@@ -184,7 +171,7 @@ Section CFG.
     | d::ds => (TLE_Definition d)::(tle_of_definitions ds)
     end.
 
-  Definition toplevel_entities_of_modul {X} (m: @modul X): toplevel_entities T X :=
+  Definition toplevel_entities_of_modul {X} (m: @module X): toplevel_entities T X :=
     tle_of_name (m_name m)
     ++ tle_of_target (m_target m)
     ++ tle_of_datalayout (m_datalayout m)
@@ -195,19 +182,19 @@ Section CFG.
   .
 
   Definition init_of_definition (d : definition T (block T * list (block T))) : block_id :=
-    blk_id (fst (df_instrs d)).
+    blk_id (fst (df_body d)).
 
   Definition cfg_of_definition (d : definition T (block T * list (block T))) : cfg :=
     {| init := init_of_definition d;
-       blks := fst (df_instrs d) :: snd (df_instrs d);
+       blks := fst (df_body d) :: snd (df_body d);
        args := df_args d;
     |}.
 
-  Definition mcfg_of_modul (m : @modul (block T * list (block T))) : mcfg :=
+  Definition mcfg_of_modul (m : @module (block T * list (block T))) : llvm_module :=
     let defns := map (fun d => {|
                           df_prototype := df_prototype d;
                           df_args := df_args d;
-                          df_instrs := cfg_of_definition d
+                          df_body := cfg_of_definition d
                         |}) (m_definitions m)
     in
     {|
@@ -227,7 +214,7 @@ Section CFG.
   Fixpoint modul_defns_of_mcfg_defns (ds: list (definition T cfg)): option (list (definition T (block T * list (block T)))) :=
     match ds with
     | [] => Some []
-    | d::ds => match blks (df_instrs d) with
+    | d::ds => match blks (df_body d) with
               | [] => None
               | x::xs => match modul_defns_of_mcfg_defns ds with
                         | None => None
@@ -235,14 +222,14 @@ Section CFG.
                                        {|
                                          df_prototype := df_prototype d;
                                          df_args := df_args d;
-                                         df_instrs := (x, xs)
+                                         df_body := (x, xs)
                                        |}
                                          ::l)
                         end
               end
     end.
 
-  Definition modul_of_mcfg (m: mcfg): option (@modul (block T * list (block T))) :=
+  Definition modul_of_mcfg (m: llvm_module): option (@module (block T * list (block T))) :=
     match modul_defns_of_mcfg_defns (m_definitions m) with
     | None => None
     | Some defns => Some
@@ -268,8 +255,8 @@ Arguments modul_defns_of_mcfg_defns {T}.
 Definition mcfg_of_tle (p : toplevel_entities typ (block typ * list (block typ))) :=
   mcfg_of_modul (modul_of_toplevel_entities p).
 
-Arguments modul {_} _.
-Arguments mk_modul {_ _}.
+Arguments module {_} _.
+Arguments mk_module {_ _}.
 Arguments m_name {_ _}.
 Arguments m_target {_ _}.
 Arguments m_datalayout {_ _}.
@@ -290,17 +277,17 @@ Section TLE_To_Modul.
       modul_defns_of_mcfg_defns (map (fun d => {|
                                           df_prototype := df_prototype d;
                                           df_args := df_args d;
-                                          df_instrs := cfg_of_definition T d
+                                          df_body := cfg_of_definition T d
                                         |}) l) = Some l.
   Proof using.
     induction l; simpl; auto.
     rewrite IHl. repeat f_equal.
     destruct a; simpl; f_equal.
-    destruct df_instrs; simpl; auto.
+    destruct df_body; simpl; auto.
   Qed.
 
   Lemma modul_of_mcfg_of_modul:
-    forall {T} (m: @modul T _),
+    forall {T} (m: @module T _),
       modul_of_mcfg (mcfg_of_modul m) = Some m.
   Proof using.
     destruct m.
@@ -313,7 +300,7 @@ Section TLE_To_Modul.
   Definition opt_first {T: Type} (o1 o2: option T): option T :=
     match o1 with | Some x => Some x | None => o2 end.
 
-  Definition modul_app {T X} (m1 m2: @modul T X): @modul T X :=
+  Definition modul_app {T X} (m1 m2: @module T X): @module T X :=
     let (name1, target1, layout1, tdefs1, globs1, decls1, defs1) := m1 in
     let (name2, target2, layout2, tdefs2, globs2, decls2, defs2) := m2 in
     {|
@@ -347,43 +334,43 @@ Section TLE_To_Modul.
 
   Infix "@@" := (modul_app) (at level 60).
 
-  Lemma m_definitions_app: forall {T X} (p1 p2 : @modul T X),
+  Lemma m_definitions_app: forall {T X} (p1 p2 : @module T X),
       m_definitions (p1 @@ p2) = m_definitions p1 ++ m_definitions p2.
   Proof using.
     intros ? ? [] []; reflexivity.
   Qed.
 
-  Lemma m_name_app: forall {T X} (p1 p2 : @modul T X),
+  Lemma m_name_app: forall {T X} (p1 p2 : @module T X),
       m_name (p1 @@ p2) = opt_first (m_name p1) (m_name p2).
   Proof using.
     intros ? ? [] []; reflexivity.
   Qed.
 
-  Lemma m_target_app: forall {T X} (p1 p2 : @modul T X),
+  Lemma m_target_app: forall {T X} (p1 p2 : @module T X),
       m_target (p1 @@ p2) = opt_first (m_target p1) (m_target p2).
   Proof using.
     intros ? ? [] []; reflexivity.
   Qed.
 
-  Lemma m_datalayout_app: forall {T X} (p1 p2 : @modul T X),
+  Lemma m_datalayout_app: forall {T X} (p1 p2 : @module T X),
       m_datalayout (p1 @@ p2) = opt_first (m_datalayout p1) (m_datalayout p2).
   Proof using.
     intros ? ? [] []; reflexivity.
   Qed.
 
-  Lemma m_type_defs_app: forall {T X} (p1 p2 : @modul T X),
+  Lemma m_type_defs_app: forall {T X} (p1 p2 : @module T X),
       m_type_defs (p1 @@ p2) = m_type_defs p1 ++ m_type_defs p2.
   Proof using.
     intros ? ? [] []; reflexivity.
   Qed.
 
-  Lemma m_globals_app: forall {T X} (p1 p2 : @modul T X),
+  Lemma m_globals_app: forall {T X} (p1 p2 : @module T X),
       m_globals (p1 @@ p2) = m_globals p1 ++ m_globals p2.
   Proof using.
     intros ? ? [] []; reflexivity.
   Qed.
 
-  Lemma m_declarations_app: forall {T X} (p1 p2 : @modul T X),
+  Lemma m_declarations_app: forall {T X} (p1 p2 : @module T X),
       m_declarations (p1 @@ p2) = m_declarations p1 ++ m_declarations p2.
   Proof using.
     intros ? ? [] []; reflexivity.
@@ -424,7 +411,7 @@ Section TLE_To_Modul.
       apply map_option_cons; auto.
   Qed.
 
-  Lemma mcfg_of_app_modul: forall {T} (p1 p2 : @modul T _),
+  Lemma mcfg_of_app_modul: forall {T} (p1 p2 : @module T _),
       mcfg_of_modul (p1 @@ p2) = mcfg_of_modul p1 @@ mcfg_of_modul p2.
   Proof using.
     intros; cbn.

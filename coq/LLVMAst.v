@@ -887,6 +887,7 @@ Definition dc_metadata (d:declaration) : list (list metadata) :=
 
 Definition code := list (instr_id * instr).
 
+(* TODO: move to CFG.v? *)
 Record block : Set := mk_block {
   blk_id : block_id;
   blk_phis : list (local_id * phi);
@@ -895,26 +896,26 @@ Record block : Set := mk_block {
   blk_comments : option (list string)
 }.
 
-Record definition {FnBody:Set} := mk_definition {
+Record definition {Body : Set} := mk_definition {
   df_prototype : declaration;
   df_args : list local_id;
-  df_instrs : FnBody;
+  df_body : Body;
 }.
 
-Variant toplevel_entity {FnBody:Set} : Set :=
-| TLE_Comment (msg:string)
-| TLE_Target (tgt:string)
-| TLE_Datalayout (layout:string)
-| TLE_Declaration (decl:declaration)
-| TLE_Definition (defn:@definition FnBody)
-| TLE_Type_decl (id:ident) (t:T)
-| TLE_Source_filename (s:string)
-| TLE_Global (g:global)
-| TLE_Metadata (id:raw_id) (md:metadata)
-| TLE_Attribute_group (i:int_ast) (attrs:list fn_attr)
+Variant toplevel_entity {Body : Set} : Set :=
+| TLE_Comment (msg : string)
+| TLE_Target (tgt : string)
+| TLE_Datalayout (layout : string)
+| TLE_Declaration (decl : declaration)
+| TLE_Definition (defn : (@definition Body))
+| TLE_Type_decl (id : ident) (t : T)
+| TLE_Source_filename (s : string)
+| TLE_Global (g : global)
+| TLE_Metadata (id : raw_id) (md : metadata)
+| TLE_Attribute_group (i : int_ast) (attrs : list fn_attr)
 .
 
-Definition toplevel_entities (FnBody:Set) : Set := list (@toplevel_entity FnBody).
+Definition toplevel_entities {Body : Set} : Set := list (@toplevel_entity Body).
 
 End TypedSyntax.
 
