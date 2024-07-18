@@ -50,6 +50,8 @@ Definition raw_id_eqb (x y : raw_id) : bool :=
   end
 .
 
+Notation "x =? y" := (raw_id_eqb x y).
+
 Lemma raw_id_eqb_refl :
   forall x, raw_id_eqb x x = true.
 Proof.
