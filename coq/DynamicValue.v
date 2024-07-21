@@ -538,9 +538,9 @@ Definition convert conv x t1 t2 : option dynamic_value :=
   | Fptoui
   | Fptosi
   | Fptrunc
-  | Fpext => None
+  | Fpext
   | Inttoptr
-  | Ptrtoint => None
+  | Ptrtoint
   | Addrspacecast => None
   end
 .
