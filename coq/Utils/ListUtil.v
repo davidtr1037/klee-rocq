@@ -2265,3 +2265,16 @@ split.
 intros m M conv l.
 apply (fold_left (fun acc x => monoid_plus M (conv x) acc) l (monoid_unit M)).
 Defined.
+
+Fixpoint merge_lists {A B} (l1 : list A) (l2 : list B) : option (list (A * B)) :=
+  match l1, l2 with
+  | [], [] => Some []
+  | [], x2 :: t2 => None
+  | x1 :: t1, [] => None
+  | x1 :: t1, x2 :: t2 =>
+      match (merge_lists t1 t2) with
+      | Some t => Some ((x1, x2) :: t)
+      | None => None
+      end
+  end
+.
