@@ -18,10 +18,9 @@ Record inst_counter := mk_inst_counter {
   cid : cmd_id;
 }.
 
-(* TODO: why option? *)
-Definition dv_store := total_map (option dynamic_value).
+Definition dv_store := total_map dynamic_value.
 
-Definition empty_dv_store := empty_map (Some DV_Undef).
+Definition empty_dv_store := empty_map DV_Undef.
 
 Definition global_store := dv_store.
 
@@ -64,48 +63,67 @@ Definition build_local_store (m : llvm_module) (d : llvm_definition) := empty_dv
 
 Definition get_global_initializer (g : llvm_global) : option dynamic_value :=
   match (g_exp g) with
-  | Some e => eval_constant_exp (g_typ g) e
+  | Some e =>
+      match (eval_constant_exp (g_typ g) e) with
+      | Some dv => Some dv
+      | _ => None
+      end
   | _ => Some DV_Undef (* TODO: check against the specifiction *)
   end
 .
 
-Fixpoint build_global_store_internal (gs : global_store) (l : list llvm_global) :=
-  match l with
-  | g :: t => build_global_store_internal ((g_ident g) !-> (get_global_initializer g); gs) t
-  | nil => gs
+Definition add_global (gs : global_store) (g : llvm_global) : option global_store :=
+  match (get_global_initializer g) with
+  | Some dv => Some ((g_ident g) !-> dv; gs)
+  | _ => None
   end
 .
 
-Definition build_global_store (m : llvm_module) : global_store :=
+Fixpoint build_global_store_internal (gs : global_store) (l : list llvm_global) : option global_store :=
+  match l with
+  | g :: tail =>
+      match (add_global gs g) with
+      | Some gs' => build_global_store_internal gs' tail
+      | _ => None
+      end
+  | [] => Some gs
+  end
+.
+
+Definition build_global_store (m : llvm_module) : option global_store :=
   build_global_store_internal empty_dv_store (m_globals m)
 .
 
 (* TODO: assumes that there are no parameters *)
 Definition init_state (m : llvm_module) (d : llvm_definition) : option state :=
-  match (build_inst_counter m d) with
-  | Some ic =>
-      match (entry_block d) with
-      | Some b =>
-          match (blk_cmds b) with
-          | cmd :: tail =>
-              Some (mk_state
-                ic
-                cmd
-                tail
-                (build_local_store m d)
-                []
-                (build_global_store m)
-                m
-              )
-          | _ => None
-          end
-      | None => None
-      end
-  | None => None
+  match (build_global_store m) with
+  | Some gs =>
+    match (build_inst_counter m d) with
+    | Some ic =>
+        match (entry_block d) with
+        | Some b =>
+            match (blk_cmds b) with
+            | cmd :: tail =>
+                Some (mk_state
+                  ic
+                  cmd
+                  tail
+                  (build_local_store m d)
+                  []
+                  gs
+                  m
+                )
+            | _ => None
+            end
+        | None => None
+        end
+    | None => None
+    end
+  | _ => None
   end
 .
 
-Definition lookup_ident (s : dv_store) (g : global_store) (id : ident) : option dynamic_value :=
+Definition lookup_ident (s : dv_store) (g : global_store) (id : ident) : dynamic_value :=
   match id with
   | ID_Local x => s x
   | ID_Global x => g x
@@ -115,7 +133,7 @@ Definition lookup_ident (s : dv_store) (g : global_store) (id : ident) : option 
 (* TODO: why vellvm passes dtyp? *)
 Fixpoint eval_exp (s : dv_store) (g : global_store) (t : option typ) (e : exp typ) : option dynamic_value :=
   match e with
-  | EXP_Ident id => lookup_ident s g id
+  | EXP_Ident id => Some (lookup_ident s g id)
   | EXP_Integer n =>
       match t with
       | Some (TYPE_I bits) => make_dv bits n
@@ -212,7 +230,7 @@ Fixpoint eval_args (s : dv_store) (g : global_store) (args : list function_arg) 
 
 Fixpoint fill_store (l : list (raw_id * dynamic_value)) : dv_store :=
   match l with
-  | (id, dv) :: tail => (id !-> Some dv; (fill_store tail))
+  | (id, dv) :: tail => (id !-> dv; (fill_store tail))
   | [] => empty_dv_store
   end
 .
@@ -224,7 +242,6 @@ Definition init_local_store (d : llvm_definition) (dvs : list dynamic_value) : o
   end
 .
 
-(* TODO: s (store) --> ls (local store) *)
 Inductive step : state -> state -> Prop :=
   | Step_OP : forall pc cid v e c b ls stk gs m dv,
       (eval_exp ls gs None e) = Some dv ->
@@ -242,7 +259,7 @@ Inductive step : state -> state -> Prop :=
           (next_inst_counter pc c)
           c
           b
-          (v !-> Some dv; ls)
+          (v !-> dv; ls)
           stk
           gs
           m
@@ -414,7 +431,7 @@ Inductive step : state -> state -> Prop :=
           pc'
           c'
           cs'
-          (v !-> Some dv; ls')
+          (v !-> dv; ls')
           stk
           gs
           m
