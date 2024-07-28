@@ -219,18 +219,18 @@ Fixpoint get_arg_types (args : list (function_arg)) : list typ :=
   end
 .
 
-Fixpoint eval_arg (s : dv_store) (g : global_store) (arg : function_arg) : option dynamic_value :=
+Definition eval_arg (ls : dv_store) (gs : global_store) (arg : function_arg) : option dynamic_value :=
   match arg with
-  | ((t, e), _) => (eval_exp s g (Some t) e)
+  | ((t, e), _) => (eval_exp ls gs (Some t) e)
   end
 .
 
-Fixpoint eval_args (s : dv_store) (g : global_store) (args : list function_arg) : option (list dynamic_value) :=
+Fixpoint eval_args (ls : dv_store) (gs : global_store) (args : list function_arg) : option (list dynamic_value) :=
   match args with
   | arg :: tail =>
-      match (eval_arg s g arg) with
+      match (eval_arg ls gs arg) with
       | Some dv =>
-          match (eval_args s g tail) with
+          match (eval_args ls gs tail) with
           | Some dvs => Some (dv :: dvs)
           | _ => None
           end
@@ -522,6 +522,7 @@ Inductive step : state -> state -> Prop :=
           gs
           m
         )
+  (* TODO: check the actual type of klee_make_symbolic_int32? *)
   | Step_MakeSymbolicInt32 : forall ic cid v c cs pbid ls stk gs m n,
       step
         (mk_state
@@ -544,6 +545,8 @@ Inductive step : state -> state -> Prop :=
           gs
           m
         )
+  (* TODO: what is the expected type of the argument (t)? *)
+  (* TODO: check the actual type of klee_assume? *)
   | Step_Assume : forall ic cid t e attrs c cs pbid ls stk gs m dv,
       (eval_exp ls gs (Some t) e) = Some dv ->
       (convert Trunc dv t (TYPE_I 1)) = Some (DV_I1 one) ->
@@ -575,5 +578,5 @@ Definition multi_step := multi step.
 (* TODO: add assumptions about the module? *)
 Definition is_safe_program : forall m d,
   exists s0,
-  (init_state m d) = Some s0 /\ (* TODO: define as a well-formed property? *)
+    (init_state m d) = Some s0 /\ (* TODO: define as a well-formed property? *)
     forall s, multi_step s0 s -> ~ error_state s.
