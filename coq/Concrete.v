@@ -219,10 +219,16 @@ Fixpoint get_arg_types (args : list (function_arg)) : list typ :=
   end
 .
 
+Fixpoint eval_arg (s : dv_store) (g : global_store) (arg : function_arg) : option dynamic_value :=
+  match arg with
+  | ((t, e), _) => (eval_exp s g (Some t) e)
+  end
+.
+
 Fixpoint eval_args (s : dv_store) (g : global_store) (args : list function_arg) : option (list dynamic_value) :=
   match args with
-  | ((t, e), _) :: tail =>
-      match (eval_exp s g (Some t) e) with
+  | arg :: tail =>
+      match (eval_arg s g arg) with
       | Some dv =>
           match (eval_args s g tail) with
           | Some dvs => Some (dv :: dvs)
@@ -273,6 +279,15 @@ Definition get_trailing_cmds (d : llvm_definition) (ic : inst_counter) : option 
   | _ => None
   end
 .
+
+Definition special_functions : list function_id := [
+  (Name "__assert_fail")
+].
+
+Definition klee_make_symbolic_int32 : exp typ :=
+  EXP_Ident (ID_Global (Name "klee_make_symbolic_int32")).
+Definition klee_assume : exp typ :=
+  EXP_Ident (ID_Global (Name "klee_assume")).
 
 Inductive step : state -> state -> Prop :=
   | Step_OP : forall ic cid v e c cs pbid ls stk gs m dv,
@@ -400,6 +415,7 @@ Inductive step : state -> state -> Prop :=
         )
   | Step_VoidCall : forall ic cid f args anns c cs pbid ls stk gs m d b c' cs' dvs ls',
       (find_function_by_exp m f) = Some d ->
+      ~ (In (dc_name (df_prototype d))  special_functions) ->
       (dc_type (df_prototype d)) = TYPE_Function TYPE_Void (get_arg_types args) false ->
       (entry_block d) = Some b ->
       (blk_cmds b) = c' :: cs' ->
@@ -428,6 +444,7 @@ Inductive step : state -> state -> Prop :=
         )
   | Step_Call : forall ic cid v t f args anns c cs pbid ls stk gs m d b c' cs' dvs ls',
       (find_function_by_exp m f) = Some d ->
+      ~ (In (dc_name (df_prototype d))  special_functions) ->
       (dc_type (df_prototype d)) = TYPE_Function t (get_arg_types args) false ->
       (entry_block d) = Some b ->
       (blk_cmds b) = c' :: cs' ->
@@ -501,6 +518,52 @@ Inductive step : state -> state -> Prop :=
           cs'
           pbid'
           (v !-> dv; ls')
+          stk
+          gs
+          m
+        )
+  | Step_MakeSymbolicInt32 : forall ic cid v c cs pbid ls stk gs m n,
+      step
+        (mk_state
+          ic
+          (CMD_Inst cid (INSTR_Call v ((TYPE_I 32), klee_make_symbolic_int32) [] []))
+          (c :: cs)
+          pbid
+          ls
+          stk
+          gs
+          m
+        )
+        (mk_state
+          (next_inst_counter ic c)
+          c
+          cs
+          pbid
+          (v !-> (DV_I32 (repr n)); ls)
+          stk
+          gs
+          m
+        )
+  | Step_Assume : forall ic cid t e attrs c cs pbid ls stk gs m dv,
+      (eval_exp ls gs (Some t) e) = Some dv ->
+      (convert Trunc dv t (TYPE_I 1)) = Some (DV_I1 one) ->
+      step
+        (mk_state
+          ic
+          (CMD_Inst cid (INSTR_VoidCall (TYPE_Void, klee_assume) [((t, e), attrs)] []))
+          (c :: cs)
+          pbid
+          ls
+          stk
+          gs
+          m
+        )
+        (mk_state
+          (next_inst_counter ic c)
+          c
+          cs
+          pbid
+          ls
           stk
           gs
           m
