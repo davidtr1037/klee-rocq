@@ -50,6 +50,9 @@ Record state : Type := mk_state {
   module : llvm_module;
 }.
 
+Inductive error_state : state -> Prop :=
+.
+
 Definition build_inst_counter (m : llvm_module) (d : llvm_definition) : option inst_counter :=
   match (entry_block d) with
   | Some b =>
@@ -394,7 +397,6 @@ Inductive step : state -> state -> Prop :=
           gs
           m
         )
-  (* TODO: t must be TYPE_Void here? *)
   | Step_VoidCall : forall ic cid f args anns c cs pbid ls stk gs m d b c' cs' dvs ls',
       (find_function_by_exp m f) = Some d ->
       (dc_type (df_prototype d)) = TYPE_Function TYPE_Void (get_arg_types args) false ->
@@ -505,3 +507,9 @@ Inductive step : state -> state -> Prop :=
 .
 
 Definition multi_step := multi step.
+
+Definition is_safe_program : forall m,
+  exists d s0,
+    (find_function m (Name "main")) = Some d /\
+    (init_state m d) = Some s0 /\
+    forall s, multi_step s0 s -> ~ error_state s.
