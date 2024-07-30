@@ -576,7 +576,7 @@ Inductive step : state -> state -> Prop :=
 Definition multi_step := multi step.
 
 (* TODO: add assumptions about the module? *)
-Definition is_safe_program : forall m d,
+Definition is_safe_program (m : llvm_module) (d : llvm_definition) :=
   exists s0,
     (init_state m d) = Some s0 /\ (* TODO: define as a well-formed property? *)
     forall s, multi_step s0 s -> ~ error_state s.

@@ -6,11 +6,11 @@ From SE.Numeric Require Import Integers.
 From SE Require Import LLVMAst.
 
 Inductive dynamic_value : Type :=
-  | DV_I1 (x : int1)
-  | DV_I8 (x : int8)
-  | DV_I16 (x : int16)
-  | DV_I32 (x : int32)
-  | DV_I64 (x : int64)
+  | DV_I1 (n : int1)
+  | DV_I8 (n : int8)
+  | DV_I16 (n : int16)
+  | DV_I32 (n : int32)
+  | DV_I64 (n : int64)
   | DV_Undef
   | DV_Poison
 .
