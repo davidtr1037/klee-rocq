@@ -320,6 +320,9 @@ Global Instance VInt64 : VInt Int64.int := {
   repr := Int64.repr;
 }.
 
+Definition bv_true := DV_I1 one.
+Definition bv_false := DV_I1 zero.
+
 (* TODO: compare with the latest version *)
 (* TODO: why returns DV_Undef in some cases? *)
 Definition eval_ibinop_generic {Int} `{VInt Int} (op : ibinop) (x y : Int) : dynamic_value :=
@@ -433,6 +436,7 @@ Definition make_dv (bits : N) (n : Z) : option dynamic_value :=
   end
 .
 
+(* TODO: rename to eval_binop *)
 Fixpoint eval_ibinop (op : ibinop) (v1 v2 : dynamic_value) : option dynamic_value :=
   match (v1, v2) with
   | (DV_I1 n1, DV_I1 n2)
@@ -554,7 +558,7 @@ Fixpoint eval_constant_exp (t : typ) (e : exp typ) : option dynamic_value :=
       end
   | EXP_Bool b => Some (make_bool b)
   | EXP_Undef => Some DV_Undef
-    | OP_IBinop iop t v1 v2 =>
+  | OP_IBinop iop t v1 v2 =>
       match (eval_constant_exp t v1, eval_constant_exp t v2) with
       | (Some dv1, Some dv2) => eval_ibinop iop dv1 dv2
       | (_, _) => None
