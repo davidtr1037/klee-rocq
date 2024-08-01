@@ -396,7 +396,7 @@ Inductive step : state -> state -> Prop :=
           m
         )
   | Step_Br_True : forall ic cid t e bid1 bid2 pbid ls stk gs m d b c cs,
-      (eval_exp ls gs (Some t) e) = Some (DV_I1 one) ->
+      (eval_exp ls gs (Some t) e) = Some dv_true ->
       (find_function m (fid ic)) = Some d ->
       (fetch_block d bid1) = Some b ->
       (blk_cmds b) = c :: cs ->
@@ -422,7 +422,7 @@ Inductive step : state -> state -> Prop :=
           m
         )
   | Step_Br_False : forall ic cid t e bid1 bid2 pbid ls stk gs m d b c cs,
-      (eval_exp ls gs (Some t) e) = Some (DV_I1 zero) ->
+      (eval_exp ls gs (Some t) e) = Some dv_true ->
       (find_function m (fid ic)) = Some d ->
       (fetch_block d bid2) = Some b ->
       (blk_cmds b) = c :: cs ->
@@ -574,7 +574,7 @@ Inductive step : state -> state -> Prop :=
           c
           cs
           pbid
-          (v !-> (DV_I32 (repr n)); ls)
+          (v !-> (DV_Int (DI_I32 (repr n))); ls)
           stk
           gs
           m
@@ -586,7 +586,7 @@ Inductive step : state -> state -> Prop :=
       (dc_type d) = klee_assume_type ->
       (eval_exp ls gs (Some t) e) = Some dv ->
       (* TODO: verify this... *)
-      (convert Trunc dv t (TYPE_I 1)) = Some (DV_I1 one) ->
+      (convert Trunc dv t (TYPE_I 1)) = Some dv_true ->
       step
         (mk_state
           ic
