@@ -59,6 +59,7 @@ Definition llvm_global := @global typ.
 Definition llvm_cmd := @cmd typ.
 Definition llvm_block := @block typ.
 Definition llvm_cfg := @cfg typ.
+Definition llvm_declaration := @declaration typ.
 Definition llvm_definition := @definition typ llvm_cfg.
 Definition llvm_module : Set := @module typ llvm_cfg.
 
@@ -103,6 +104,14 @@ Definition entry_block (d : llvm_definition) : option llvm_block :=
 
 Definition fetch_block (d : llvm_definition) (bid : block_id) : option llvm_block :=
   find_block (blks (df_body d)) bid
+.
+
+Definition match_declaration (fid : function_id) (d : llvm_declaration) : option (llvm_declaration) :=
+  if (dc_name d) =? fid then Some d else None
+.
+
+Definition find_declaration (m : llvm_module) (fid : function_id) : option (llvm_declaration) :=
+  find_map (match_declaration fid) (m_declarations m)
 .
 
 Definition match_function (fid : function_id) (d : llvm_definition) : option (llvm_definition) :=
