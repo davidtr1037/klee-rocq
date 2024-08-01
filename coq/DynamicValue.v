@@ -320,8 +320,8 @@ Global Instance VInt64 : VInt Int64.int := {
   repr := Int64.repr;
 }.
 
-Definition bv_true := DV_I1 one.
-Definition bv_false := DV_I1 zero.
+Definition dv_true := DV_I1 one.
+Definition dv_false := DV_I1 zero.
 
 (* TODO: compare with the latest version *)
 (* TODO: why returns DV_Undef in some cases? *)
