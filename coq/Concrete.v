@@ -95,82 +95,6 @@ Inductive error_state : state -> Prop :=
        )
 .
 
-Definition build_inst_counter (m : llvm_module) (d : llvm_definition) : option inst_counter :=
-  match (entry_block d) with
-  | Some b =>
-      match (get_first_cmd_id b) with
-      | Some cid => Some (mk_inst_counter (dc_name (df_prototype d)) (blk_id b) cid)
-      | _ => None
-      end
-  | _ => None
-  end
-.
-
-Definition build_local_store (m : llvm_module) (d : llvm_definition) := empty_dv_store.
-
-Definition get_global_initializer (g : llvm_global) : option dynamic_value :=
-  match (g_exp g) with
-  | Some e =>
-      match (eval_constant_exp (g_typ g) e) with
-      | Some dv => Some dv
-      | _ => None
-      end
-  | _ => Some DV_Undef (* TODO: check against the specifiction *)
-  end
-.
-
-Definition add_global (gs : global_store) (g : llvm_global) : option global_store :=
-  match (get_global_initializer g) with
-  | Some dv => Some ((g_ident g) !-> dv; gs)
-  | _ => None
-  end
-.
-
-Fixpoint build_global_store_internal (gs : global_store) (l : list llvm_global) : option global_store :=
-  match l with
-  | g :: tail =>
-      match (add_global gs g) with
-      | Some gs' => build_global_store_internal gs' tail
-      | _ => None
-      end
-  | [] => Some gs
-  end
-.
-
-Definition build_global_store (m : llvm_module) : option global_store :=
-  build_global_store_internal empty_dv_store (m_globals m)
-.
-
-(* TODO: assumes that there are no parameters *)
-Definition init_state (m : llvm_module) (d : llvm_definition) : option state :=
-  match (build_global_store m) with
-  | Some gs =>
-    match (build_inst_counter m d) with
-    | Some ic =>
-        match (entry_block d) with
-        | Some b =>
-            match (blk_cmds b) with
-            | cmd :: tail =>
-                Some (mk_state
-                  ic
-                  cmd
-                  tail
-                  None
-                  (build_local_store m d)
-                  []
-                  gs
-                  m
-                )
-            | _ => None
-            end
-        | None => None
-        end
-    | None => None
-    end
-  | _ => None
-  end
-.
-
 Definition lookup_ident (s : dv_store) (g : global_store) (id : ident) : dynamic_value :=
   match id with
   | ID_Local x => s x
@@ -612,6 +536,82 @@ Inductive step : state -> state -> Prop :=
 .
 
 Definition multi_step := multi step.
+
+Definition build_inst_counter (m : llvm_module) (d : llvm_definition) : option inst_counter :=
+  match (entry_block d) with
+  | Some b =>
+      match (get_first_cmd_id b) with
+      | Some cid => Some (mk_inst_counter (dc_name (df_prototype d)) (blk_id b) cid)
+      | _ => None
+      end
+  | _ => None
+  end
+.
+
+Definition build_local_store (m : llvm_module) (d : llvm_definition) := empty_dv_store.
+
+Definition get_global_initializer (g : llvm_global) : option dynamic_value :=
+  match (g_exp g) with
+  | Some e =>
+      match (eval_constant_exp (g_typ g) e) with
+      | Some dv => Some dv
+      | _ => None
+      end
+  | _ => Some DV_Undef (* TODO: check against the specifiction *)
+  end
+.
+
+Definition add_global (gs : global_store) (g : llvm_global) : option global_store :=
+  match (get_global_initializer g) with
+  | Some dv => Some ((g_ident g) !-> dv; gs)
+  | _ => None
+  end
+.
+
+Fixpoint build_global_store_internal (gs : global_store) (l : list llvm_global) : option global_store :=
+  match l with
+  | g :: tail =>
+      match (add_global gs g) with
+      | Some gs' => build_global_store_internal gs' tail
+      | _ => None
+      end
+  | [] => Some gs
+  end
+.
+
+Definition build_global_store (m : llvm_module) : option global_store :=
+  build_global_store_internal empty_dv_store (m_globals m)
+.
+
+(* TODO: assumes that there are no parameters *)
+Definition init_state (m : llvm_module) (d : llvm_definition) : option state :=
+  match (build_global_store m) with
+  | Some gs =>
+    match (build_inst_counter m d) with
+    | Some ic =>
+        match (entry_block d) with
+        | Some b =>
+            match (blk_cmds b) with
+            | cmd :: tail =>
+                Some (mk_state
+                  ic
+                  cmd
+                  tail
+                  None
+                  (build_local_store m d)
+                  []
+                  gs
+                  m
+                )
+            | _ => None
+            end
+        | None => None
+        end
+    | None => None
+    end
+  | _ => None
+  end
+.
 
 (* TODO: add assumptions about the module? *)
 Definition is_safe_program (m : llvm_module) (d : llvm_definition) :=
