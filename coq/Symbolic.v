@@ -546,43 +546,14 @@ Inductive sym_step : sym_state -> sym_state -> Prop :=
           pc
           m
         )
-.
-
-(*
-  | Step_MakeSymbolicInt32 : forall ic cid v c cs pbid ls stk gs m n d,
-      (find_function m klee_make_symbolic_int32_id) = None ->
-      (find_declaration m klee_make_symbolic_int32_id) = Some d ->
-      (dc_type d) = klee_make_symbolic_int32_type ->
-      step
-        (mk_sym_state
-          ic
-          (CMD_Inst cid (INSTR_Call v ((TYPE_I 32), klee_make_symbolic_int32_exp) [] []))
-          (c :: cs)
-          pbid
-          ls
-          stk
-          gs
-          m
-        )
-        (mk_sym_state
-          (next_inst_counter ic c)
-          c
-          cs
-          pbid
-          (v !-> (DV_Int (DI_I32 (repr n))); ls)
-          stk
-          gs
-          m
-        )
   (* TODO: what is the expected type of the argument (t)? *)
-  | Step_Assume : forall ic cid t e attrs c cs pbid ls stk gs m d dv,
+  | Sym_Step_Assume : forall ic cid t e attrs c cs pbid ls stk gs syms pc m d se cond,
       (find_function m klee_assume_id) = None ->
       (find_declaration m klee_assume_id) = Some d ->
       (dc_type d) = klee_assume_type ->
-      (eval_exp ls gs (Some t) e) = Some dv ->
-      (* TODO: verify this... *)
-      (convert Trunc dv t (TYPE_I 1)) = Some dv_true ->
-      step
+      (sym_eval_exp ls gs (Some t) e) = Some se ->
+      (sym_convert Trunc se t (TYPE_I 1)) = Some cond ->
+      sym_step
         (mk_sym_state
           ic
           (CMD_Inst cid (INSTR_VoidCall (TYPE_Void, klee_assume_exp) [((t, e), attrs)] []))
@@ -591,6 +562,8 @@ Inductive sym_step : sym_state -> sym_state -> Prop :=
           ls
           stk
           gs
+          syms
+          pc
           m
         )
         (mk_sym_state
@@ -601,7 +574,38 @@ Inductive sym_step : sym_state -> sym_state -> Prop :=
           ls
           stk
           gs
+          syms
+          (SMT_BinOp SMT_And pc cond)
+          m
+        )
+  | Sym_Step_MakeSymbolicInt32 : forall ic cid v c cs pbid ls stk gs syms pc m d name,
+      (find_function m klee_make_symbolic_int32_id) = None ->
+      (find_declaration m klee_make_symbolic_int32_id) = Some d ->
+      (dc_type d) = klee_make_symbolic_int32_type ->
+      (~ In name syms) ->
+      sym_step
+        (mk_sym_state
+          ic
+          (CMD_Inst cid (INSTR_Call v ((TYPE_I 32), klee_make_symbolic_int32_exp) [] []))
+          (c :: cs)
+          pbid
+          ls
+          stk
+          gs
+          syms
+          pc
+          m
+        )
+        (mk_sym_state
+          (next_inst_counter ic c)
+          c
+          cs
+          pbid
+          (v !-> (SMT_Var_I32 name); ls)
+          stk
+          gs
+          (name :: syms)
+          pc
           m
         )
 .
-*)
