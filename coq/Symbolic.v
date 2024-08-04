@@ -247,6 +247,7 @@ Fixpoint fill_smt_store (l : list (raw_id * smt_expr)) : smt_store :=
   end
 .
 
+(* TODO: rename *)
 Definition init_local_smt_store (d : llvm_definition) (es : list smt_expr) : option smt_store :=
   match (merge_lists (df_args d) es) with
   | Some l => Some (fill_smt_store l)
@@ -469,7 +470,7 @@ Inductive sym_step : sym_state -> sym_state -> Prop :=
           cs'
           None
           ls'
-          ((Sym_Frame ls (next_inst_counter ic c) None v) :: stk)
+          ((Sym_Frame ls (next_inst_counter ic c) pbid v) :: stk)
           gs
           syms
           pc

@@ -420,7 +420,7 @@ Inductive step : state -> state -> Prop :=
           cs'
           None
           ls'
-          ((Frame ls (next_inst_counter ic c) None v) :: stk)
+          ((Frame ls (next_inst_counter ic c) pbid v) :: stk)
           gs
           m
         )
