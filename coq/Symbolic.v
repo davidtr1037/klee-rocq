@@ -43,44 +43,28 @@ Record sym_state : Type := mk_sym_state {
   sym_module : llvm_module;
 }.
 
-(* TODO: define error_sym_state *)
-
-(* TODO: ... *)
-Definition build_local_smt_store (m : llvm_module) (d : llvm_definition) : smt_store :=
-  empty_smt_store
-.
-
-Definition build_global_smt_store (m : llvm_module) : option global_smt_store := None.
-
-Definition init_sym_state (m : llvm_module) (d : llvm_definition) : option sym_state :=
-  match (build_global_smt_store m) with
-  | Some gs =>
-    match (build_inst_counter m d) with
-    | Some ic =>
-        match (entry_block d) with
-        | Some b =>
-            match (blk_cmds b) with
-            | cmd :: tail =>
-                Some (mk_sym_state
-                  ic
-                  cmd
-                  tail
-                  None
-                  (build_local_smt_store m d)
-                  []
-                  gs
-                  []
-                  SMT_True
-                  m
-                )
-            | _ => None
-            end
-        | None => None
-        end
-    | None => None
-    end
-  | _ => None
-  end
+Inductive sym_error_state : sym_state -> Prop :=
+  | ES_Assert : forall ic cid args anns cs pbid ls stk gs syms pc m d,
+      (find_function m assert_id) = None ->
+      (find_declaration m assert_id) = Some d ->
+      (dc_type d) = assert_type ->
+      TYPE_Function TYPE_Void (get_arg_types args) false = assert_type ->
+      sym_error_state
+        (mk_sym_state
+          ic
+          (CMD_Inst
+            cid
+            (INSTR_VoidCall (TYPE_Void, assert_exp) args anns)
+          )
+          cs
+          pbid
+          ls
+          stk
+          gs
+          syms
+          pc
+          m
+       )
 .
 
 Inductive sat_sym_state : smt_model -> sym_state -> Prop :=
@@ -184,6 +168,34 @@ Definition sym_convert (conv : conversion_type) (e : smt_expr) t1 t2 : option sm
   end
 .
 
+Fixpoint sym_eval_constant_exp (t : typ) (e : exp typ) : option smt_expr :=
+  match e with
+  | EXP_Integer n =>
+      match t with
+      | TYPE_I bits => make_smt_const bits n
+      | _ => None
+      end
+  | EXP_Bool b => Some (make_smt_bool b)
+  | EXP_Undef => None
+  | OP_IBinop op t v1 v2 =>
+      match (sym_eval_constant_exp t v1, sym_eval_constant_exp t v2) with
+      | (Some e1, Some e2) => Some (sym_eval_ibinop op e1 e2)
+      | (_, _) => None
+      end
+  | OP_ICmp op t v1 v2 =>
+      match (sym_eval_constant_exp t v1, sym_eval_constant_exp t v2) with
+      | (Some e1, Some e2) => Some (sym_eval_icmp op e1 e2)
+      | (_, _) => None
+      end
+  | OP_Conversion conv t1 e t2 =>
+      match sym_eval_constant_exp t1 e with
+      | Some e => sym_convert conv e t1 t2
+      | _ => None
+      end
+  | _ => None
+  end
+.
+
 Fixpoint sym_eval_exp (s : smt_store) (g : global_smt_store) (t : option typ) (e : exp typ) : option smt_expr :=
   match e with
   | EXP_Ident id => Some (sym_lookup_ident s g id)
@@ -205,14 +217,14 @@ Fixpoint sym_eval_exp (s : smt_store) (g : global_smt_store) (t : option typ) (e
   | EXP_Packed_struct fields => None
   | EXP_Array elts => None
   | EXP_Vector elts => None
-  | OP_IBinop iop t v1 v2 =>
+  | OP_IBinop op t v1 v2 =>
       match (sym_eval_exp s g (Some t) v1, sym_eval_exp s g (Some t) v2) with
-      | (Some e1, Some e2) => Some (sym_eval_ibinop iop e1 e2)
+      | (Some e1, Some e2) => Some (sym_eval_ibinop op e1 e2)
       | (_, _) => None
       end
-  | OP_ICmp icmp t v1 v2 =>
+  | OP_ICmp op t v1 v2 =>
       match (sym_eval_exp s g (Some t) v1, sym_eval_exp s g (Some t) v2) with
-      | (Some e1, Some e2) => Some (sym_eval_icmp icmp e1 e2)
+      | (Some e1, Some e2) => Some (sym_eval_icmp op e1 e2)
       | (_, _) => None
       end
   | OP_FBinop fop _ _ _ _ => None
@@ -608,4 +620,70 @@ Inductive sym_step : sym_state -> sym_state -> Prop :=
           pc
           m
         )
+.
+
+Definition multi_sym_step := multi sym_step.
+
+Definition build_local_smt_store (m : llvm_module) (d : llvm_definition) : smt_store :=
+  empty_smt_store
+.
+
+Definition get_global_initializer (g : llvm_global) : option smt_expr :=
+  match (g_exp g) with
+  | Some e => (sym_eval_constant_exp (g_typ g) e)
+  | _ => None (* TODO: check against the specifiction *)
+  end
+.
+
+Definition add_global (gs : global_smt_store) (g : llvm_global) : option global_smt_store :=
+  match (get_global_initializer g) with
+  | Some dv => Some ((g_ident g) !-> dv; gs)
+  | _ => None
+  end
+.
+
+Fixpoint build_global_smt_store_internal (gs : global_smt_store) (l : list llvm_global) : option global_smt_store :=
+  match l with
+  | g :: tail =>
+      match (add_global gs g) with
+      | Some gs' => build_global_smt_store_internal gs' tail
+      | _ => None
+      end
+  | [] => Some gs
+  end
+.
+
+Definition build_global_smt_store (m : llvm_module) : option global_smt_store :=
+  build_global_smt_store_internal empty_smt_store (m_globals m)
+.
+
+Definition init_sym_state (m : llvm_module) (d : llvm_definition) : option sym_state :=
+  match (build_global_smt_store m) with
+  | Some gs =>
+    match (build_inst_counter m d) with
+    | Some ic =>
+        match (entry_block d) with
+        | Some b =>
+            match (blk_cmds b) with
+            | cmd :: tail =>
+                Some (mk_sym_state
+                  ic
+                  cmd
+                  tail
+                  None
+                  (build_local_smt_store m d)
+                  []
+                  gs
+                  []
+                  SMT_True
+                  m
+                )
+            | _ => None
+            end
+        | None => None
+        end
+    | None => None
+    end
+  | _ => None
+  end
 .
