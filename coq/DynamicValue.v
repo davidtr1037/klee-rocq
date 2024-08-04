@@ -126,13 +126,13 @@ Definition make_bool (b : bool) : dynamic_value :=
   end
 .
 
-Definition make_dv (bits : N) (n : Z) : option dynamic_value :=
+Definition make_dv (bits : positive) (n : Z) : option dynamic_value :=
   match bits with
-  | 1%N => Some (DV_Int (DI_I1 (Int1.repr n)))
-  | 8%N => Some (DV_Int (DI_I8 (Int8.repr n)))
-  | 16%N => Some (DV_Int (DI_I16 (Int16.repr n)))
-  | 32%N => Some (DV_Int (DI_I32 (Int32.repr n)))
-  | 64%N => Some (DV_Int (DI_I64 (Int64.repr n)))
+  | 1%positive => Some (DV_Int (DI_I1 (Int1.repr n)))
+  | 8%positive => Some (DV_Int (DI_I8 (Int8.repr n)))
+  | 16%positive => Some (DV_Int (DI_I16 (Int16.repr n)))
+  | 32%positive => Some (DV_Int (DI_I32 (Int32.repr n)))
+  | 64%positive => Some (DV_Int (DI_I64 (Int64.repr n)))
   | _ => None
   end
 .
@@ -234,7 +234,7 @@ Definition convert conv x t1 t2 : option dynamic_value :=
   | Bitcast =>
     match t1, x, t2 with
     | TYPE_I bits1, x, TYPE_I bits2 =>
-      if (bits1 =? bits2)%N then Some x else None
+      if (bits1 =? bits2)%positive then Some x else None
     | _, _, _ => None
     end
   | Uitofp

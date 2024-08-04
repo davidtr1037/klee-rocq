@@ -135,24 +135,51 @@ Definition sym_eval_icmp (op : icmp) (e1 e2 : smt_expr) : smt_expr :=
   end
 .
 
-(* TODO: implement *)
 Definition sym_convert (conv : conversion_type) (e : smt_expr) t1 t2 : option smt_expr :=
   match conv with
   | Trunc =>
     match t1, t2 with
-    | TYPE_I w1, TYPE_I w2 => 
-        match w1, w2 with
-        | 0%N, _ => None
-        | _, 0%N => None
-        | w1, w2 =>
-            if (w2 <=? w1)%N then
-              Some (SMT_Extract e 0 w2)
-            else
-              None
-        end
+    | TYPE_I w1, TYPE_I w2 =>
+        if (w2 <=? w1)%positive then
+          Some (SMT_Extract e 0 w2)
+        else
+          None
     | _, _ => None
     end
-  | _ => None
+  | Zext =>
+    match t1, t2 with
+    | TYPE_I w1, TYPE_I w2 =>
+        if (w1 =? w2)%positive then
+          Some e
+        else
+          if (w2 <=? w1)%positive then
+            Some (SMT_Extract e 0 w2)
+          else
+            Some (SMT_ZExt e w2)
+    | _, _ => None
+    end
+  | Sext =>
+    match t1, t2 with
+    | TYPE_I w1, TYPE_I w2 =>
+        if (w1 =? w2)%positive then
+          Some e
+        else
+          if (w2 <=? w1)%positive then
+            Some (SMT_Extract e 0 w2)
+          else
+            Some (SMT_SExt e w2)
+    | _, _ => None
+    end
+  | Bitcast => Some e
+  | Uitofp
+  | Sitofp
+  | Fptoui
+  | Fptosi
+  | Fptrunc
+  | Fpext
+  | Inttoptr
+  | Ptrtoint
+  | Addrspacecast => None
   end
 .
 

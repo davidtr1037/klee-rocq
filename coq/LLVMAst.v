@@ -75,7 +75,7 @@ Variant ident : Set :=
 (* TODO: the type of sz should be positive? *)
 Unset Elimination Schemes.
 Inductive typ : Set :=
-| TYPE_I (sz:N)
+| TYPE_I (w : positive)
 | TYPE_IPTR
 | TYPE_Pointer (t:typ)
 | TYPE_Void

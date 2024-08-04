@@ -48,12 +48,12 @@ Inductive smt_expr : Type :=
   | SMT_Var_I64 (x : string)
   | SMT_BinOp (op : smt_binop) (e1 e2 : smt_expr)
   | SMT_CmpOp (op : smt_cmpop) (e1 e2 : smt_expr)
-  | SMT_ZExt (e : smt_expr) (w : N)
-  | SMT_SExt (e : smt_expr) (w : N)
+  | SMT_ZExt (e : smt_expr) (w : positive)
+  | SMT_SExt (e : smt_expr) (w : positive)
   | SMT_ITE (e1 e2 e3 : smt_expr)
   | SMT_Not (e : smt_expr)
   | SMT_Concat (e1 e2 : smt_expr)
-  | SMT_Extract (e : smt_expr) (i : N) (w : N)
+  | SMT_Extract (e : smt_expr) (i : N) (w : positive)
   | SMT_Select (a : smt_array) (e : smt_expr)
   with smt_array : Type :=
     | SMT_Array (x : string)
@@ -72,13 +72,13 @@ Inductive smt_sort : Type :=
   | Sort_Array
 .
 
-Definition make_smt_const (bits : N) (n : Z) : option smt_expr :=
+Definition make_smt_const (bits : positive) (n : Z) : option smt_expr :=
   match bits with
-  | 1%N => Some (SMT_Const_I1 (Int1.repr n))
-  | 8%N => Some (SMT_Const_I8 (Int8.repr n))
-  | 16%N => Some (SMT_Const_I16 (Int16.repr n))
-  | 32%N => Some (SMT_Const_I32 (Int32.repr n))
-  | 64%N => Some (SMT_Const_I64 (Int64.repr n))
+  | 1%positive => Some (SMT_Const_I1 (Int1.repr n))
+  | 8%positive => Some (SMT_Const_I8 (Int8.repr n))
+  | 16%positive => Some (SMT_Const_I16 (Int16.repr n))
+  | 32%positive => Some (SMT_Const_I32 (Int32.repr n))
+  | 64%positive => Some (SMT_Const_I64 (Int64.repr n))
   | _ => None
   end
 .
