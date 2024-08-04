@@ -10,8 +10,9 @@ From SE Require Import CFG.
 From SE Require Import DynamicValue.
 From SE Require Import IDMap.
 From SE Require Import LLVMAst.
-From SE.Utils Require Import ListUtil.
 From SE Require Import Relation.
+
+From SE.Utils Require Import ListUtil.
 
 Record inst_counter := mk_inst_counter {
   fid : function_id;
@@ -255,7 +256,7 @@ Definition find_function_by_exp (m : llvm_module) (e : exp typ) : option llvm_de
 
 Definition eval_arg (ls : dv_store) (gs : global_store) (arg : function_arg) : option dynamic_value :=
   match arg with
-  | ((t, e), _) => (eval_exp ls gs (Some t) e)
+  | ((t, e), _) => eval_exp ls gs (Some t) e
   end
 .
 

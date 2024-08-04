@@ -6,6 +6,7 @@ Concrete.v
 Coqlib.v
 DynamicValue.v
 IDMap.v
+Symbolic.v
 LLVMAst.v
 Numeric/Archi.v
 Numeric/Floats.v
