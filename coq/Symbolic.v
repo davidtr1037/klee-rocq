@@ -716,7 +716,6 @@ Inductive well_defined_smt_store : smt_store -> list string -> Prop :=
       well_defined_smt_store s syms
 .
 
-(* TODO: handle SMT_Var_I* *)
 Inductive well_defined : sym_state -> Prop :=
   | WD_State : forall ic c cs pbid ls stk gs syms pc mdl,
       (well_defined_smt_store ls syms /\ well_defined_smt_store gs syms /\ (forall n, subexpr (SMT_Var n) pc -> In n syms)) ->
