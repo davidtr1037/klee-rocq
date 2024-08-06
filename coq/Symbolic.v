@@ -590,7 +590,7 @@ Inductive sym_step : sym_state -> sym_state -> Prop :=
           c
           cs
           pbid
-          (v !-> Some (SMT_Var_I32 name); ls)
+          (v !-> Some (SMT_Var name); ls)
           stk
           gs
           (name :: syms)
@@ -712,14 +712,14 @@ Inductive over_approx : sym_state -> state -> Prop :=
 
 Inductive well_defined_smt_store : smt_store -> list string -> Prop :=
   | WD_SMTStore : forall s syms,
-      (forall x n, exists e, (s x) = Some e -> subexpr (SMT_Var_I32 n) e -> In n syms) ->
+      (forall x n, exists e, (s x) = Some e -> subexpr (SMT_Var n) e -> In n syms) ->
       well_defined_smt_store s syms
 .
 
 (* TODO: handle SMT_Var_I* *)
 Inductive well_defined : sym_state -> Prop :=
   | WD_State : forall ic c cs pbid ls stk gs syms pc mdl,
-      (well_defined_smt_store ls syms /\ well_defined_smt_store gs syms /\ (forall n, subexpr (SMT_Var_I32 n) pc -> In n syms)) ->
+      (well_defined_smt_store ls syms /\ well_defined_smt_store gs syms /\ (forall n, subexpr (SMT_Var n) pc -> In n syms)) ->
       well_defined
         (mk_sym_state
           ic
@@ -744,7 +744,7 @@ Lemma well_defined_sym_eval : forall (s : sym_state) (t : option typ) (e : exp t
   (well_defined s) ->
   (forall n, exists se,
     (sym_eval_exp (sym_store s) (sym_globals s) t e) = Some se ->
-    subexpr (SMT_Var_I32 n) se ->
+    subexpr (SMT_Var n) se ->
     In n (sym_symbolics s)
   )
 .

@@ -80,6 +80,7 @@ Fixpoint smt_eval_cmpop (op : smt_cmpop) (v1 v2 : dynamic_int) : option dynamic_
 .
 
 (* TODO: implement *)
+(* TODO: use a single constructor SMT_Const (with dynamic_int)? *)
 Fixpoint smt_eval (m : smt_model) (e : smt_expr) : option dynamic_int :=
   match e with
   | SMT_Const_I1 n => Some (DI_I1 n)
@@ -87,11 +88,7 @@ Fixpoint smt_eval (m : smt_model) (e : smt_expr) : option dynamic_int :=
   | SMT_Const_I16 n => Some (DI_I16 n)
   | SMT_Const_I32 n => Some (DI_I32 n)
   | SMT_Const_I64 n => Some (DI_I64 n)
-  | SMT_Var_I1 x => Some ((bv_model m) x)
-  | SMT_Var_I8 x => Some ((bv_model m) x)
-  | SMT_Var_I16 x => Some ((bv_model m) x)
-  | SMT_Var_I32 x => Some ((bv_model m) x)
-  | SMT_Var_I64 x => Some ((bv_model m) x)
+  | SMT_Var x => Some ((bv_model m) x)
   | SMT_BinOp op e1 e2 =>
       match (smt_eval m e1), (smt_eval m e2) with
       | Some di1, Some di2 => smt_eval_binop op di1 di2
@@ -116,7 +113,6 @@ Fixpoint smt_eval (m : smt_model) (e : smt_expr) : option dynamic_int :=
   | SMT_Not e => None
   | SMT_Concat e1 e2 => None
   | SMT_Extract e i w => None
-  | SMT_Select a e => None
   end
 .
 

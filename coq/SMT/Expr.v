@@ -41,11 +41,7 @@ Inductive smt_expr : Type :=
   | SMT_Const_I16 (n : int16)
   | SMT_Const_I32 (n : int32)
   | SMT_Const_I64 (n : int64)
-  | SMT_Var_I1 (x : string)
-  | SMT_Var_I8 (x : string)
-  | SMT_Var_I16 (x : string)
-  | SMT_Var_I32 (x : string)
-  | SMT_Var_I64 (x : string)
+  | SMT_Var (x : string)
   | SMT_BinOp (op : smt_binop) (e1 e2 : smt_expr)
   | SMT_CmpOp (op : smt_cmpop) (e1 e2 : smt_expr)
   | SMT_ZExt (e : smt_expr) (w : positive)
@@ -54,11 +50,15 @@ Inductive smt_expr : Type :=
   | SMT_Not (e : smt_expr)
   | SMT_Concat (e1 e2 : smt_expr)
   | SMT_Extract (e : smt_expr) (i : N) (w : positive)
+.
+
+(*
   | SMT_Select (a : smt_array) (e : smt_expr)
   with smt_array : Type :=
     | SMT_Array (x : string)
     | SMT_Store (a : smt_array) (i e : smt_expr)
 .
+*)
 
 Definition SMT_True := SMT_Const_I1 one.
 Definition SMT_False := SMT_Const_I1 zero.
