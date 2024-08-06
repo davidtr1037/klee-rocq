@@ -89,3 +89,7 @@ Definition make_smt_bool (b : bool) : smt_expr :=
   | false => SMT_Const_I1 zero
   end
 .
+
+(* TODO: ... *)
+Inductive subexpr : smt_expr -> smt_expr -> Prop :=
+.

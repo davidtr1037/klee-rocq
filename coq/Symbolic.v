@@ -7,6 +7,7 @@ Import ListNotations.
 From SE Require Import BitVectors.
 From SE Require Import CFG.
 From SE Require Import Concrete.
+From SE Require Import DynamicValue.
 From SE Require Import IDMap.
 From SE Require Import LLVMAst.
 From SE Require Import Relation.
@@ -41,13 +42,13 @@ Record sym_state : Type := mk_sym_state {
   sym_module : llvm_module;
 }.
 
-Inductive sym_error_state : sym_state -> Prop :=
+Inductive error_sym_state : sym_state -> Prop :=
   | ES_Assert : forall ic cid args anns cs pbid ls stk gs syms pc m d,
       (find_function m assert_id) = None ->
       (find_declaration m assert_id) = Some d ->
       (dc_type d) = assert_type ->
       TYPE_Function TYPE_Void (get_arg_types args) false = assert_type ->
-      sym_error_state
+      error_sym_state
         (mk_sym_state
           ic
           (CMD_Inst
@@ -663,3 +664,144 @@ Definition init_sym_state (m : llvm_module) (d : llvm_definition) : option sym_s
   | _ => None
   end
 .
+
+Inductive over_approx_via : sym_state -> state -> smt_model -> Prop :=
+  | OAV_State :
+      forall ic c cs pbid s_ls s_stk s_gs syms pc mdl c_ls c_stk c_gs m,
+      (forall (x : raw_id), exists di e,
+        (c_ls x) = Some (DV_Int di) /\
+        (s_ls x) = Some e /\
+        (smt_eval m e) = Some di
+      ) /\
+      (forall (x : raw_id), exists di e,
+        (c_gs x) = Some (DV_Int di) /\
+        (s_gs x) = Some e /\
+        (smt_eval m e) = Some di
+      ) /\
+      ((smt_eval m pc) = Some di_true) ->
+      over_approx_via
+        (mk_sym_state
+          ic
+          c
+          cs
+          pbid
+          s_ls
+          s_stk
+          s_gs
+          syms
+          pc
+          mdl
+        )
+        (mk_state
+          ic
+          c
+          cs
+          pbid
+          c_ls
+          c_stk
+          c_gs
+          mdl
+        )
+        m
+.
+
+Inductive over_approx : sym_state -> state -> Prop :=
+  | OA_State :
+      forall s c, (exists m, over_approx_via s c m) -> over_approx s c
+.
+
+Inductive well_defined_smt_store : smt_store -> list string -> Prop :=
+  | WD_SMTStore : forall s syms,
+      (forall x n, exists e, (s x) = Some e -> subexpr (SMT_Var_I32 n) e -> In n syms) ->
+      well_defined_smt_store s syms
+.
+
+(* TODO: handle SMT_Var_I* *)
+Inductive well_defined : sym_state -> Prop :=
+  | WD_State : forall ic c cs pbid ls stk gs syms pc mdl,
+      (well_defined_smt_store ls syms /\ well_defined_smt_store gs syms /\ (forall n, subexpr (SMT_Var_I32 n) pc -> In n syms)) ->
+      well_defined
+        (mk_sym_state
+          ic
+          c
+          cs
+          pbid
+          ls
+          stk
+          gs
+          syms
+          pc
+          mdl
+        )
+.
+
+Lemma well_defined_init_sym_state :
+  forall mdl d, exists s, (init_sym_state mdl d) = Some s -> well_defined s.
+Proof.
+Admitted.
+
+Lemma well_defined_sym_eval : forall (s : sym_state) (t : option typ) (e : exp typ),
+  (well_defined s) ->
+  (forall n, exists se,
+    (sym_eval_exp (sym_store s) (sym_globals s) t e) = Some se ->
+    subexpr (SMT_Var_I32 n) se ->
+    In n (sym_symbolics s)
+  )
+.
+Proof.
+Admitted.
+
+Lemma well_defined_sym_step : forall (s s' : sym_state),
+  well_defined s -> sym_step s s' -> well_defined s'
+.
+Proof.
+Admitted.
+
+Lemma error_correspondence: forall c s,
+  over_approx s c -> (error_sym_state s <-> error_state c).
+Proof.
+Admitted.
+
+Lemma pc_sat_lemma : forall s s' m,
+  sym_step s s' -> sat_sym_state m s' -> sat_sym_state m s.
+Proof.
+Admitted.
+
+Lemma pc_unsat_lemma : forall s s',
+  sym_step s s' -> unsat_sym_state s -> unsat_sym_state s'.
+Proof.
+Admitted.
+
+Lemma soundness_single_step :
+  forall s s' c m,
+    sym_step s s' ->
+    over_approx_via s c m ->
+    sat_sym_state m s' ->
+    (exists c', step c c' /\ over_approx_via s' c' m).
+Proof.
+Admitted.
+
+Lemma soundness :
+  forall (mdl : llvm_module) (d : llvm_definition) (s : sym_state) (m : smt_model),
+    exists init_s,
+      (init_sym_state mdl d) = Some init_s ->
+      multi_sym_step init_s s ->
+      sat_sym_state m s ->
+      (exists init_c c, (init_state mdl d) = Some init_c /\ (multi_step c c) /\ over_approx_via s c m).
+Proof.
+Admitted.
+
+Lemma completeness_single_step :
+  forall c c' s,
+    step c c' -> well_defined s -> over_approx s c -> (exists s', sym_step s s' /\ over_approx s' c').
+Proof.
+Admitted.
+
+Lemma completeness :
+  forall (mdl : llvm_module) (d : llvm_definition) (c : state),
+    exists init_c,
+      (init_state mdl d) = Some init_c ->
+      multi_step init_c c ->
+      (exists init_s s, (init_sym_state mdl d) = Some init_s /\ multi_sym_step init_s s /\ over_approx s c).
+Proof.
+Admitted.

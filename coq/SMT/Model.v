@@ -130,10 +130,6 @@ Definition sat (e : smt_expr) :=
 
 Definition unsat (e : smt_expr) := ~ sat e.
 
-(* TODO: ... *)
-Inductive subexpr : smt_expr -> smt_expr -> Prop :=
-.
-
 Inductive equiv_smt_expr : smt_expr -> smt_expr -> Prop :=
   | EquivSMTExpr : forall e1 e2,
       (forall m, exists dv, smt_eval m e1 = Some dv /\ smt_eval m e2 = Some dv) ->
