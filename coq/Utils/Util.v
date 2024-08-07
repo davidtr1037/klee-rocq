@@ -1615,3 +1615,11 @@ Proof using.
   exists (x - lower).
   split; lia.
 Qed.
+
+Lemma positive_eqb_eq : forall (a b : positive), (a =? b)%positive = true <-> a = b.
+Proof.
+Admitted.
+
+Lemma positive_eqb_ne : forall (a b : positive), (a =? b)%positive = false <-> a <> b.
+Proof.
+Admitted.
