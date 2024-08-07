@@ -90,6 +90,32 @@ Definition make_smt_bool (b : bool) : smt_expr :=
   end
 .
 
-(* TODO: ... *)
 Inductive subexpr : smt_expr -> smt_expr -> Prop :=
+  | SubExpr_Refl : forall e, subexpr e e
+  | SubExpr_BinOp_L : forall e op e1 e2,
+      subexpr e e1 -> subexpr e (SMT_BinOp op e1 e2)
+  | SubExpr_BinOp_R : forall e op e1 e2,
+      subexpr e e2 -> subexpr e (SMT_BinOp op e1 e2)
+  | SubExpr_CmpOp_L : forall e op e1 e2,
+      subexpr e e1 -> subexpr e (SMT_CmpOp op e1 e2)
+  | SubExpr_CmpOp_R : forall e op e1 e2,
+      subexpr e e2 -> subexpr e (SMT_CmpOp op e1 e2)
+  | SubExpr_ZExt : forall e e1 w,
+      subexpr e e1 -> subexpr e (SMT_ZExt e1 w)
+  | SubExpr_SExt : forall e e1 w,
+      subexpr e e1 -> subexpr e (SMT_SExt e1 w)
+  | SubExpr_ITE_Cond : forall e e1 e2 e3,
+      subexpr e e1 -> subexpr e (SMT_ITE e1 e2 e3)
+  | SubExpr_ITE_L : forall e e1 e2 e3,
+      subexpr e e2 -> subexpr e (SMT_ITE e1 e2 e3)
+  | SubExpr_ITE_R : forall e e1 e2 e3,
+      subexpr e e3 -> subexpr e (SMT_ITE e1 e2 e3)
+  | SubExpr_Not : forall e e1,
+      subexpr e e1 -> subexpr e (SMT_Not e1)
+  | SubExpr_Concat_L : forall e e1 e2,
+      subexpr e e1 -> subexpr e (SMT_Concat e1 e2)
+  | SubExpr_Concat_R : forall e e1 e2,
+      subexpr e e2 -> subexpr e (SMT_Concat e1 e2)
+  | SubExpr_Extract : forall e e1 i w,
+      subexpr e e1 -> subexpr e (SMT_Extract e1 i w)
 .
