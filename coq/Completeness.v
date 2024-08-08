@@ -6,7 +6,7 @@ From SE Require Import IDMap.
 From SE Require Import LLVMAst.
 From SE Require Import Symbolic.
 From SE Require Import Relation.
-From SE Require Import WellDefined.
+From SE Require Import WellDefinedness.
 
 From SE.SMT Require Import Expr.
 From SE.SMT Require Import Model.
