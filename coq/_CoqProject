@@ -3,6 +3,7 @@
 BitVectors.v
 CFG.v
 Concrete.v
+Completeness.v
 Coqlib.v
 DynamicValue.v
 IDMap.v
@@ -15,6 +16,8 @@ Numeric/Integers.v
 Numeric/Zbits.v
 SMT/Expr.v
 SMT/Model.v
+Soundness.v
 Relation.v
 Utilities.v
 Utils/
+WellDefined.v
