@@ -22,7 +22,7 @@ From SE.Utils Require Import Util.
 
 Definition smt_store := total_map (option smt_expr).
 
-Definition empty_smt_store := empty_map (Some (SMT_Const_I1 zero)).
+Definition empty_smt_store : smt_store := empty_map None.
 
 Inductive sym_frame : Type :=
   | Sym_Frame (s : smt_store) (ic : inst_counter) (pbid : option block_id) (v : raw_id)
@@ -979,13 +979,65 @@ Lemma well_defined_sym_eval_args : forall s args ses se n,
   subexpr (SMT_Var n) se ->
   In n (sym_symbolics s).
 Proof.
-Admitted.
+  intros s args ses se n Hwd Heq Hin Hse.
+  generalize dependent se.
+  generalize dependent ses.
+  induction args; intros ses Heq se Hin Hse.
+  {
+    simpl in Heq.
+    inversion Heq; subst.
+    inversion Hin.
+  }
+  {
+    simpl in Heq.
+    destruct (sym_eval_arg (sym_store s) (sym_globals s) a) eqn:Earg.
+    {
+      destruct (sym_eval_args (sym_store s) (sym_globals s) args) eqn:Eargs.
+      {
+        inversion Heq; subst.
+        inversion Hin; subst.
+        {
+          unfold sym_eval_arg in Earg.
+          destruct a, t.
+          apply (well_defined_sym_eval_exp _ (Some t) e n se); assumption.
+        }
+        {
+          apply IHargs with (ses := l) (se := se).
+          { reflexivity. }
+          { assumption. }
+          { assumption. }
+        }
+      }
+      { discriminate Heq. }
+    }
+    { discriminate Heq. }
+  }
+Qed.
 
+(* TODO: rename *)
 Lemma L1 : forall ses syms d ls,
   (forall se n, In se ses -> subexpr (SMT_Var n) se -> In n syms) ->
   (create_local_smt_store d ses) = Some ls ->
   well_defined_smt_store ls syms.
 Proof.
+  intros ses syms d ls Hwd H.
+  generalize dependent ls.
+  induction ses; intros ls H.
+  {
+    unfold create_local_smt_store in H.
+    destruct (df_args d) eqn:Eargs; simpl in H.
+    {
+      inversion H; subst.
+      apply WD_SMTStore.
+      intros x n se Heq Hse.
+      inversion Heq.
+    }
+    { discriminate H. }
+  }
+  {
+
+    simpl in H.
+
 Admitted.
 
 Lemma well_defined_smt_store_ext : forall s sym syms,
