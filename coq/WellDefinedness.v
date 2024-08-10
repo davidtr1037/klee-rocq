@@ -19,8 +19,10 @@ From SE.SMT Require Import Model.
 From SE.Utils Require Import ListUtil.
 From SE.Utils Require Import Util.
 
-(* TODO: ... *)
 Inductive well_defined_smt_expr : smt_expr -> list string -> Prop :=
+  | WD_Expr : forall se syms,
+      (forall n, subexpr (SMT_Var n) se -> In n syms) ->
+      well_defined_smt_expr se syms
 .
 
 Inductive well_defined_smt_store : smt_store -> list string -> Prop :=
@@ -375,7 +377,46 @@ Lemma L1 : forall (xs : list raw_id) ses l syms,
   (merge_lists xs ses) = Some l ->
   (forall x se n, In (x, se) l -> subexpr (SMT_Var n) se -> In n syms).
 Proof.
-Admitted.
+  intros xs ses l syms Hwd H.
+  generalize dependent xs.
+  generalize dependent ses.
+  induction l; intros ses Hwd xs H.
+  {
+    intros x se n Hin.
+    inversion Hin.
+  }
+  {
+    destruct xs as [ | x' xs'] eqn:E1, ses as [ | se' ses'] eqn:E2.
+    { discriminate H. }
+    { discriminate H. }
+    { discriminate H. }
+    {
+      apply merge_lists_decompose in H.
+      destruct H as [l' [H1 H2]].
+      inversion H2; subst.
+      intros x se n Hin Hse.
+      inversion Hin; subst.
+      {
+        apply (Hwd se').
+        { apply in_eq. }
+        {
+          inversion H; subst.
+          assumption.
+        }
+      }
+      {
+        apply IHl with (ses := ses') (xs := xs') (x := x) (se := se); try assumption.
+        {
+          (* TODO: add a lemma? *)
+          intros se0 n0 Hin0 Hse0.
+          apply (Hwd se0).
+          { apply in_cons. assumption. }
+          { assumption. }
+        }
+      }
+    }
+  }
+Qed.
 
 Lemma L2 : forall xs ses l syms,
   (forall se n, In se ses -> subexpr (SMT_Var n) se -> In n syms) ->
