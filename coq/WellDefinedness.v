@@ -955,9 +955,17 @@ Proof.
       }
     }
   }
-Admitted.
+Qed.
 
 Lemma well_defined_multi_sym_step : forall s s',
   (well_defined s) -> (multi_sym_step s s') -> (well_defined s').
 Proof.
-Admitted.
+  intros s s' Hwd Hmse.
+  induction Hmse as [s s' | s s' s''].
+  { apply well_defined_sym_step with (s := s); assumption. }
+  {
+    apply well_defined_sym_step with (s := s').
+    { apply IHHmse. assumption. }
+    { assumption. }
+  }
+Qed.
