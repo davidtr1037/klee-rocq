@@ -135,7 +135,7 @@ Definition sym_convert (conv : conversion_type) (e : smt_expr) t1 t2 : option sm
   | Zext =>
     match t1, t2 with
     | TYPE_I w1, TYPE_I w2 =>
-        if (w1 =? w2)%positive then
+        if (w2 =? w1)%positive then
           Some e
         else
           if (w2 <=? w1)%positive then
@@ -147,7 +147,7 @@ Definition sym_convert (conv : conversion_type) (e : smt_expr) t1 t2 : option sm
   | Sext =>
     match t1, t2 with
     | TYPE_I w1, TYPE_I w2 =>
-        if (w1 =? w2)%positive then
+        if (w2 =? w1)%positive then
           Some e
         else
           if (w2 <=? w1)%positive then

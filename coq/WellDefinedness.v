@@ -123,14 +123,64 @@ Proof.
       }
     }
   }
-  { admit. }
-  { admit. }
+  {
+    destruct t1; try (discriminate Heq).
+    {
+      destruct t2; try (discriminate Heq).
+      {
+        destruct (w0 =? w)%positive eqn:E1.
+        {
+          inversion Heq; subst.
+          assumption.
+        }
+        {
+          destruct (w0 <=? w)%positive eqn:E2.
+          {
+            inversion Heq; subst.
+            inversion Hse; subst.
+            assumption.
+          }
+          {
+            inversion Heq; subst.
+            inversion Hse; subst.
+            assumption.
+          }
+        }
+      }
+    }
+  }
+  {
+    destruct t1; try (discriminate Heq).
+    {
+      destruct t2; try (discriminate Heq).
+      {
+        destruct (w0 =? w)%positive eqn:E1.
+        {
+          inversion Heq; subst.
+          assumption.
+        }
+        {
+          destruct (w0 <=? w)%positive eqn:E2.
+          {
+            inversion Heq; subst.
+            inversion Hse; subst.
+            assumption.
+          }
+          {
+            inversion Heq; subst.
+            inversion Hse; subst.
+            assumption.
+          }
+        }
+      }
+    }
+  }
   {
     injection Heq. clear Heq. intros Heq.
     subst.
     assumption.
   }
-Admitted.
+Qed.
 
 Lemma well_defined_sym_eval_exp : forall s ot e n se,
   (well_defined s) ->

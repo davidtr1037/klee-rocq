@@ -2278,3 +2278,18 @@ Fixpoint merge_lists {A B} (l1 : list A) (l2 : list B) : option (list (A * B)) :
       end
   end
 .
+
+Lemma merge_lists_decompose: forall (A B : Type) (x : A) (xs : list A) (y : B) (ys : list B) (l : list (A * B)),
+  (merge_lists (x :: xs) (y :: ys)) = Some l ->
+  exists l', (merge_lists xs ys) = Some l' /\ (x, y) :: l' = l.
+Proof.
+  intros A B x xs y ys l H.
+  simpl in H.
+  destruct (merge_lists xs ys) eqn:E1.
+  {
+    inversion H; subst.
+    exists l0.
+    split; reflexivity.
+  }
+  { discriminate H. }
+Qed.
