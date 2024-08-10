@@ -31,6 +31,35 @@ Inductive well_defined_smt_store : smt_store -> list string -> Prop :=
       well_defined_smt_store s syms
 .
 
+Lemma well_defined_smt_store_update : forall ls x se syms,
+  well_defined_smt_store ls syms ->
+  well_defined_smt_expr se syms ->
+  well_defined_smt_store (x !-> Some se; ls) syms.
+Proof.
+  intros ls x se syms Hwd1 Hwd2.
+  apply WD_SMTStore.
+  intros x' n' se' Heq Hse.
+  destruct (raw_id_eqb x x') eqn:E.
+  {
+    rewrite raw_id_eqb_eq in E.
+    rewrite E in *. clear E.
+    rewrite update_map_eq in Heq.
+    inversion Heq; subst.
+    inversion Hwd2; subst.
+    apply (H n').
+    assumption.
+  }
+  {
+    rewrite raw_id_eqb_neq in E.
+    rewrite update_map_neq in Heq.
+    {
+      inversion Hwd1; subst.
+      apply (H x' n' se'); assumption.
+    }
+    { assumption. }
+  }
+Qed.
+
 Inductive well_defined_stack : list sym_frame -> list string -> Prop :=
   | WD_EmptyStack : forall syms,
       well_defined_stack [] syms
@@ -542,16 +571,11 @@ Proof.
     apply WD_State.
     split.
     {
-      inversion Hwd_ls; subst.
-      apply WD_SMTStore.
-      intros x n se' Heq Hse.
-      destruct (raw_id_eqb x v) eqn:E.
+      apply well_defined_smt_store_update.
+      { assumption. }
       {
-        rewrite raw_id_eqb_eq in E.
-        rewrite E in *. clear E.
-        rewrite update_map_eq in Heq.
-        injection Heq. clear Heq. intros Heq.
-        rewrite <- Heq in *. clear Heq.
+        apply WD_Expr.
+        intros n Hse.
         apply (well_defined_sym_eval_exp
           (mk_sym_state
             ic
@@ -570,13 +594,6 @@ Proof.
           n
           se
         ); assumption.
-      }
-      {
-        rewrite raw_id_eqb_neq in E.
-        rewrite update_map_neq in Heq.
-        apply (H x n se'); assumption.
-        symmetry.
-        assumption.
       }
     }
     {
@@ -762,7 +779,44 @@ Proof.
       }
     }
   }
-  { admit. }
+  {
+    apply WD_State.
+    split.
+    {
+      apply (L3 ses syms d ls').
+      {
+        intros se n Hin Hse.
+        apply (well_defined_sym_eval_args
+          (mk_sym_state
+            ic
+            (CMD_Inst cid (INSTR_Call v (t, f) args anns))
+            (c0 :: cs0)
+            pbid
+            ls
+            stk
+            gs
+            syms
+            pc
+            mdl
+          )
+          args
+          ses
+          se
+          n
+        ); assumption.
+      }
+      { assumption. }
+    }
+    {
+      split.
+      { assumption. }
+      {
+        split.
+        { apply WD_Frame; assumption. }
+        { assumption. }
+      }
+    }
+  }
   {
     apply WD_State.
     inversion Hwd_stk; subst.
@@ -774,7 +828,42 @@ Proof.
       { split; assumption. }
     }
   }
-  { admit. }
+  {
+    apply WD_State.
+    inversion Hwd_stk; subst.
+    split.
+    {
+      apply well_defined_smt_store_update.
+      { assumption. }
+      {
+        apply WD_Expr.
+        intros n Hse.
+        apply (well_defined_sym_eval_exp
+          (mk_sym_state
+            ic
+            (CMD_Term cid (TERM_Ret (t, e)))
+            []
+            pbid
+            ls
+            (Sym_Frame ls' ic' pbid' v :: stk0)
+            gs
+            syms
+            pc
+            mdl
+          )
+          (Some t)
+          e
+          n
+          se
+        ); assumption.
+      }
+    }
+    {
+      split.
+      { assumption. }
+      { split; assumption. }
+    }
+  }
   {
     apply WD_State.
     split.
