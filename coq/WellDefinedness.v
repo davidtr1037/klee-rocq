@@ -27,38 +27,9 @@ Inductive well_defined_smt_expr : smt_expr -> list string -> Prop :=
 
 Inductive well_defined_smt_store : smt_store -> list string -> Prop :=
   | WD_SMTStore : forall s syms,
-      (forall x n se, (s x) = Some se -> subexpr (SMT_Var n) se -> In n syms) ->
+      (forall x se, (s x) = Some se -> well_defined_smt_expr se syms) ->
       well_defined_smt_store s syms
 .
-
-Lemma well_defined_smt_store_update : forall ls x se syms,
-  well_defined_smt_store ls syms ->
-  well_defined_smt_expr se syms ->
-  well_defined_smt_store (x !-> Some se; ls) syms.
-Proof.
-  intros ls x se syms Hwd1 Hwd2.
-  apply WD_SMTStore.
-  intros x' n' se' Heq Hse.
-  destruct (raw_id_eqb x x') eqn:E.
-  {
-    rewrite raw_id_eqb_eq in E.
-    rewrite E in *. clear E.
-    rewrite update_map_eq in Heq.
-    inversion Heq; subst.
-    inversion Hwd2; subst.
-    apply (H n').
-    assumption.
-  }
-  {
-    rewrite raw_id_eqb_neq in E.
-    rewrite update_map_neq in Heq.
-    {
-      inversion Hwd1; subst.
-      apply (H x' n' se'); assumption.
-    }
-    { assumption. }
-  }
-Qed.
 
 Inductive well_defined_stack : list sym_frame -> list string -> Prop :=
   | WD_EmptyStack : forall syms,
@@ -79,7 +50,7 @@ Inductive well_defined : sym_state -> Prop :=
         well_defined_smt_store ls syms /\
         well_defined_smt_store gs syms /\
         well_defined_stack stk syms /\
-        (forall n, subexpr (SMT_Var n) pc -> In n syms)
+        well_defined_smt_expr pc syms
       ) ->
       well_defined
         (mk_sym_state
@@ -211,28 +182,62 @@ Proof.
   }
 Qed.
 
-Lemma well_defined_sym_eval_exp : forall s ot e n se,
-  (well_defined s) ->
-  (sym_eval_exp (sym_store s) (sym_globals s) ot e) = Some se ->
-  subexpr (SMT_Var n) se ->
-  In n (sym_symbolics s).
+Lemma well_defined_empty_smt_store : forall syms, well_defined_smt_store empty_smt_store syms.
 Proof.
-  intros s ot e n se Hwd Heq Hse.
+  intros syms.
+  apply WD_SMTStore.
+  intros x se Heq.
+  inversion Heq; subst.
+Qed.
+
+Lemma well_defined_smt_store_update : forall ls x se syms,
+  well_defined_smt_store ls syms ->
+  well_defined_smt_expr se syms ->
+  well_defined_smt_store (x !-> Some se; ls) syms.
+Proof.
+  intros ls x se syms Hwd1 Hwd2.
+  apply WD_SMTStore.
+  intros x' se' Heq.
+  destruct (raw_id_eqb x x') eqn:E.
+  {
+    rewrite raw_id_eqb_eq in E.
+    subst.
+    rewrite update_map_eq in Heq.
+    inversion Heq; subst.
+    assumption.
+  }
+  {
+    rewrite raw_id_eqb_neq in E.
+    rewrite update_map_neq in Heq.
+    {
+      inversion Hwd1; subst.
+      apply (H x' se'); assumption.
+    }
+    { assumption. }
+  }
+Qed.
+
+Lemma well_defined_sym_eval_exp : forall s ot e se,
+  well_defined s ->
+  (sym_eval_exp (sym_store s) (sym_globals s) ot e) = Some se ->
+  well_defined_smt_expr se (sym_symbolics s).
+Proof.
+  intros s ot e se Hwd Heq.
   generalize dependent se.
   generalize dependent ot.
-  induction e; intros ot se Heq Hse; inversion Hwd; subst; simpl in *.
+  induction e; intros ot se Heq; inversion Hwd; subst; simpl in *.
   {
     unfold sym_lookup_ident.
     destruct H as [H_1 [H_2 H_3]].
-    destruct id; simpl in Heq.
+    destruct id as [x | x] eqn:E; simpl in Heq.
     {
       inversion H_2; subst.
-      specialize (H id n se).
+      specialize (H x se).
       apply H; assumption.
     }
     {
       inversion H_1; subst.
-      specialize (H id n se).
+      specialize (H x se).
       apply H; assumption.
     }
   }
@@ -240,14 +245,17 @@ Proof.
   {
     destruct b; simpl in Heq.
     {
-      injection Heq. clear Heq.
-      intros Heq.
-      rewrite <- Heq in Hse.
+      injection Heq. clear Heq.  intros Heq.
+      rewrite <- Heq.
+      apply WD_Expr.
+      intros n Hse.
       inversion Hse.
     }
     {
       injection Heq. clear Heq.  intros Heq.
-      rewrite <- Heq in Hse.
+      rewrite <- Heq.
+      apply WD_Expr.
+      intros n Hse.
       inversion Hse.
     }
   }
@@ -272,17 +280,23 @@ Proof.
       {
         injection Heq. clear Heq. intros Heq.
         subst.
+        apply WD_Expr.
+        intros n Hse.
         apply subexpr_var_ibinop in Hse.
         destruct Hse as [Hse | Hse].
         {
-          apply (IHe1 se1).
-          { reflexivity. }
-          { assumption. }
+          assert(L : well_defined_smt_expr se1 syms).
+          { apply IHe1. reflexivity. }
+          inversion L; subst.
+          apply H0.
+          assumption.
         }
         {
-          apply (IHe2 se2).
-          { reflexivity. }
-          { assumption. }
+          assert(L : well_defined_smt_expr se2 syms).
+          { apply IHe2. reflexivity. }
+          inversion L; subst.
+          apply H0.
+          assumption.
         }
       }
       { discriminate Heq. }
@@ -298,17 +312,23 @@ Proof.
       {
         injection Heq. clear Heq. intros Heq.
         subst.
+        apply WD_Expr.
+        intros n Hse.
         apply subexpr_var_icmp in Hse.
         destruct Hse as [Hse | Hse].
         {
-          apply (IHe1 se1).
-          { reflexivity. }
-          { assumption. }
+          assert(L : well_defined_smt_expr se1 syms).
+          { apply IHe1. reflexivity. }
+          inversion L; subst.
+          apply H0.
+          assumption.
         }
         {
-          apply (IHe2 se2).
-          { reflexivity. }
-          { assumption. }
+          assert(L : well_defined_smt_expr se2 syms).
+          { apply IHe2. reflexivity. }
+          inversion L; subst.
+          apply H0.
+          assumption.
         }
       }
       { discriminate Heq. }
@@ -319,24 +339,25 @@ Proof.
     specialize (IHe (Some t1)).
     destruct (sym_eval_exp ls gs (Some t1) e) as [se' | ] eqn:E.
     {
-      apply (IHe se').
-      { reflexivity. }
-      {
-        apply (subexpr_var_conv n conv se' t1 t2 se); assumption.
-      }
+      apply WD_Expr.
+      intros n Hse.
+      assert(L : well_defined_smt_expr se' syms).
+      { apply IHe. reflexivity. }
+      inversion L; subst.
+      apply H0.
+      apply (subexpr_var_conv n conv se' t1 t2 se); assumption.
     }
     { discriminate Heq. }
   }
   { discriminate Heq. }
 Admitted.
 
-Lemma well_defined_sym_eval_phi : forall s t args pbid n se,
-  (well_defined s) ->
+Lemma well_defined_sym_eval_phi_args : forall s t args pbid se,
+  well_defined s ->
   (sym_eval_phi_args (sym_store s) (sym_globals s) t args pbid) = Some se ->
-  subexpr (SMT_Var n) se ->
-  In n (sym_symbolics s).
+  well_defined_smt_expr se (sym_symbolics s).
 Proof.
-  intros s t args pbid n se Hwd Heq Hse.
+  intros s t args pbid se Hwd Heq.
   induction args.
   {
     simpl in Heq.
@@ -351,7 +372,6 @@ Proof.
         s
         (Some t)
         e
-        n
         se
       ); assumption.
     }
@@ -362,17 +382,16 @@ Proof.
   }
 Qed.
 
-Lemma well_defined_sym_eval_args : forall s args ses se n,
-  (well_defined s) ->
+Lemma well_defined_sym_eval_args : forall s args ses se,
+  well_defined s ->
   (sym_eval_args (sym_store s) (sym_globals s) args) = Some ses ->
   In se ses ->
-  subexpr (SMT_Var n) se ->
-  In n (sym_symbolics s).
+  well_defined_smt_expr se (sym_symbolics s).
 Proof.
-  intros s args ses se n Hwd Heq Hin Hse.
+  intros s args ses se Hwd Heq Hin.
   generalize dependent se.
   generalize dependent ses.
-  induction args; intros ses Heq se Hin Hse.
+  induction args; intros ses Heq se Hin.
   {
     simpl in Heq.
     inversion Heq; subst.
@@ -380,7 +399,7 @@ Proof.
   }
   {
     simpl in Heq.
-    destruct (sym_eval_arg (sym_store s) (sym_globals s) a) eqn:Earg.
+    destruct (sym_eval_arg (sym_store s) (sym_globals s) a) as [se' | ] eqn:Earg.
     {
       destruct (sym_eval_args (sym_store s) (sym_globals s) args) eqn:Eargs.
       {
@@ -389,12 +408,11 @@ Proof.
         {
           unfold sym_eval_arg in Earg.
           destruct a, t.
-          apply (well_defined_sym_eval_exp _ (Some t) e n se); assumption.
+          apply (well_defined_sym_eval_exp _ (Some t) e se); assumption.
         }
         {
           apply IHargs with (ses := l) (se := se).
           { reflexivity. }
-          { assumption. }
           { assumption. }
         }
       }
@@ -404,64 +422,46 @@ Proof.
   }
 Qed.
 
-Lemma L0 : forall l syms,
-  (forall x se n, In (x, se) l -> subexpr (SMT_Var n) se -> In n syms) ->
+Lemma well_defined_fill_smt_store : forall l syms,
+  (forall x se, In (x, se) l -> well_defined_smt_expr se syms) ->
   (well_defined_smt_store (fill_smt_store l) syms).
 Proof.
   intros l syms Hwd.
   induction l.
   {
     simpl.
-    apply WD_SMTStore.
-    intros x n se Heq Hse.
-    discriminate Heq.
+    apply well_defined_empty_smt_store.
   }
   {
     simpl.
     destruct a as [a_x a_se].
-    assert(Lwd: well_defined_smt_store (fill_smt_store l) syms).
+    apply well_defined_smt_store_update.
     {
       apply IHl.
-      intros x se n Hin Hse.
+      intros x se Hin.
       apply (Hwd x se).
-      { apply in_cons. assumption. }
-      { assumption. }
+      apply in_cons.
+      assumption.
     }
-    apply WD_SMTStore.
-    intros x n se Heq Hse.
-    destruct (a_x =? x) eqn:E.
     {
-      rewrite raw_id_eqb_eq in E.
-      rewrite E in Heq.
-      rewrite update_map_eq in Heq.
-      inversion Heq. clear Heq.
       apply (Hwd a_x a_se).
-      { apply in_eq. }
-      { rewrite H0. assumption. }
-    }
-    {
-      rewrite raw_id_eqb_neq in E.
-      rewrite update_map_neq in Heq.
-      {
-        inversion Lwd; subst.
-        apply (H x n se); assumption.
-      }
-      { assumption. }
+      apply in_eq.
     }
   }
 Qed.
 
+(* TODO: raw_id can by any type *)
 Lemma L1 : forall (xs : list raw_id) ses l syms,
-  (forall se n, In se ses -> subexpr (SMT_Var n) se -> In n syms) ->
+  (forall se, In se ses -> well_defined_smt_expr se syms) ->
   (merge_lists xs ses) = Some l ->
-  (forall x se n, In (x, se) l -> subexpr (SMT_Var n) se -> In n syms).
+  (forall x se, In (x, se) l -> well_defined_smt_expr se syms).
 Proof.
   intros xs ses l syms Hwd H.
   generalize dependent xs.
   generalize dependent ses.
   induction l; intros ses Hwd xs H.
   {
-    intros x se n Hin.
+    intros x se Hin.
     inversion Hin.
   }
   {
@@ -473,24 +473,21 @@ Proof.
       apply merge_lists_decompose in H.
       destruct H as [l' [H1 H2]].
       inversion H2; subst.
-      intros x se n Hin Hse.
+      intros x se Hin.
       inversion Hin; subst.
       {
-        apply (Hwd se').
-        { apply in_eq. }
-        {
-          inversion H; subst.
-          assumption.
-        }
+        inversion H; subst.
+        apply (Hwd se).
+        apply in_eq.
       }
       {
         apply IHl with (ses := ses') (xs := xs') (x := x) (se := se); try assumption.
         {
           (* TODO: add a lemma? *)
-          intros se0 n0 Hin0 Hse0.
+          intros se0 Hin0.
           apply (Hwd se0).
-          { apply in_cons. assumption. }
-          { assumption. }
+          apply in_cons.
+          assumption.
         }
       }
     }
@@ -498,17 +495,17 @@ Proof.
 Qed.
 
 Lemma L2 : forall xs ses l syms,
-  (forall se n, In se ses -> subexpr (SMT_Var n) se -> In n syms) ->
+  (forall se, In se ses -> well_defined_smt_expr se syms) ->
   (merge_lists xs ses) = Some l ->
   (well_defined_smt_store (fill_smt_store l) syms).
 Proof.
   intros xs ses l syms Hwd H.
-  apply L0.
+  apply well_defined_fill_smt_store.
   apply (L1 xs ses); assumption.
 Qed.
 
 Lemma L3 : forall ses syms d ls,
-  (forall se n, In se ses -> subexpr (SMT_Var n) se -> In n syms) ->
+  (forall se, In se ses -> well_defined_smt_expr se syms) ->
   (create_local_smt_store d ses) = Some ls ->
   well_defined_smt_store ls syms.
 Proof.
@@ -528,9 +525,15 @@ Proof.
   intros s sym syms Hwd.
   inversion Hwd; subst.
   apply WD_SMTStore.
-  intros x n se Heq Hse.
+  intros x se Heq.
+  apply WD_Expr.
+  intros n Hse.
   apply in_cons.
-  apply (H x n se); assumption.
+  assert(L : well_defined_smt_expr se syms).
+  { apply (H x se). assumption. }
+  inversion L; subst.
+  apply H0.
+  assumption.
 Qed.
 
 Lemma well_defined_stack_ext : forall stk sym syms,
@@ -574,8 +577,6 @@ Proof.
       apply well_defined_smt_store_update.
       { assumption. }
       {
-        apply WD_Expr.
-        intros n Hse.
         apply (well_defined_sym_eval_exp
           (mk_sym_state
             ic
@@ -591,7 +592,6 @@ Proof.
           )
           None
           e
-          n
           se
         ); assumption.
       }
@@ -607,7 +607,7 @@ Proof.
     split.
     {
       apply WD_SMTStore.
-      intros x n se' Heq Hse.
+      intros x se' Heq.
       destruct (raw_id_eqb x v) eqn:E.
       {
         rewrite raw_id_eqb_eq in E.
@@ -615,7 +615,7 @@ Proof.
         rewrite update_map_eq in Heq.
         injection Heq. clear Heq. intros Heq.
         rewrite <- Heq in *. clear Heq.
-        apply (well_defined_sym_eval_phi
+        apply (well_defined_sym_eval_phi_args
           (mk_sym_state
             ic
             (CMD_Phi cid (Phi v t args))
@@ -631,7 +631,6 @@ Proof.
           t
           args
           pbid0
-          n
           se
         ); assumption.
       }
@@ -639,7 +638,7 @@ Proof.
         inversion Hwd_ls; subst.
         rewrite raw_id_eqb_neq in E.
         rewrite update_map_neq in Heq.
-        apply (H x n se'); assumption.
+        apply (H x se'); assumption.
         symmetry.
         assumption.
       }
@@ -670,54 +669,17 @@ Proof.
       {
         split.
         { assumption. }
+        apply WD_Expr.
         intros n Hse.
         inversion Hse; subst.
         {
-          apply Hwd_pc.
+          inversion Hwd_pc; subst.
+          apply H.
           assumption.
         }
         {
-          apply (well_defined_sym_eval_exp
-            (mk_sym_state
-              ic
-              (CMD_Term cid (TERM_Br (t, e) bid1 bid2))
-              []
-              pbid
-              ls
-              stk
-              gs
-              syms
-              pc
-              mdl
-            )
-            (Some t)
-            e
-            n
-            se
-          ); assumption.
-        }
-      }
-    }
-  }
-  {
-    apply WD_State.
-    split.
-    { assumption. }
-    {
-      split.
-      { assumption. }
-      {
-        split.
-        { assumption. }
-        {
-          intros n Hse.
-          inversion Hse; subst.
+          assert(L : well_defined_smt_expr se syms).
           {
-            apply Hwd_pc.
-            assumption.
-          }
-          {
-            inversion H1; subst.
             apply (well_defined_sym_eval_exp
               (mk_sym_state
                 ic
@@ -733,10 +695,59 @@ Proof.
               )
               (Some t)
               e
-              n
               se
             ); assumption.
           }
+          inversion L; subst.
+          apply H.
+          assumption.
+        }
+      }
+    }
+  }
+  {
+    apply WD_State.
+    split.
+    { assumption. }
+    {
+      split.
+      { assumption. }
+      {
+        split.
+        { assumption. }
+        apply WD_Expr.
+        intros n Hse.
+        inversion Hse; subst.
+        {
+          inversion Hwd_pc; subst.
+          apply H.
+          assumption.
+        }
+        {
+          assert(L : well_defined_smt_expr se syms).
+          {
+            apply (well_defined_sym_eval_exp
+              (mk_sym_state
+                ic
+                (CMD_Term cid (TERM_Br (t, e) bid1 bid2))
+                []
+                pbid
+                ls
+                stk
+                gs
+                syms
+                pc
+                mdl
+              )
+              (Some t)
+              e
+              se
+            ); assumption.
+          }
+          inversion L; subst.
+          apply H.
+          inversion H1; subst.
+          assumption.
         }
       }
     }
@@ -747,7 +758,7 @@ Proof.
     {
       apply (L3 ses syms d ls').
       {
-        intros se n Hin Hse.
+        intros se Hin.
         apply (well_defined_sym_eval_args
           (mk_sym_state
             ic
@@ -764,7 +775,6 @@ Proof.
           args
           ses
           se
-          n
         ); assumption.
       }
       { assumption. }
@@ -785,7 +795,7 @@ Proof.
     {
       apply (L3 ses syms d ls').
       {
-        intros se n Hin Hse.
+        intros se Hin.
         apply (well_defined_sym_eval_args
           (mk_sym_state
             ic
@@ -802,7 +812,6 @@ Proof.
           args
           ses
           se
-          n
         ); assumption.
       }
       { assumption. }
@@ -836,8 +845,6 @@ Proof.
       apply well_defined_smt_store_update.
       { assumption. }
       {
-        apply WD_Expr.
-        intros n Hse.
         apply (well_defined_sym_eval_exp
           (mk_sym_state
             ic
@@ -853,7 +860,6 @@ Proof.
           )
           (Some t)
           e
-          n
           se
         ); assumption.
       }
@@ -874,36 +880,38 @@ Proof.
       {
         split.
         { assumption. }
+        apply WD_Expr.
         intros n Hse.
         inversion Hse; subst.
         {
-          apply Hwd_pc.
+          inversion Hwd_pc; subst.
+          apply H.
           assumption.
         }
         {
-          apply (well_defined_sym_eval_exp
-            (mk_sym_state
-              ic
-              (CMD_Inst cid (INSTR_VoidCall (TYPE_Void, klee_assume_exp) [(t, e, attrs)] []))
-              (c0 :: cs0)
-              pbid
-              ls
-              stk
-              gs
-              syms
-              pc
-              mdl
-            )
-            (Some t)
-            e
-            n
-            se
-          ).
-          { assumption. }
-          { assumption. }
+          assert(L : well_defined_smt_expr se syms).
           {
-            apply (subexpr_var_conv n Trunc se t (TYPE_I 1) cond); assumption.
+            apply (well_defined_sym_eval_exp
+              (mk_sym_state
+                ic
+                (CMD_Inst cid (INSTR_VoidCall (TYPE_Void, klee_assume_exp) [(t, e, attrs)] []))
+                (c0 :: cs0)
+                pbid
+                ls
+                stk
+                gs
+                syms
+                pc
+                mdl
+              )
+              (Some t)
+              e
+              se
+            ); assumption.
           }
+          inversion L; subst.
+          apply H.
+          apply (subexpr_var_conv n Trunc se t (TYPE_I 1) cond); assumption.
         }
       }
     }
@@ -914,7 +922,7 @@ Proof.
     {
       inversion Hwd_ls; subst.
       apply WD_SMTStore.
-      intros x n se' Heq Hse.
+      intros x se' Heq.
       destruct (raw_id_eqb x v) eqn:E.
       {
         rewrite raw_id_eqb_eq in E.
@@ -922,16 +930,25 @@ Proof.
         rewrite update_map_eq in Heq.
         injection Heq. clear Heq. intros Heq.
         subst.
+        apply WD_Expr.
+        intros n Hse.
         inversion Hse; subst.
         apply in_eq.
       }
       {
         rewrite raw_id_eqb_neq in E.
         rewrite update_map_neq in Heq.
-        apply in_cons.
-        apply (H x n se'); try assumption.
-        symmetry.
-        assumption.
+        {
+          apply WD_Expr.
+          intros n Hse.
+          apply in_cons.
+          assert(L : well_defined_smt_expr se' syms).
+          { apply (H x se'). assumption. }
+          inversion L; subst.
+          apply H0.
+          assumption.
+        }
+        { symmetry. assumption. }
       }
     }
     {
@@ -947,9 +964,12 @@ Proof.
           assumption.
         }
         {
+          (* TODO: WD e s --> WD e (_ :: s) *)
+          apply WD_Expr.
           intros n Hse.
           apply in_cons.
-          apply Hwd_pc.
+          inversion Hwd_pc; subst.
+          apply H.
           assumption.
         }
       }
