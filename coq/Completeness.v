@@ -13,11 +13,110 @@ From SE.SMT Require Import Model.
 
 (* TODO: rename *)
 Lemma smt_lemma_1 : forall c_ls s_ls c_gs s_gs ot e m,
-    (forall (x : raw_id), equiv_via_model (c_ls x) (s_ls x) m) /\
-    (forall (x : raw_id), equiv_via_model (c_gs x) (s_gs x) m) /\
-    equiv_via_model (eval_exp c_ls c_gs ot e) (sym_eval_exp s_ls s_gs ot e) m.
+  (forall (x : raw_id), equiv_via_model (c_ls x) (s_ls x) m) ->
+  (forall (x : raw_id), equiv_via_model (c_gs x) (s_gs x) m) ->
+  equiv_via_model (eval_exp c_ls c_gs ot e) (sym_eval_exp s_ls s_gs ot e) m.
 Proof.
 Admitted.
+
+Lemma smt_lemma_2 : forall c_ls s_ls c_gs s_gs ot e m,
+  is_supported_exp e ->
+  (forall (x : raw_id), equiv_via_model (c_ls x) (s_ls x) m) ->
+  (forall (x : raw_id), equiv_via_model (c_gs x) (s_gs x) m) ->
+  equiv_via_model (eval_exp c_ls c_gs ot e) (sym_eval_exp s_ls s_gs ot e) m.
+Proof.
+  intros c_ls s_ls c_gs s_gs ot e m His Hls Hgs.
+  generalize dependent ot.
+  induction e; intros ot; simpl; try (inversion His; subst).
+  {
+    destruct id.
+    {
+      unfold lookup_ident, sym_lookup_ident.
+      apply Hgs.
+    }
+    {
+      unfold lookup_ident, sym_lookup_ident.
+      apply Hls.
+    }
+  }
+  {
+    destruct ot.
+    {
+      destruct t; try (apply EVM_None).
+      repeat (destruct w; try (apply EVM_None)); (apply EVM_Some; reflexivity).
+    }
+    { apply EVM_None. }
+  }
+  {
+    apply IHe1 with (ot := (Some t)) in H1.
+    apply IHe2 with (ot := (Some t)) in H4.
+    destruct (eval_exp c_ls c_gs (Some t) e1) as [dv1 | ] eqn:E1.
+    {
+      destruct (eval_exp c_ls c_gs (Some t) e2) as [dv2 | ] eqn:E2.
+      {
+        inversion H1; subst.
+        inversion H4; subst.
+        rename se into se1, di into di1, se0 into se2, di0 into di2.
+        destruct di1 as [n1 | n1 | n1 | n1 | n1], di2 as [n2 | n2 | n2 | n2 | n2]; try (
+          simpl;
+          apply EVM_NoneViaModel;
+          simpl;
+          rewrite H2, H5;
+          simpl;
+          reflexivity
+        ); (
+          simpl;
+          apply EVM_Some;
+          simpl;
+          rewrite H2, H5;
+          simpl;
+          reflexivity
+        ).
+      }
+      {
+        inversion H1; subst.
+        inversion H4; subst.
+        { apply EVM_None. }
+        {
+          apply EVM_NoneViaModel.
+          simpl.
+          rewrite H2, H3.
+          reflexivity.
+        }
+      }
+    }
+    {
+      destruct (eval_exp c_ls c_gs (Some t) e2) as [dv2 | ] eqn:E2.
+      {
+        inversion H1; subst.
+        { apply EVM_None. }
+        {
+          inversion H4; subst.
+          apply EVM_NoneViaModel.
+          simpl.
+          rewrite H0.
+          reflexivity.
+        }
+      }
+      {
+        inversion H1; subst.
+        { apply EVM_None. }
+        {
+          rename se into se1.
+          inversion H4; subst.
+          { apply EVM_None. }
+          {
+            rename se into se2.
+            apply EVM_NoneViaModel.
+            simpl.
+            rewrite H0.
+            reflexivity.
+          }
+        }
+      }
+    }
+  }
+Qed.
 
 Lemma completeness_single_step :
   forall c c' s,
