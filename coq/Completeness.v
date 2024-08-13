@@ -228,8 +228,8 @@ Proof.
 Admitted.
 
 (* TODO: should be iff *)
-Lemma initialization_correspondence : forall mdl d c,
-  (init_state mdl d) = Some c -> (exists s, (init_sym_state mdl d) = Some s).
+Lemma initialization_correspondence : forall mdl d,
+  (exists c, (init_state mdl d) = Some c) <-> (exists s, (init_sym_state mdl d) = Some s).
 Proof.
 Admitted.
 
@@ -244,7 +244,7 @@ Proof.
   intros mdl d init_c c Hism Hinit Hms.
   (* TODO: rename *)
   assert(L0: exists init_s, init_sym_state mdl d = Some init_s).
-  { apply (initialization_correspondence mdl d init_c). assumption. }
+  { apply (initialization_correspondence mdl d). exists init_c. assumption. }
   destruct L0 as [init_s L0].
   exists init_s.
   induction Hms as [init_c c | init_c c c'].

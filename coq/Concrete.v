@@ -593,6 +593,7 @@ Definition init_state (m : llvm_module) (d : llvm_definition) : option state :=
   end
 .
 
+(* TODO: move from here? *)
 Inductive is_supported_state : state -> Prop :=
   | IS_State : forall ic c cs pbid ls stk gs mdl,
       is_supported_cmd c ->
@@ -610,8 +611,9 @@ Inductive is_supported_state : state -> Prop :=
         )
 .
 
-(* TODO: add assumptions about the module? *)
-Definition is_safe_program (m : llvm_module) (d : llvm_definition) :=
-  exists s0,
-    (init_state m d) = Some s0 /\ (* TODO: define as a well-formed property? *)
-    forall s, multi_step s0 s -> ~ error_state s.
+(* TODO: move from here? *)
+(* TODO: define as a well-formed property? *)
+Definition is_safe_program (mdl : llvm_module) (d : llvm_definition) :=
+  exists init_s,
+    (init_state mdl d) = Some init_s /\ (forall s, multi_step init_s s -> ~ error_state s)
+.
