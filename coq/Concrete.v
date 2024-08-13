@@ -126,7 +126,7 @@ Fixpoint eval_exp (s : dv_store) (g : dv_store) (t : option typ) (e : exp typ) :
   end
 .
 
-Fixpoint eval_constant_exp (t : typ) (e : exp typ) : option dynamic_value :=
+Definition eval_constant_exp (t : typ) (e : exp typ) : option dynamic_value :=
   eval_exp empty_dv_store empty_dv_store (Some t) e
 .
 

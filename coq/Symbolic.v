@@ -193,7 +193,7 @@ Fixpoint sym_eval_exp (s : smt_store) (g : smt_store) (t : option typ) (e : exp 
   end
 .
 
-Fixpoint sym_eval_constant_exp (t : typ) (e : exp typ) : option smt_expr :=
+Definition sym_eval_constant_exp (t : typ) (e : exp typ) : option smt_expr :=
   sym_eval_exp empty_smt_store empty_smt_store (Some t) e
 .
 
@@ -642,8 +642,11 @@ Definition init_sym_state (m : llvm_module) (d : llvm_definition) : option sym_s
   end
 .
 
+(* TODO: rename (corresponds?) *)
 Inductive equiv_via_model : option dynamic_value -> option smt_expr -> smt_model -> Prop :=
   | EVM_None : forall m, equiv_via_model None None m
+  | EVM_NoneViaModel : forall m se,
+      (smt_eval m se) = None -> equiv_via_model None (Some se) m
   | EVM_Some : forall m di se,
       (smt_eval m se) = Some di -> equiv_via_model (Some (DV_Int di)) (Some se) m
 .

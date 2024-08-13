@@ -5,15 +5,27 @@ Import ListNotations.
 From SE Require Import CFG.
 From SE Require Import LLVMAst.
 
+Inductive is_supported_exp : (exp typ) -> Prop :=
+  | IS_EXP_Ident : forall id,
+      is_supported_exp (EXP_Ident id)
+  | IS_EXP_Integer : forall x,
+      is_supported_exp (EXP_Integer x)
+  | IS_OP_IBinop : forall  t e1 e2,
+      is_supported_exp e1 ->
+      is_supported_exp e2 ->
+      is_supported_exp (OP_IBinop (Add false false) t e1 e2)
+.
+
 Inductive is_supported_cmd : llvm_cmd -> Prop :=
   | IS_Phi : forall n p,
       is_supported_cmd (CMD_Phi n p)
-  | IS_EXP_Ident : forall n v id,
-      is_supported_cmd (CMD_Inst n (INSTR_Op v (EXP_Ident id)))
-  | IS_EXP_Integer : forall n v x,
-      is_supported_cmd (CMD_Inst n (INSTR_Op v (EXP_Integer x)))
-  | IS_OP_IBinop : forall n v t e1 e2,
-      is_supported_cmd (CMD_Inst n (INSTR_Op v (OP_IBinop (Add false false) t e1 e2)))
+  | IS_INSTR_Op : forall n v e,
+      is_supported_exp e ->
+      is_supported_cmd (CMD_Inst n (INSTR_Op v e))
+  | IS_INSTR_VoidCall : forall n f args anns,
+      is_supported_cmd (CMD_Inst n (INSTR_VoidCall f args anns))
+  | IS_INSTR_Call : forall n v f args anns,
+      is_supported_cmd (CMD_Inst n (INSTR_Call v f args anns))
   | IS_Term : forall n t,
       is_supported_cmd (CMD_Term n t)
 .

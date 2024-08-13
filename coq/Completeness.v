@@ -4,6 +4,7 @@ From SE Require Import Concrete.
 From SE Require Import DynamicValue.
 From SE Require Import IDMap.
 From SE Require Import LLVMAst.
+From SE Require Import Module.
 From SE Require Import Symbolic.
 From SE Require Import Relation.
 From SE Require Import WellDefinedness.
@@ -140,7 +141,13 @@ Proof.
         (sym_eval_exp s_ls s_gs None e)
         m
     ).
-    { apply smt_lemma_1. }
+    {
+      destruct H20 as [H20_1 [H20_2 H20_3]].
+      apply smt_lemma_2; try assumption.
+      inversion Hiss; subst.
+      inversion H2; subst.
+      assumption.
+    }
     inversion L; subst.
     { simpl in H8. rewrite H8 in *. discriminate H1. }
     {
@@ -178,7 +185,7 @@ Proof.
             rewrite update_map_eq, update_map_eq.
             rewrite H8 in H0.
             rewrite <- H0.
-            apply EVM_Some.
+            apply EVM_NoneViaModel.
             assumption.
           }
           {
@@ -194,6 +201,7 @@ Proof.
         }
       }
     }
+    { admit. }
   }
   { admit. }
   {
