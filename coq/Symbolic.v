@@ -639,7 +639,7 @@ Definition init_sym_state (m : llvm_module) (d : llvm_definition) : option sym_s
   end
 .
 
-(* TODO: rename (corresponds?) *)
+(* TODO: rename (corresponds/over_approx) *)
 Inductive equiv_via_model : option dynamic_value -> option smt_expr -> smt_model -> Prop :=
   | EVM_None : forall m, equiv_via_model None None m
   | EVM_NoneViaModel : forall m se,
