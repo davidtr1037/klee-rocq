@@ -326,16 +326,15 @@ Inductive sym_step : sym_state -> sym_state -> Prop :=
           pc
           m
         )
-  (* TODO: t must by i1? *)
-  | Sym_Step_Br_True : forall ic cid t e bid1 bid2 pbid ls stk gs syms pc m se d b c cs,
-      (sym_eval_exp ls gs (Some t) e) = Some se ->
+  | Sym_Step_Br_True : forall ic cid e bid1 bid2 pbid ls stk gs syms pc m se d b c cs,
+      (sym_eval_exp ls gs (Some (TYPE_I 1)) e) = Some se ->
       (find_function m (ic_fid ic)) = Some d ->
       (fetch_block d bid1) = Some b ->
       (blk_cmds b) = c :: cs ->
       sym_step
         (mk_sym_state
           ic
-          (CMD_Term cid (TERM_Br (t, e) bid1 bid2))
+          (CMD_Term cid (TERM_Br ((TYPE_I 1), e) bid1 bid2))
           []
           pbid
           ls
@@ -357,16 +356,15 @@ Inductive sym_step : sym_state -> sym_state -> Prop :=
           (SMT_BinOp SMT_And pc se)
           m
         )
-  (* TODO: t must by i1? *)
-  | Sym_Step_Br_False : forall ic cid t e bid1 bid2 pbid ls stk gs syms pc m se d b c cs,
-      (sym_eval_exp ls gs (Some t) e) = Some se ->
+  | Sym_Step_Br_False : forall ic cid e bid1 bid2 pbid ls stk gs syms pc m se d b c cs,
+      (sym_eval_exp ls gs (Some (TYPE_I 1)) e) = Some se ->
       (find_function m (ic_fid ic)) = Some d ->
       (fetch_block d bid2) = Some b ->
       (blk_cmds b) = c :: cs ->
       sym_step
         (mk_sym_state
           ic
-          (CMD_Term cid (TERM_Br (t, e) bid1 bid2))
+          (CMD_Term cid (TERM_Br ((TYPE_I 1), e) bid1 bid2))
           []
           pbid
           ls

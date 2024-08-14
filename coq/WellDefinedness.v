@@ -686,7 +686,7 @@ Proof.
             apply (well_defined_sym_eval_exp
               (mk_sym_state
                 ic
-                (CMD_Term cid (TERM_Br (t, e) bid1 bid2))
+                (CMD_Term cid (TERM_Br ((TYPE_I 1), e) bid1 bid2))
                 []
                 pbid
                 ls
@@ -696,7 +696,7 @@ Proof.
                 pc
                 mdl
               )
-              (Some t)
+              (Some (TYPE_I 1))
               e
               se
             ); assumption.
@@ -732,7 +732,7 @@ Proof.
             apply (well_defined_sym_eval_exp
               (mk_sym_state
                 ic
-                (CMD_Term cid (TERM_Br (t, e) bid1 bid2))
+                (CMD_Term cid (TERM_Br ((TYPE_I 1), e) bid1 bid2))
                 []
                 pbid
                 ls
@@ -742,7 +742,7 @@ Proof.
                 pc
                 mdl
               )
-              (Some t)
+              (Some (TYPE_I 1))
               e
               se
             ); assumption.
