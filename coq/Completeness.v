@@ -4,7 +4,7 @@ From SE Require Import Concrete.
 From SE Require Import DynamicValue.
 From SE Require Import IDMap.
 From SE Require Import LLVMAst.
-From SE Require Import Module.
+From SE Require Import ModuleAssumptions.
 From SE Require Import Symbolic.
 From SE Require Import Relation.
 From SE Require Import WellDefinedness.

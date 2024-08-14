@@ -10,7 +10,7 @@ ExecutionTree.v
 IDMap.v
 Symbolic.v
 LLVMAst.v
-Module.v
+ModuleAssumptions.v
 Numeric/Archi.v
 Numeric/Floats.v
 Numeric/IEEE754_extra.v
