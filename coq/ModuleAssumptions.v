@@ -71,3 +71,17 @@ Inductive is_supported_state : state -> Prop :=
           mdl
         )
 .
+
+Lemma init_state_supported : forall mdl d s,
+  is_supported_module mdl ->
+  init_state mdl d = Some s -> is_supported_state s.
+Proof.
+Admitted.
+
+Lemma multi_step_supported : forall mdl s s',
+  is_supported_module mdl ->
+  multi_step s s' ->
+  is_supported_state s ->
+  is_supported_state s'.
+Proof.
+Admitted.

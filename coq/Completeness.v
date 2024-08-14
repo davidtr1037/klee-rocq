@@ -112,6 +112,27 @@ Proof.
   }
 Qed.
 
+Lemma store_correspondence_update : forall dv se m v c_s s_s,
+  equiv_via_model (Some dv) (Some se) m ->
+  (forall x, equiv_via_model (c_s x) (s_s x) m) ->
+  (forall x, equiv_via_model ((v !-> Some dv; c_s) x) ((v !-> Some se; s_s) x) m).
+Proof.
+  intros dv se m v c_s s_s H1 H2.
+  intros x.
+  destruct (raw_id_eqb x v) eqn:E.
+  {
+    rewrite raw_id_eqb_eq in E.
+    rewrite E.
+    rewrite update_map_eq, update_map_eq.
+    assumption.
+  }
+  {
+    rewrite raw_id_eqb_neq in E.
+    rewrite update_map_neq, update_map_neq; try (symmetry; assumption).
+    apply H2.
+  }
+Qed.
+
 Lemma completeness_single_step :
   forall c c' s,
     is_supported_state c ->
@@ -142,7 +163,7 @@ Proof.
       assumption.
     }
     inversion L; subst.
-    { simpl in H8. rewrite H8 in *. discriminate H1. }
+    { rewrite H8 in *. discriminate H1. }
     {
       exists (mk_sym_state
         (next_inst_counter c_ic c)
@@ -170,22 +191,14 @@ Proof.
         destruct H20 as [H20_1 [H20_2 H20_3]].
         split.
         {
-          intros x.
-          destruct (raw_id_eqb x v) eqn:E.
+          apply store_correspondence_update.
           {
-            rewrite raw_id_eqb_eq in E.
-            rewrite E.
-            rewrite update_map_eq, update_map_eq.
             rewrite H8 in H0.
             rewrite <- H0.
             apply EVM_NoneViaModel.
             assumption.
           }
-          {
-            rewrite raw_id_eqb_neq in E.
-            rewrite update_map_neq, update_map_neq; try (symmetry; assumption).
-            apply H20_1.
-          }
+          { assumption. }
         }
         {
           split.
@@ -194,7 +207,44 @@ Proof.
         }
       }
     }
-    { admit. }
+    {
+      exists (mk_sym_state
+        (next_inst_counter c_ic c)
+        c
+        cs
+        c_pbid
+        (v !-> Some se; s_ls)
+        s_stk
+        s_gs
+        s_syms
+        s_pc
+        c_mdl
+      ).
+      split.
+      {
+        apply Sym_Step_OP.
+        symmetry.
+        assumption.
+      }
+      {
+        apply OA_State.
+        exists m.
+        apply OAV_State.
+        destruct H20 as [H20_1 [H20_2 H20_3]].
+        split.
+        {
+          apply store_correspondence_update.
+          {
+            rewrite H8 in H0.
+            rewrite <- H0.
+            apply EVM_Some.
+            assumption.
+          }
+          { assumption. }
+        }
+        { split; assumption. }
+      }
+    }
   }
   { admit. }
   {
@@ -230,20 +280,6 @@ Admitted.
 (* TODO: should be iff *)
 Lemma initialization_correspondence : forall mdl d,
   (exists c, (init_state mdl d) = Some c) <-> (exists s, (init_sym_state mdl d) = Some s).
-Proof.
-Admitted.
-
-Lemma init_state_supported : forall mdl d s,
-  is_supported_module mdl ->
-  init_state mdl d = Some s -> is_supported_state s.
-Proof.
-Admitted.
-
-Lemma multi_step_supported : forall mdl s s',
-  is_supported_module mdl ->
-  multi_step s s' ->
-  is_supported_state s ->
-  is_supported_state s'.
 Proof.
 Admitted.
 
