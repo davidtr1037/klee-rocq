@@ -83,26 +83,72 @@ Inductive safe_et : execution_tree -> Prop :=
 Lemma safe_leaf: forall s,
   safe_et (t_leaf s) -> ~ error_sym_state s.
 Proof.
-Admitted.
+  intros s Hs Hess.
+  inversion Hs; subst; inversion Hess.
+Qed.
 
 Lemma safe_subtree: forall s l,
   safe_et (t_subtree s l) -> ~ error_sym_state s.
 Proof.
-Admitted.
+  intros s l Hs Hess.
+  inversion Hs; subst.
+  apply H1 in Hess.
+  assumption.
+Qed.
 
 Lemma safe_single_step: forall s s' l,
   safe_et (t_subtree s l) ->
   sym_step s s' ->
   (safe_et (t_leaf s') \/ (exists l', safe_et (t_subtree s' l')) \/ unsat_sym_state s').
 Proof.
-Admitted.
+  intros s s' l Hs Hss.
+  inversion Hs; subst.
+  apply H2 in Hss.
+  destruct Hss as [Hss | Hss].
+  {
+    destruct Hss as [t [Hss_1 [Hss_2 Hss_3]]].
+    destruct t as [x | x l'] eqn:E.
+    {
+      simpl in Hss_3.
+      subst.
+      left.
+      assumption.
+    }
+    {
+      simpl in Hss_3.
+      subst.
+      right.
+      left.
+      exists l'.
+      assumption.
+    }
+  }
+  { right. right. assumption. }
+Qed.
 
 Lemma safe_multi_step: forall s s' l,
   safe_et (t_subtree s l) ->
   multi_sym_step s s' ->
   (safe_et (t_leaf s') \/ (exists l', safe_et (t_subtree s' l')) \/ unsat_sym_state s').
 Proof.
-Admitted.
+  intros s s' l Hs Hss.
+  induction Hss as [s s' | s s' s''].
+  { apply safe_single_step with (s := s) (l := l); assumption. }
+  {
+    apply IHHss in Hs.
+    destruct Hs as [Hs | [Hs | Hs]].
+    { inversion Hs; subst; inversion H. }
+    {
+      destruct Hs as [l' Hs].
+      apply safe_single_step with (s := s') (l := l'); assumption.
+    }
+    {
+      right.
+      right.
+      apply pc_unsat_lemma with (s := s'); assumption.
+    }
+  }
+Qed.
 
 Theorem completeness_via_et: forall mdl d init_s l,
   is_supported_module mdl ->
