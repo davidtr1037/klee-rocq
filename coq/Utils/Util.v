@@ -1623,3 +1623,12 @@ Admitted.
 Lemma positive_eqb_ne : forall (a b : positive), (a =? b)%positive = false <-> a <> b.
 Proof.
 Admitted.
+
+Lemma injection_some : forall (A : Type) (x y : A),
+  Some x = Some y -> x = y.
+Proof.
+  intros A x y H.
+  injection H.
+  intros Heq.
+  assumption.
+Qed.

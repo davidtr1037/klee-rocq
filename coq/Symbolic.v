@@ -45,7 +45,7 @@ Record sym_state : Type := mk_sym_state {
 }.
 
 Inductive error_sym_state : sym_state -> Prop :=
-  | ES_Assert : forall ic cid args anns cs pbid ls stk gs syms pc m d,
+  | ESS_Assert : forall ic cid args anns cs pbid ls stk gs syms pc m d,
       (find_function m assert_id) = None ->
       (find_declaration m assert_id) = Some d ->
       (dc_type d) = assert_type ->
@@ -704,7 +704,17 @@ Inductive over_approx : sym_state -> state -> Prop :=
 Lemma error_correspondence: forall c s,
   over_approx s c -> (error_sym_state s <-> error_state c).
 Proof.
-Admitted.
+  intros c s Hoa.
+  split; (inversion Hoa; destruct H as [m H]; inversion H; subst; intros He).
+  {
+    inversion He; subst.
+    apply ES_Assert with (d := d); assumption.
+  }
+  {
+    inversion He; subst.
+    apply ESS_Assert with (d := d); assumption.
+  }
+Qed.
 
 (* needed for soundness? *)
 Lemma pc_sat_lemma : forall s s' m,
