@@ -87,6 +87,14 @@ Lemma init_state_supported : forall mdl d s,
 Proof.
 Admitted.
 
+Lemma step_supported : forall mdl s s',
+  is_supported_module mdl ->
+  step s s' ->
+  is_supported_state s ->
+  is_supported_state s'.
+Proof.
+Admitted.
+
 Lemma multi_step_supported : forall mdl s s',
   is_supported_module mdl ->
   multi_step s s' ->
