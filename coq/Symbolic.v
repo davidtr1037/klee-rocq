@@ -706,6 +706,7 @@ Lemma error_correspondence: forall c s,
 Proof.
 Admitted.
 
+(* needed for soundness? *)
 Lemma pc_sat_lemma : forall s s' m,
   sym_step s s' -> sat_sym_state m s' -> sat_sym_state m s.
 Proof.
@@ -714,6 +715,28 @@ Admitted.
 Lemma pc_unsat_lemma : forall s s',
   sym_step s s' -> unsat_sym_state s -> unsat_sym_state s'.
 Proof.
+  intros s s' Hss Hu.
+  inversion Hss; try (
+    apply Unsat_State;
+    subst;
+    inversion Hu; subst;
+    assumption
+  ).
+  {
+    apply Unsat_State.
+    subst.
+    inversion Hu; subst.
+    apply unsat_and.
+    assumption.
+  }
+  {
+    apply Unsat_State.
+    subst.
+    inversion Hu; subst.
+    apply unsat_and.
+    assumption.
+  }
+  { admit. }
 Admitted.
 
 (* TODO: define as an axiom? *)

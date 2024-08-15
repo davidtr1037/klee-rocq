@@ -158,6 +158,7 @@ Lemma eval_phi_args_correspondence : forall c_ls s_ls c_gs s_gs t args pbid m,
 Proof.
 Admitted.
 
+(* TODO: rename *)
 Lemma LX0 : forall s x se name syms,
   well_defined_smt_store s syms ->
   ~ In name syms ->
@@ -216,6 +217,7 @@ Proof.
   }
 Qed.
 
+(* TODO: rename *)
 Lemma LX2 : forall s_stk c_stk m name n syms,
   over_approx_stack_via s_stk c_stk m ->
   well_defined_stack s_stk syms ->

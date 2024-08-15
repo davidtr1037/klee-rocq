@@ -1,4 +1,6 @@
+Require Import Lia.
 From Coq Require Import Strings.String.
+From Coq Require Import ZArith.
 
 From SE Require Import BitVectors.
 From SE Require Import DynamicValue.
@@ -130,6 +132,35 @@ Definition sat (e : smt_expr) :=
 .
 
 Definition unsat (e : smt_expr) := ~ sat e.
+
+Lemma unsat_and : forall e1 e2,
+  unsat e1 ->
+  unsat (SMT_BinOp SMT_And e1 e2).
+Proof.
+  intros e1 e2 Hu.
+  unfold unsat in *.
+  intros Hsat.
+  apply Hu.
+  unfold sat in *.
+  destruct Hsat as [m Hsat].
+  exists m.
+  unfold sat_via in *.
+  simpl in Hsat.
+  destruct (smt_eval m e1) as [di1 | ] eqn:E1, (smt_eval m e2) as [di2 | ] eqn:E2.
+  {
+    destruct di1, di2;
+    try (
+      unfold smt_eval_binop in Hsat;
+      discriminate Hsat
+    ).
+    {
+      rename n into n1, n0 into n2.
+      unfold smt_eval_binop in Hsat.
+      unfold smt_eval_binop_generic in Hsat.
+      admit.
+    }
+  }
+Admitted.
 
 Lemma subexpr_non_interference : forall e x m n,
   (~ subexpr (SMT_Var x) e) -> smt_eval m e = smt_eval (mk_smt_model (x !-> n; bv_model m)) e.
