@@ -110,7 +110,12 @@ Fixpoint smt_eval (m : smt_model) (e : smt_expr) : option dynamic_int :=
             smt_eval m e3
       | _ => None
       end
-  | SMT_Not e => None
+  (* TODO: overcome decreasing issue? *)
+  | SMT_Not e =>
+      match (smt_eval m e) with
+      | Some di => smt_eval_cmpop SMT_Eq di di_false
+      | _ => None
+      end
   | SMT_Concat e1 e2 => None
   | SMT_Extract e i w => None
   end
@@ -125,6 +130,68 @@ Definition sat (e : smt_expr) :=
 .
 
 Definition unsat (e : smt_expr) := ~ sat e.
+
+Lemma subexpr_non_interference : forall e x m n,
+  (~ subexpr (SMT_Var x) e) -> smt_eval m e = smt_eval (mk_smt_model (x !-> n; bv_model m)) e.
+Proof.
+  intros e x m n H.
+  induction e; simpl; try reflexivity.
+  {
+    destruct (x =? x0)%string eqn:E.
+    {
+      rewrite String.eqb_eq in E.
+      subst.
+      destruct H.
+      apply SubExpr_Refl.
+    }
+    {
+      rewrite String.eqb_neq in E.
+      rewrite update_map_neq.
+      { reflexivity. }
+      { assumption. }
+    }
+  }
+  { (* SMT_BinOp *)
+    assert(L1 : ~ subexpr (SMT_Var x) e1).
+    { intros Hse. apply H. apply SubExpr_BinOp_L. assumption. }
+    assert(L2 : ~ subexpr (SMT_Var x) e2).
+    { intros Hse. apply H. apply SubExpr_BinOp_R. assumption. }
+    apply IHe1 in L1.
+    apply IHe2 in L2.
+    rewrite L1, L2.
+    reflexivity.
+  }
+  { (* SMT_CmpOp *)
+    assert(L1 : ~ subexpr (SMT_Var x) e1).
+    { intros Hse. apply H. apply SubExpr_CmpOp_L. assumption. }
+    assert(L2 : ~ subexpr (SMT_Var x) e2).
+    { intros Hse. apply H. apply SubExpr_CmpOp_R. assumption. }
+    apply IHe1 in L1.
+    apply IHe2 in L2.
+    rewrite L1, L2.
+    reflexivity.
+  }
+  {
+    assert(L1 : ~ subexpr (SMT_Var x) e1).
+    { intros Hse. apply H. apply SubExpr_ITE_Cond. assumption. }
+    assert(L2 : ~ subexpr (SMT_Var x) e2).
+    { intros Hse. apply H. apply SubExpr_ITE_L. assumption. }
+    assert(L3 : ~ subexpr (SMT_Var x) e3).
+    { intros Hse. apply H. apply SubExpr_ITE_R. assumption. }
+    apply IHe1 in L1.
+    apply IHe2 in L2.
+    apply IHe3 in L3.
+    rewrite L1, L2, L3.
+    reflexivity.
+  }
+  {
+    assert(L : ~ subexpr (SMT_Var x) e).
+    { intros Hse. apply H. apply SubExpr_Not. assumption. }
+    apply IHe in L.
+    rewrite L.
+    reflexivity.
+  }
+Qed.
 
 Inductive equiv_smt_expr : smt_expr -> smt_expr -> Prop :=
   | EquivSMTExpr : forall e1 e2,
