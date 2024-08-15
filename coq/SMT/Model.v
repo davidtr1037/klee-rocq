@@ -38,7 +38,7 @@ Definition smt_eval_binop_generic {Int} `{VInt Int} (op : smt_binop) (x y : Int)
   end
 .
 
-Fixpoint smt_eval_binop (op : smt_binop) (v1 v2 : dynamic_int) : option dynamic_int :=
+Definition smt_eval_binop (op : smt_binop) (v1 v2 : dynamic_int) : option dynamic_int :=
   match (v1, v2) with
   | (DI_I1 n1, DI_I1 n2)
   | (DI_I8 n1, DI_I8 n2)
@@ -64,7 +64,7 @@ Definition smt_eval_cmpop_generic {Int} `{VInt Int} (op : smt_cmpop) (x y : Int)
    end
 .
 
-Fixpoint smt_eval_cmpop (op : smt_cmpop) (v1 v2 : dynamic_int) : option dynamic_int :=
+Definition smt_eval_cmpop (op : smt_cmpop) (v1 v2 : dynamic_int) : option dynamic_int :=
   match (v1, v2) with
   | (DI_I1 n1, DI_I1 n2)
   | (DI_I8 n1, DI_I8 n2)
