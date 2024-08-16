@@ -868,7 +868,55 @@ Admitted.
 Lemma initialization_correspondence : forall mdl d,
   (exists c, (init_state mdl d) = Some c) <-> (exists s, (init_sym_state mdl d) = Some s).
 Proof.
-Admitted.
+  intros mdl d.
+  split; intros H.
+  {
+    destruct H as [c H].
+    unfold init_state in H.
+    destruct (init_global_store mdl) as [c_gs | ] eqn:Ec_gs; try discriminate H.
+    destruct (build_inst_counter mdl d) as [c_ic | ] eqn:Ec_ic; try discriminate H.
+    destruct (entry_block d) as [c_b | ] eqn:Ec_b; try discriminate H.
+    destruct (blk_cmds c_b) as [ | c_cmd c_cmds ] eqn:Ec_cs; try discriminate H.
+    exists (mk_sym_state
+      c_ic
+      c_cmd
+      c_cmds
+      None
+      (init_local_smt_store mdl d)
+      []
+      empty_smt_store
+      []
+      SMT_True
+      mdl
+    ).
+    unfold init_sym_state.
+    simpl.
+    rewrite Ec_ic, Ec_b, Ec_cs.
+    reflexivity.
+  }
+  {
+    destruct H as [s H].
+    unfold init_sym_state in H.
+    destruct (init_global_smt_store mdl) as [s_gs | ] eqn:Es_gs; try discriminate H.
+    destruct (build_inst_counter mdl d) as [s_ic | ] eqn:Es_ic; try discriminate H.
+    destruct (entry_block d) as [s_b | ] eqn:Es_b; try discriminate H.
+    destruct (blk_cmds s_b) as [ | s_cmd s_cmds ] eqn:Es_cs; try discriminate H.
+    exists (mk_state
+      s_ic
+      s_cmd
+      s_cmds
+      None
+      (init_local_store mdl d)
+      []
+      empty_dv_store
+      mdl
+    ).
+    unfold init_state.
+    simpl.
+    rewrite Es_ic, Es_b, Es_cs.
+    reflexivity.
+  }
+Qed.
 
 Lemma over_approx_init_states : forall mdl d s c,
   init_sym_state mdl d = Some s ->
