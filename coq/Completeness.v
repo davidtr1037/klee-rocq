@@ -194,6 +194,105 @@ Proof.
   }
 Qed.
 
+Lemma LX3 : forall d c_ls c_gs s_ls s_gs m args c_ls',
+  over_approx_store_via s_ls c_ls m ->
+  over_approx_store_via s_gs c_gs m ->
+  create_local_store d c_ls c_gs args = Some c_ls' ->
+  exists s_ls',
+    create_local_smt_store d s_ls s_gs args = Some s_ls'.
+Proof.
+  intros d c_ls c_gs s_ls s_gs m args c_ls' Hoal Hoag Hc.
+  unfold create_local_store in Hc.
+  destruct (ListUtil.merge_lists (df_args d)).
+  {
+    admit.
+  }
+  { discriminate Hc. }
+Admitted.
+
+Lemma LX4 : forall c_ls s_ls c_gs s_gs m l c_ls' s_ls',
+  over_approx_store_via s_ls c_ls m ->
+  over_approx_store_via s_gs c_gs m ->
+  fill_store c_ls c_gs l = Some c_ls' ->
+  fill_smt_store s_ls s_gs l = Some s_ls' ->
+  over_approx_store_via s_ls' c_ls' m.
+Proof.
+  intros c_ls s_ls c_gs s_gs m l c_ls' s_ls' Hoac Hoag Hc Hs.
+  generalize dependent s_ls'.
+  generalize dependent c_ls'.
+  induction l as [ | (x, arg) tail].
+  {
+    intros c_ls' Hc s_ls' Hs.
+    simpl in Hc, Hs.
+    inversion Hc; subst.
+    inversion Hs; subst.
+    apply empty_store_correspondence.
+  }
+  {
+    intros c_ls' Hc s_ls' Hs.
+    simpl in Hc, Hs.
+    destruct arg, t.
+    assert(L :
+      equiv_via_model
+        (eval_exp c_ls c_gs (Some t) e)
+        (sym_eval_exp s_ls s_gs (Some t) e)
+        m
+    ).
+    {
+      apply eval_correspondence; try assumption.
+      admit. (* TODO: is_supported_exp *)
+    }
+    destruct (eval_exp c_ls c_gs (Some t) e) eqn:Eeval.
+    {
+      inversion L; subst.
+      rewrite <- H0 in Hs.
+      destruct
+        (fill_store c_ls c_gs tail) as [c_ls'' | ] eqn:Efc,
+        (fill_smt_store s_ls s_gs tail) as [s_ls'' | ] eqn:Efs.
+      {
+        inversion Hc; subst.
+        inversion Hs; subst.
+        apply store_update_correspondence.
+        { apply EVM_Some.  assumption. }
+        apply IHtail; reflexivity.
+      }
+      { inversion Hs. }
+      { inversion Hc. }
+      { inversion Hc. }
+    }
+    { discriminate Hc. }
+Admitted.
+
+Lemma LX6 : forall d c_ls c_gs s_ls s_gs m args c_ls',
+  over_approx_store_via s_ls c_ls m ->
+  over_approx_store_via s_gs c_gs m ->
+  create_local_store d c_ls c_gs args = Some c_ls' ->
+  exists s_ls',
+    create_local_smt_store d s_ls s_gs args = Some s_ls' /\
+    over_approx_store_via s_ls' c_ls' m.
+Proof.
+  intros d c_ls c_gs s_ls s_gs m args c_ls' Hoal Hoag Hc.
+  assert(L :
+    exists s_ls',
+      create_local_smt_store d s_ls s_gs args = Some s_ls'
+  ).
+  { apply LX3 with (c_ls := c_ls) (c_gs := c_gs) (m := m) (c_ls' := c_ls'); assumption. }
+  destruct L as [s_ls' L].
+  exists s_ls'.
+  split.
+  { assumption. }
+  {
+    unfold create_local_store in Hc.
+    unfold create_local_smt_store in L.
+    destruct (ListUtil.merge_lists (df_args d)) eqn:E.
+    {
+      apply LX4 with (c_ls := c_ls) (c_gs := c_gs) (s_ls := s_ls) (s_gs := s_gs) (l := l);
+      assumption.
+    }
+    { discriminate L. }
+  }
+Qed.
+
 (* TODO: rename *)
 Lemma LX0 : forall s x se name syms,
   well_defined_smt_store s syms ->
@@ -661,15 +760,16 @@ Proof.
     }
   }
   {
+    rename ls' into c_ls'.
     inversion Hoa; subst.
     destruct H as [m H].
     inversion H; subst.
     assert(L :
       exists s_ls',
         create_local_smt_store d s_ls s_gs args = Some s_ls' /\
-        over_approx_store_via s_ls' ls' m
+        over_approx_store_via s_ls' c_ls' m
     ).
-    { admit. }
+    { apply LX6 with (c_ls := c_ls) (c_gs := c_gs); assumption. }
     destruct L as [s_ls' [L_1 L_2]].
     exists (mk_sym_state
       (mk_inst_counter (get_fid d) (blk_id b) (get_cmd_id c'0))
@@ -695,15 +795,16 @@ Proof.
     }
   }
   {
+    rename ls' into c_ls'.
     inversion Hoa; subst.
     destruct H as [m H].
     inversion H; subst.
     assert(L :
       exists s_ls',
         create_local_smt_store d s_ls s_gs args = Some s_ls' /\
-        over_approx_store_via s_ls' ls' m
+        over_approx_store_via s_ls' c_ls' m
     ).
-    { admit. }
+    { apply LX6 with (c_ls := c_ls) (c_gs := c_gs); assumption. }
     destruct L as [s_ls' [L_1 L_2]].
     exists (mk_sym_state
       (mk_inst_counter (get_fid d) (blk_id b) (get_cmd_id c'0))
