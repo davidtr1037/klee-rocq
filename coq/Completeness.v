@@ -194,43 +194,30 @@ Proof.
   }
 Qed.
 
-Lemma LX3 : forall d c_ls c_gs s_ls s_gs m args c_ls',
-  over_approx_store_via s_ls c_ls m ->
-  over_approx_store_via s_gs c_gs m ->
-  create_local_store d c_ls c_gs args = Some c_ls' ->
-  exists s_ls',
-    create_local_smt_store d s_ls s_gs args = Some s_ls'.
-Proof.
-  intros d c_ls c_gs s_ls s_gs m args c_ls' Hoal Hoag Hc.
-  unfold create_local_store in Hc.
-  destruct (ListUtil.merge_lists (df_args d)).
-  {
-    admit.
-  }
-  { discriminate Hc. }
-Admitted.
-
-Lemma LX4 : forall c_ls s_ls c_gs s_gs m l c_ls' s_ls',
+Lemma LX4 : forall c_ls s_ls c_gs s_gs m l c_ls',
   over_approx_store_via s_ls c_ls m ->
   over_approx_store_via s_gs c_gs m ->
   fill_store c_ls c_gs l = Some c_ls' ->
-  fill_smt_store s_ls s_gs l = Some s_ls' ->
-  over_approx_store_via s_ls' c_ls' m.
+  exists s_ls',
+    fill_smt_store s_ls s_gs l = Some s_ls' /\ over_approx_store_via s_ls' c_ls' m.
 Proof.
-  intros c_ls s_ls c_gs s_gs m l c_ls' s_ls' Hoac Hoag Hc Hs.
-  generalize dependent s_ls'.
+  intros c_ls s_ls c_gs s_gs m l c_ls' Hoac Hoag Hc.
   generalize dependent c_ls'.
   induction l as [ | (x, arg) tail].
   {
-    intros c_ls' Hc s_ls' Hs.
-    simpl in Hc, Hs.
-    inversion Hc; subst.
-    inversion Hs; subst.
-    apply empty_store_correspondence.
+    intros c_ls' Hc.
+    exists empty_smt_store.
+    split.
+    { reflexivity. }
+    {
+      simpl in Hc.
+      inversion Hc; subst.
+      apply empty_store_correspondence.
+    }
   }
   {
-    intros c_ls' Hc s_ls' Hs.
-    simpl in Hc, Hs.
+    intros c_ls' Hc.
+    simpl in Hc.
     destruct arg, t.
     assert(L :
       equiv_via_model
@@ -242,22 +229,32 @@ Proof.
       apply eval_correspondence; try assumption.
       admit. (* TODO: is_supported_exp *)
     }
-    destruct (eval_exp c_ls c_gs (Some t) e) eqn:Eeval.
+    destruct (eval_exp c_ls c_gs (Some t) e) as [dv | ] eqn:Eeval.
     {
-      inversion L; subst.
-      rewrite <- H0 in Hs.
-      destruct
-        (fill_store c_ls c_gs tail) as [c_ls'' | ] eqn:Efc,
-        (fill_smt_store s_ls s_gs tail) as [s_ls'' | ] eqn:Efs.
+      destruct (fill_store c_ls c_gs tail) as [c_ls'' | ] eqn:Efc.
       {
-        inversion Hc; subst.
-        inversion Hs; subst.
-        apply store_update_correspondence.
-        { apply EVM_Some.  assumption. }
-        apply IHtail; reflexivity.
+        specialize (IHtail c_ls'').
+        destruct IHtail as [s_ls'' IHtail].
+        { reflexivity. }
+        {
+          destruct IHtail as [IHtail_1 IHtail_2].
+          inversion L; subst.
+          exists (x !-> Some se; s_ls'').
+          split.
+          {
+            simpl.
+            rewrite <- H0.
+            rewrite IHtail_1.
+            reflexivity.
+          }
+          {
+            inversion Hc; subst.
+            apply store_update_correspondence; try assumption.
+            apply EVM_Some.
+            assumption.
+          }
+        }
       }
-      { inversion Hs. }
-      { inversion Hc. }
       { inversion Hc. }
     }
     { discriminate Hc. }
@@ -272,25 +269,11 @@ Lemma LX6 : forall d c_ls c_gs s_ls s_gs m args c_ls',
     over_approx_store_via s_ls' c_ls' m.
 Proof.
   intros d c_ls c_gs s_ls s_gs m args c_ls' Hoal Hoag Hc.
-  assert(L :
-    exists s_ls',
-      create_local_smt_store d s_ls s_gs args = Some s_ls'
-  ).
-  { apply LX3 with (c_ls := c_ls) (c_gs := c_gs) (m := m) (c_ls' := c_ls'); assumption. }
-  destruct L as [s_ls' L].
-  exists s_ls'.
-  split.
-  { assumption. }
-  {
-    unfold create_local_store in Hc.
-    unfold create_local_smt_store in L.
-    destruct (ListUtil.merge_lists (df_args d)) eqn:E.
-    {
-      apply LX4 with (c_ls := c_ls) (c_gs := c_gs) (s_ls := s_ls) (s_gs := s_gs) (l := l);
-      assumption.
-    }
-    { discriminate L. }
-  }
+  unfold create_local_store in Hc.
+  unfold create_local_smt_store.
+  destruct (ListUtil.merge_lists (df_args d)) eqn:E.
+  { apply LX4 with (c_ls := c_ls) (c_gs := c_gs); assumption. }
+  { discriminate Hc. }
 Qed.
 
 (* TODO: rename *)
