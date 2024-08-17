@@ -295,16 +295,14 @@ Proof.
   assumption.
 Qed.
 
-(* TODO: rename and locate *)
-Lemma LX1 : forall s_s c_s m name n syms,
+Lemma over_approx_store_non_interference : forall s_s c_s m name n syms,
   over_approx_store_via s_s c_s m ->
   well_defined_smt_store s_s syms ->
   ~ In name syms ->
   over_approx_store_via
     s_s
     c_s
-    (mk_smt_model (StringMap.update_map (bv_model m) name (DI_I32 (repr n))))
-.
+    (mk_smt_model (StringMap.update_map (bv_model m) name (DI_I32 (repr n)))).
 Proof.
   intros s_s c_s m name n syms Hoa Hwd Hin.
   apply OA_Store.
@@ -335,8 +333,7 @@ Proof.
   }
 Qed.
 
-(* TODO: rename *)
-Lemma LX2 : forall s_stk c_stk m name n syms,
+Lemma over_approx_stack_non_interference : forall s_stk c_stk m name n syms,
   over_approx_stack_via s_stk c_stk m ->
   well_defined_stack s_stk syms ->
   ~ In name syms ->
@@ -355,13 +352,13 @@ Proof.
       inversion H; subst.
       {
         apply OA_Frame.
-        apply LX1 with (syms := syms); try assumption.
+        apply over_approx_store_non_interference with (syms := syms); try assumption.
         inversion Hwd; subst.
         assumption.
       }
       {
         apply OA_Frame_NoReturn.
-        apply LX1 with (syms := syms); try assumption.
+        apply over_approx_store_non_interference with (syms := syms); try assumption.
         inversion Hwd; subst.
         assumption.
       }
@@ -929,11 +926,11 @@ Proof.
           reflexivity.
         }
         {
-          apply LX1 with (syms := s_syms); assumption.
+          apply over_approx_store_non_interference with (syms := s_syms); assumption.
         }
       }
-      { apply LX2 with (syms := s_syms); assumption. }
-      { apply LX1 with (syms := s_syms); assumption. }
+      { apply over_approx_stack_non_interference with (syms := s_syms); assumption. }
+      { apply over_approx_store_non_interference with (syms := s_syms); assumption. }
       {
         rewrite <- H25.
         symmetry.
