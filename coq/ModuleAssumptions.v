@@ -97,10 +97,17 @@ Inductive is_supported_state : state -> Prop :=
         )
 .
 
+(* TODO: fix init_state / init_sym_state *)
 Lemma init_state_supported : forall mdl d s,
   is_supported_module mdl ->
   init_state mdl d = Some s -> is_supported_state s.
 Proof.
+  intros mdl d s Hism Heq.
+  unfold init_state in Heq.
+  destruct (build_inst_counter mdl d) as [c_ic | ] eqn:Ec_ic; try discriminate Heq.
+  destruct (entry_block d) as [c_b | ] eqn:Ec_b; try discriminate Heq.
+  destruct (blk_cmds c_b) as [ | c_cmd c_cmds ] eqn:Ec_cs; try discriminate Heq.
+  admit.
 Admitted.
 
 Lemma step_supported : forall mdl s s',
@@ -109,6 +116,21 @@ Lemma step_supported : forall mdl s s',
   is_supported_state s ->
   is_supported_state s'.
 Proof.
+  intros mdl s s' Hism Hs His.
+  inversion Hs; subst; inversion His; subst.
+  {
+    inversion H9; subst.
+    apply IS_State.
+    { apply (H0 c). apply in_eq. }
+    {
+      apply IS_CmdList.
+      intros c' Hin.
+      apply H0.
+      apply in_cons.
+      assumption.
+    }
+  }
+  { admit. } (* phi *)
 Admitted.
 
 Lemma multi_step_supported : forall mdl s s',
@@ -117,4 +139,11 @@ Lemma multi_step_supported : forall mdl s s',
   is_supported_state s ->
   is_supported_state s'.
 Proof.
-Admitted.
+  intros mdl s s' Hism Hms His.
+  induction Hms as [s s' | s s' s''].
+  { apply (step_supported mdl s s'); assumption.  }
+  {
+    apply IHHms in His.
+    apply (step_supported mdl s' s''); assumption.
+  }
+Qed.
