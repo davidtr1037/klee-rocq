@@ -17,6 +17,12 @@ Inductive is_supported_exp : (exp typ) -> Prop :=
       is_supported_exp (OP_IBinop (Add false false) t e1 e2)
 .
 
+Inductive is_supported_function_arg : function_arg -> Prop :=
+  | IS_FunctionArg : forall t e attrs,
+      is_supported_exp e ->
+      is_supported_function_arg ((t, e), attrs)
+.
+
 Inductive is_supported_cmd : llvm_cmd -> Prop :=
   | IS_Phi : forall n v t args,
       (forall bid e, In (bid, e) args -> is_supported_exp e) ->
@@ -25,10 +31,10 @@ Inductive is_supported_cmd : llvm_cmd -> Prop :=
       is_supported_exp e ->
       is_supported_cmd (CMD_Inst n (INSTR_Op v e))
   | IS_INSTR_VoidCall : forall n f args anns,
-      (forall t e attrs, In ((t, e), attrs) args -> is_supported_exp e) ->
+      (forall arg, In arg args -> is_supported_function_arg arg) ->
       is_supported_cmd (CMD_Inst n (INSTR_VoidCall f args anns))
   | IS_INSTR_Call : forall n v f args anns,
-      (forall t e attrs, In ((t, e), attrs) args -> is_supported_exp e) ->
+      (forall arg, In arg args -> is_supported_function_arg arg) ->
       is_supported_cmd (CMD_Inst n (INSTR_Call v f args anns))
   | IS_Term_Ret : forall n t e,
       is_supported_exp e ->

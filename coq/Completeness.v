@@ -21,6 +21,7 @@ From SE.SMT Require Import Model.
 
 (* TODO: fix namespace issues *)
 From SE.Utils Require StringMap.
+From SE.Utils Require ListUtil.
 
 (* TODO: rename to: eval_exp_correspondence *)
 (* TODO: use over_approx_store_via *)
@@ -197,7 +198,7 @@ Qed.
 Lemma fill_store_correspondence : forall c_ls s_ls c_gs s_gs m l c_ls',
   over_approx_store_via s_ls c_ls m ->
   over_approx_store_via s_gs c_gs m ->
-  (forall x t e attrs, In (x, ((t, e), attrs)) l -> is_supported_exp e) ->
+  (forall x arg, In (x, arg) l -> is_supported_function_arg arg) ->
   fill_store c_ls c_gs l = Some c_ls' ->
   exists s_ls',
     fill_smt_store s_ls s_gs l = Some s_ls' /\ over_approx_store_via s_ls' c_ls' m.
@@ -228,8 +229,11 @@ Proof.
     ).
     {
       apply eval_correspondence; try assumption.
-      apply (His x t e attrs).
-      apply in_eq.
+      specialize (His x ((t, e), attrs)).
+      assert(Larg : is_supported_function_arg ((t, e), attrs)).
+      { apply His. apply in_eq. }
+      inversion Larg; subst.
+      assumption.
     }
     destruct (eval_exp c_ls c_gs (Some t) e) as [dv | ] eqn:Eeval.
     {
@@ -244,8 +248,8 @@ Proof.
         ).
         {
           apply IHtail.
-          intros x' t' e' attrs' Hin.
-          apply (His x' t' e' attrs').
+          intros x' arg' Hin.
+          apply (His x' arg').
           apply in_cons.
           assumption.
         }
@@ -274,12 +278,13 @@ Proof.
       { inversion Hc. }
     }
     { discriminate Hc. }
+  }
 Qed.
 
 Lemma create_local_store_correspondence : forall d c_ls c_gs s_ls s_gs m args c_ls',
   over_approx_store_via s_ls c_ls m ->
   over_approx_store_via s_gs c_gs m ->
-  (forall t e attrs, In ((t, e), attrs) args -> is_supported_exp e) ->
+  (forall arg, In arg args -> is_supported_function_arg arg) ->
   create_local_store d c_ls c_gs args = Some c_ls' ->
   exists s_ls',
     create_local_smt_store d s_ls s_gs args = Some s_ls' /\
@@ -289,7 +294,11 @@ Proof.
   unfold create_local_store in Hc.
   unfold create_local_smt_store.
   destruct (ListUtil.merge_lists (df_args d)) eqn:E.
-  { apply fill_store_correspondence with (c_ls := c_ls) (c_gs := c_gs); assumption. }
+  {
+    apply fill_store_correspondence with (c_ls := c_ls) (c_gs := c_gs); try assumption.
+    apply ListUtil.merge_lists_preserves_prop with (xs := (df_args d)) (ys := args);
+    assumption.
+  }
   { discriminate Hc. }
 Qed.
 
@@ -766,7 +775,12 @@ Proof.
         create_local_smt_store d s_ls s_gs args = Some s_ls' /\
         over_approx_store_via s_ls' c_ls' m
     ).
-    { apply create_local_store_correspondence with (c_ls := c_ls) (c_gs := c_gs); assumption. }
+    {
+      apply create_local_store_correspondence with (c_ls := c_ls) (c_gs := c_gs); try assumption.
+      inversion Hiss; subst.
+      inversion H2; subst.
+      assumption.
+    }
     destruct L as [s_ls' [L_1 L_2]].
     exists (mk_sym_state
       (mk_inst_counter (get_fid d) (blk_id b) (get_cmd_id c'0))
@@ -801,7 +815,12 @@ Proof.
         create_local_smt_store d s_ls s_gs args = Some s_ls' /\
         over_approx_store_via s_ls' c_ls' m
     ).
-    { apply create_local_store_correspondence with (c_ls := c_ls) (c_gs := c_gs); assumption. }
+    {
+      apply create_local_store_correspondence with (c_ls := c_ls) (c_gs := c_gs); try assumption.
+      inversion Hiss; subst.
+      inversion H2; subst.
+      assumption.
+    }
     destruct L as [s_ls' [L_1 L_2]].
     exists (mk_sym_state
       (mk_inst_counter (get_fid d) (blk_id b) (get_cmd_id c'0))
