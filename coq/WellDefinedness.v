@@ -274,27 +274,26 @@ Proof.
   assumption.
 Qed.
 
-(* TODO: pass only local/global store? *)
-Lemma well_defined_sym_eval_exp : forall s ot e se,
-  well_defined s ->
-  (sym_eval_exp (sym_store s) (sym_globals s) ot e) = Some se ->
-  well_defined_smt_expr se (sym_symbolics s).
+Lemma well_defined_sym_eval_exp : forall ls gs ot e se syms,
+  well_defined_smt_store ls syms ->
+  well_defined_smt_store gs syms ->
+  (sym_eval_exp ls gs ot e) = Some se ->
+  well_defined_smt_expr se syms.
 Proof.
-  intros s ot e se Hwd Heq.
+  intros ls gs ot e se syms Hwd_ls Hwd_gs Heq.
   generalize dependent se.
   generalize dependent ot.
-  induction e; intros ot se Heq; inversion Hwd; subst; simpl in *.
+  induction e; intros ot se Heq; simpl in *.
   {
     unfold sym_lookup_ident.
-    destruct H as [H_1 [H_2 H_3]].
     destruct id as [x | x] eqn:E; simpl in Heq.
     {
-      inversion H_2; subst.
+      inversion Hwd_gs; subst.
       specialize (H x se).
       apply H; assumption.
     }
     {
-      inversion H_1; subst.
+      inversion Hwd_ls; subst.
       specialize (H x se).
       apply H; assumption.
     }
@@ -346,14 +345,14 @@ Proof.
           assert(L : well_defined_smt_expr se1 syms).
           { apply IHe1. reflexivity. }
           inversion L; subst.
-          apply H0.
+          apply H.
           assumption.
         }
         {
           assert(L : well_defined_smt_expr se2 syms).
           { apply IHe2. reflexivity. }
           inversion L; subst.
-          apply H0.
+          apply H.
           assumption.
         }
       }
@@ -378,14 +377,14 @@ Proof.
           assert(L : well_defined_smt_expr se1 syms).
           { apply IHe1. reflexivity. }
           inversion L; subst.
-          apply H0.
+          apply H.
           assumption.
         }
         {
           assert(L : well_defined_smt_expr se2 syms).
           { apply IHe2. reflexivity. }
           inversion L; subst.
-          apply H0.
+          apply H.
           assumption.
         }
       }
@@ -402,7 +401,7 @@ Proof.
       assert(L : well_defined_smt_expr se' syms).
       { apply IHe. reflexivity. }
       inversion L; subst.
-      apply H0.
+      apply H.
       apply (subexpr_var_conv n conv se' t1 t2 se); assumption.
     }
     { discriminate Heq. }
@@ -426,11 +425,15 @@ Proof.
     destruct a as [bid e].
     destruct (raw_id_eqb bid pbid) eqn:E in Heq.
     {
+      inversion Hwd; subst.
+      destruct H as [H_1 [H_2 [H_3 H_4]]].
       apply (well_defined_sym_eval_exp
-        s
+        ls
+        gs
         (Some t)
         e
         se
+        syms
       ); assumption.
     }
     {
@@ -450,7 +453,9 @@ Proof.
   generalize dependent r.
   induction l as [ | (x, arg) tail]; intros r Heq.
   {
-    admit.
+    simpl in Heq.
+    inversion Heq; subst.
+    apply well_defined_empty_smt_store.
   }
   {
     simpl in Heq.
@@ -465,13 +470,22 @@ Proof.
           apply (IHtail r').
           reflexivity.
         }
-        { admit. (* TODO: use something similar to well_defined_sym_eval_exp. *) }
+        {
+          apply (well_defined_sym_eval_exp
+            ls
+            gs
+            (Some t)
+            e
+            se
+            syms
+          ); assumption.
+        }
       }
       { discriminate Heq. }
     }
     { discriminate Heq. }
   }
-Admitted.
+Qed.
  
 Lemma well_defined_create_local_smt_store : forall d ls gs args r syms,
   well_defined_smt_store ls syms ->
@@ -529,21 +543,12 @@ Proof.
       { assumption. }
       {
         apply (well_defined_sym_eval_exp
-          (mk_sym_state
-            ic
-            (CMD_Inst cid (INSTR_Op v e))
-            (c0 :: cs0)
-            pbid
-            ls
-            stk
-            gs
-            syms
-            pc
-            mdl
-          )
+          ls
+          gs
           None
           e
           se
+          syms
         ); assumption.
       }
     }
@@ -632,21 +637,12 @@ Proof.
           assert(L : well_defined_smt_expr se syms).
           {
             apply (well_defined_sym_eval_exp
-              (mk_sym_state
-                ic
-                (CMD_Term cid (TERM_Br ((TYPE_I 1), e) bid1 bid2))
-                []
-                pbid
-                ls
-                stk
-                gs
-                syms
-                pc
-                mdl
-              )
+              ls
+              gs
               (Some (TYPE_I 1))
               e
               se
+              syms
             ); assumption.
           }
           inversion L; subst.
@@ -678,21 +674,12 @@ Proof.
           assert(L : well_defined_smt_expr se syms).
           {
             apply (well_defined_sym_eval_exp
-              (mk_sym_state
-                ic
-                (CMD_Term cid (TERM_Br ((TYPE_I 1), e) bid1 bid2))
-                []
-                pbid
-                ls
-                stk
-                gs
-                syms
-                pc
-                mdl
-              )
+              ls
+              gs
               (Some (TYPE_I 1))
               e
               se
+              syms
             ); assumption.
           }
           inversion L; subst.
@@ -751,21 +738,12 @@ Proof.
       { assumption. }
       {
         apply (well_defined_sym_eval_exp
-          (mk_sym_state
-            ic
-            (CMD_Term cid (TERM_Ret (t, e)))
-            []
-            pbid
-            ls
-            (Sym_Frame ls' ic' pbid' v :: stk0)
-            gs
-            syms
-            pc
-            mdl
-          )
+          ls
+          gs
           (Some t)
           e
           se
+          syms
         ); assumption.
       }
     }
@@ -797,21 +775,12 @@ Proof.
           assert(L : well_defined_smt_expr se syms).
           {
             apply (well_defined_sym_eval_exp
-              (mk_sym_state
-                ic
-                (CMD_Inst cid (INSTR_VoidCall (TYPE_Void, klee_assume_exp) [(t, e, attrs)] []))
-                (c0 :: cs0)
-                pbid
-                ls
-                stk
-                gs
-                syms
-                pc
-                mdl
-              )
+              ls
+              gs
               (Some t)
               e
               se
+              syms
             ); assumption.
           }
           inversion L; subst.
