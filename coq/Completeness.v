@@ -194,7 +194,7 @@ Proof.
   }
 Qed.
 
-Lemma LX4 : forall c_ls s_ls c_gs s_gs m l c_ls',
+Lemma fill_store_correspondence : forall c_ls s_ls c_gs s_gs m l c_ls',
   over_approx_store_via s_ls c_ls m ->
   over_approx_store_via s_gs c_gs m ->
   fill_store c_ls c_gs l = Some c_ls' ->
@@ -260,7 +260,7 @@ Proof.
     { discriminate Hc. }
 Admitted.
 
-Lemma LX6 : forall d c_ls c_gs s_ls s_gs m args c_ls',
+Lemma create_local_store_correspondence : forall d c_ls c_gs s_ls s_gs m args c_ls',
   over_approx_store_via s_ls c_ls m ->
   over_approx_store_via s_gs c_gs m ->
   create_local_store d c_ls c_gs args = Some c_ls' ->
@@ -272,7 +272,7 @@ Proof.
   unfold create_local_store in Hc.
   unfold create_local_smt_store.
   destruct (ListUtil.merge_lists (df_args d)) eqn:E.
-  { apply LX4 with (c_ls := c_ls) (c_gs := c_gs); assumption. }
+  { apply fill_store_correspondence with (c_ls := c_ls) (c_gs := c_gs); assumption. }
   { discriminate Hc. }
 Qed.
 
@@ -752,7 +752,7 @@ Proof.
         create_local_smt_store d s_ls s_gs args = Some s_ls' /\
         over_approx_store_via s_ls' c_ls' m
     ).
-    { apply LX6 with (c_ls := c_ls) (c_gs := c_gs); assumption. }
+    { apply create_local_store_correspondence with (c_ls := c_ls) (c_gs := c_gs); assumption. }
     destruct L as [s_ls' [L_1 L_2]].
     exists (mk_sym_state
       (mk_inst_counter (get_fid d) (blk_id b) (get_cmd_id c'0))
@@ -787,7 +787,7 @@ Proof.
         create_local_smt_store d s_ls s_gs args = Some s_ls' /\
         over_approx_store_via s_ls' c_ls' m
     ).
-    { apply LX6 with (c_ls := c_ls) (c_gs := c_gs); assumption. }
+    { apply create_local_store_correspondence with (c_ls := c_ls) (c_gs := c_gs); assumption. }
     destruct L as [s_ls' [L_1 L_2]].
     exists (mk_sym_state
       (mk_inst_counter (get_fid d) (blk_id b) (get_cmd_id c'0))
