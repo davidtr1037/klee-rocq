@@ -6,6 +6,7 @@ Import ListNotations.
 
 From SE Require Import BitVectors.
 From SE Require Import CFG.
+From SE Require Import ChoiceAxiom.
 From SE Require Import Concrete.
 From SE Require Import DynamicValue.
 From SE Require Import IDMap.
@@ -815,7 +816,7 @@ Proof.
     inversion Hwd; subst.
     destruct H1 as [H1_1 [H1_2 [H1_3 H1_4]]].
     assert(L1: exists name, ~ In name s_syms).
-    { apply name_choice. }
+    { apply choice_axiom. }
     destruct L1 as [name L1].
     exists (mk_sym_state
       (next_inst_counter c_ic c)

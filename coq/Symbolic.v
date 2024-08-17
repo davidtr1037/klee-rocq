@@ -745,8 +745,3 @@ Proof.
   }
   { admit. }
 Admitted.
-
-(* TODO: define as an axiom? *)
-Lemma name_choice : forall (syms : list string), exists sym, ~ In sym syms.
-Proof.
-Admitted.
