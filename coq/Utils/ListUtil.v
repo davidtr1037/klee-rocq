@@ -2293,3 +2293,10 @@ Proof.
   }
   { discriminate H. }
 Qed.
+
+Lemma merge_lists_preserves_prop: forall (A B : Type) (xs : list A) (ys : list B) (f : B -> Prop) (l : list (A * B)),
+  (forall y, In y ys -> f y) ->
+  merge_lists xs ys = Some l ->
+  (forall x y, In (x, y) l -> f y).
+Proof.
+Admitted.
