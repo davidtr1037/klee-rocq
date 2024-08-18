@@ -791,7 +791,7 @@ Proof.
             apply (well_defined_sym_eval_exp
               ls
               gs
-              (Some t)
+              (Some (TYPE_I 1))
               e
               se
               syms
@@ -799,7 +799,7 @@ Proof.
           }
           inversion L; subst.
           apply H.
-          apply (subexpr_var_conv n Trunc se t (TYPE_I 1) cond); assumption.
+          assumption.
         }
       }
     }

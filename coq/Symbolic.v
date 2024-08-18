@@ -494,17 +494,15 @@ Inductive sym_step : sym_state -> sym_state -> Prop :=
           pc
           mdl
         )
-  (* TODO: what is the expected type of the argument (t)? *)
-  | Sym_Step_Assume : forall ic cid t e attrs c cs pbid ls stk gs syms pc mdl d se cond,
+  | Sym_Step_Assume : forall ic cid e attrs c cs pbid ls stk gs syms pc mdl d se,
       (find_function mdl klee_assume_id) = None ->
       (find_declaration mdl klee_assume_id) = Some d ->
       (dc_type d) = klee_assume_type ->
-      (sym_eval_exp ls gs (Some t) e) = Some se ->
-      (sym_convert Trunc se t (TYPE_I 1)) = Some cond ->
+      (sym_eval_exp ls gs (Some (TYPE_I 1)) e) = Some se ->
       sym_step
         (mk_sym_state
           ic
-          (CMD_Inst cid (INSTR_VoidCall (TYPE_Void, klee_assume_exp) [((t, e), attrs)] []))
+          (CMD_Inst cid (INSTR_VoidCall (TYPE_Void, klee_assume_exp) [(((TYPE_I 1), e), attrs)] []))
           (c :: cs)
           pbid
           ls
@@ -523,7 +521,7 @@ Inductive sym_step : sym_state -> sym_state -> Prop :=
           stk
           gs
           syms
-          (SMT_BinOp SMT_And pc cond)
+          (SMT_BinOp SMT_And pc se)
           mdl
         )
   | Sym_Step_MakeSymbolicInt32 : forall ic cid v c cs pbid ls stk gs syms pc mdl d name,
@@ -732,20 +730,11 @@ Proof.
     subst;
     inversion Hu; subst;
     assumption
+  ); try (
+    apply Unsat_State;
+    subst;
+    inversion Hu; subst;
+    apply unsat_and;
+    assumption
   ).
-  {
-    apply Unsat_State.
-    subst.
-    inversion Hu; subst.
-    apply unsat_and.
-    assumption.
-  }
-  {
-    apply Unsat_State.
-    subst.
-    inversion Hu; subst.
-    apply unsat_and.
-    assumption.
-  }
-  { admit. }
-Admitted.
+Qed.

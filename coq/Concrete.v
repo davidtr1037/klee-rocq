@@ -204,7 +204,7 @@ Definition klee_make_symbolic_int32_type := TYPE_Function (TYPE_I 32) [] false.
 
 Definition klee_assume_id := (Name "klee_assume").
 Definition klee_assume_exp : exp typ := EXP_Ident (ID_Global klee_assume_id).
-Definition klee_assume_type := TYPE_Function TYPE_Void [(TYPE_I 64)] false.
+Definition klee_assume_type := TYPE_Function TYPE_Void [(TYPE_I 1)] false.
 
 Inductive step : state -> state -> Prop :=
   | Step_OP : forall ic cid v e c cs pbid ls stk gs mdl dv,
@@ -460,18 +460,15 @@ Inductive step : state -> state -> Prop :=
           gs
           mdl
         )
-  (* TODO: what is the expected type of the argument (t)? *)
-  | Step_Assume : forall ic cid t e attrs c cs pbid ls stk gs mdl d dv,
+  | Step_Assume : forall ic cid e attrs c cs pbid ls stk gs mdl d,
       (find_function mdl klee_assume_id) = None ->
       (find_declaration mdl klee_assume_id) = Some d ->
       (dc_type d) = klee_assume_type ->
-      (eval_exp ls gs (Some t) e) = Some dv ->
-      (* TODO: verify this... *)
-      (convert Trunc dv t (TYPE_I 1)) = Some dv_true ->
+      (eval_exp ls gs (Some (TYPE_I 1)) e) = Some dv_true ->
       step
         (mk_state
           ic
-          (CMD_Inst cid (INSTR_VoidCall (TYPE_Void, klee_assume_exp) [((t, e), attrs)] []))
+          (CMD_Inst cid (INSTR_VoidCall (TYPE_Void, klee_assume_exp) [(((TYPE_I 1), e), attrs)] []))
           (c :: cs)
           pbid
           ls

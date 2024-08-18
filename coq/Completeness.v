@@ -395,6 +395,7 @@ Proof.
   }
 Qed.
 
+(* TODO: remove redundant exists tactics *)
 Lemma completeness_single_step :
   forall c c' s,
     is_supported_state c ->
@@ -678,7 +679,6 @@ Proof.
         inversion H4; subst.
         rewrite H2 in H5.
         inversion H5; subst.
-        simpl.
         reflexivity.
       }
     }
@@ -979,8 +979,66 @@ Proof.
       }
     }
   }
-  { admit. } (* assume *)
-Admitted.
+  {
+    inversion Hoa; subst.
+    destruct H as [m H].
+    inversion H; subst.
+    assert(L :
+      equiv_via_model
+        (eval_exp c_ls c_gs (Some (TYPE_I 1)) e)
+        (sym_eval_exp s_ls s_gs (Some (TYPE_I 1)) e)
+        m
+    ).
+    {
+      apply eval_correspondence; try assumption.
+      inversion Hiss; subst.
+      inversion H2; subst.
+      specialize (H1 (TYPE_I 1, e, attrs)).
+      assert(Larg : is_supported_function_arg (TYPE_I 1, e, attrs)).
+      { apply H1. apply in_eq. }
+      inversion Larg; subst.
+      assumption.
+    }
+    inversion L; subst.
+    { rewrite H11 in *. discriminate H1. }
+    { rewrite H11 in *. discriminate H0. }
+    {
+      exists (mk_sym_state
+        (next_inst_counter c_ic c)
+        c
+        cs
+        c_pbid
+        s_ls
+        s_stk
+        s_gs
+        s_syms
+        (SMT_BinOp SMT_And s_pc se)
+        c_mdl
+      ).
+      split.
+      {
+        apply Sym_Step_Assume with (d := d); try assumption.
+        symmetry.
+        assumption.
+      }
+      {
+        apply OA_State.
+        exists m.
+        apply OAV_State; try assumption.
+        simpl.
+        rewrite H26, H2.
+
+        rewrite H11 in L.
+        inversion L; subst.
+        rewrite <- H1 in H4.
+        inversion H4; subst.
+        rewrite H2 in H5.
+        inversion H5; subst.
+        reflexivity.
+      }
+    }
+  }
+Qed.
 
 (* TODO: rename: init_correspondence *)
 Lemma initialization_correspondence : forall mdl fid,
