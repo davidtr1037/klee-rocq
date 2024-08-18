@@ -209,12 +209,14 @@ Proof.
   { apply LX6; assumption. }
 Qed.
 
-Lemma step_same_module : forall mdl s s',
+Lemma step_preserves_module : forall mdl s s',
   module s = mdl ->
   step s s' ->
   module s' = mdl.
 Proof.
-Admitted.
+  intros mdl s s' Heq Hs.
+  inversion Hs; subst; reflexivity.
+Qed.
 
 Lemma multi_step_supported : forall mdl s s',
   is_supported_module mdl ->
@@ -227,7 +229,7 @@ Proof.
   induction Hms as [s s' | s s' s''].
   {
     split.
-    { apply step_same_module with (s := s); assumption. }
+    { apply step_preserves_module with (s := s); assumption. }
     { apply (step_supported mdl s s'); assumption. }
   }
   {
@@ -235,7 +237,7 @@ Proof.
     {
       destruct His as [His_1 His_2].
       split.
-      { apply step_same_module with (s := s'); assumption. }
+      { apply step_preserves_module with (s := s'); assumption. }
       { apply (step_supported mdl s' s''); assumption. }
     }
     { inversion Hm; subst. reflexivity. }
