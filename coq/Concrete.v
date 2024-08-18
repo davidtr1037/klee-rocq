@@ -182,7 +182,7 @@ Fixpoint eval_phi_args ls gs t args pbid : option dynamic_value :=
   end
 .
 
-Fixpoint get_trailing_cmds_by_cid (l : list llvm_cmd) (cid : cmd_id) :=
+Fixpoint get_trailing_cmds_by_cid (l : list llvm_cmd) (cid : cmd_id) : option (list llvm_cmd) :=
   match l with
   | c :: tail =>
       if ((get_cmd_id c) =? cid)%nat then (Some l) else get_trailing_cmds_by_cid tail cid
