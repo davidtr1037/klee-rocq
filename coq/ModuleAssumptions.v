@@ -110,8 +110,7 @@ Proof.
   admit.
 Admitted.
 
-(* TODO: rename *)
-Lemma LX5 : forall mdl fid d bid b cs,
+Lemma is_supported_propagation : forall mdl fid d bid b cs,
   is_supported_module mdl ->
   find_function mdl fid = Some d ->
   fetch_block d bid = Some b ->
@@ -129,8 +128,7 @@ Proof.
   assumption.
 Qed.
 
-(* TODO: rename *)
-Lemma LX5_exp : forall mdl e d b cs,
+Lemma is_supported_propagation_with_exp : forall mdl e d b cs,
   is_supported_module mdl ->
   find_function_by_exp mdl e = Some d ->
   entry_block d = Some b ->
@@ -142,7 +140,7 @@ Proof.
   destruct e eqn:Ee; try inversion Hf.
   destruct id as [fid | fid] eqn:Eid; try inversion Hf.
   unfold entry_block in Hb.
-  apply (LX5 mdl fid d (init (df_body d)) b cs); assumption.
+  apply (is_supported_propagation mdl fid d (init (df_body d)) b cs); assumption.
 Qed.
 
 Lemma trailing_cmds_subset : forall cs ic cs',
@@ -173,8 +171,7 @@ Proof.
   }
 Qed.
 
-(* TODO: rename *)
-Lemma LX4 : forall mdl fid d ic cs,
+Lemma is_supported_propagation_traling_cmds : forall mdl fid d ic cs,
   is_supported_module mdl ->
   find_function mdl fid = Some d ->
   get_trailing_cmds d ic = Some cs ->
@@ -190,7 +187,8 @@ Proof.
     destruct (blk_cmds b) as [ | c' cs'] eqn:Ecmds.
     { simpl in Ht. inversion Ht. }
     {
-      apply (LX5 mdl fid d (ic_bid ic) b (c' :: cs')) in Hism; try assumption.
+      apply (is_supported_propagation mdl fid d (ic_bid ic) b (c' :: cs')) in Hism;
+      try assumption.
       inversion Hism; subst.
       intros c Hin.
       apply H.
@@ -201,6 +199,7 @@ Proof.
   { inversion Ht. }
 Qed.
 
+(* TODO: rename *)
 Lemma LX6 : forall ic c cs pbid ls stk gs mdl,
   is_supported_cmd_list (c :: cs) ->
   is_supported_state
@@ -228,6 +227,7 @@ Proof.
   }
 Qed.
 
+(* TODO: rename: step_is_supported *)
 Lemma step_supported : forall mdl s s',
   is_supported_module mdl ->
   module s = mdl ->
@@ -241,31 +241,31 @@ Proof.
   { apply LX6; assumption. }
   {
     apply LX6.
-    apply (LX5 m (ic_fid ic) d tbid b (c :: cs)); assumption.
+    apply (is_supported_propagation m (ic_fid ic) d tbid b (c :: cs)); assumption.
   }
   {
     apply LX6.
-    apply (LX5 m (ic_fid ic) d bid1 b (c :: cs)); assumption.
+    apply (is_supported_propagation m (ic_fid ic) d bid1 b (c :: cs)); assumption.
   }
   {
     apply LX6.
-    apply (LX5 m (ic_fid ic) d bid2 b (c :: cs)); assumption.
+    apply (is_supported_propagation m (ic_fid ic) d bid2 b (c :: cs)); assumption.
   }
   {
     apply LX6.
-    apply (LX5_exp m f d b (c' :: cs')); assumption.
+    apply (is_supported_propagation_with_exp m f d b (c' :: cs')); assumption.
   }
   {
     apply LX6.
-    apply (LX5_exp m f d b (c' :: cs')); assumption.
+    apply (is_supported_propagation_with_exp m f d b (c' :: cs')); assumption.
   }
   {
     apply LX6.
-    apply (LX4 m (ic_fid ic') d ic' (c' :: cs')); assumption.
+    apply (is_supported_propagation_traling_cmds m (ic_fid ic') d ic' (c' :: cs')); assumption.
   }
   {
     apply LX6.
-    apply (LX4 m (ic_fid ic') d ic' (c' :: cs')); assumption.
+    apply (is_supported_propagation_traling_cmds m (ic_fid ic') d ic' (c' :: cs')); assumption.
   }
   { apply LX6; assumption. }
   { apply LX6; assumption. }
@@ -280,6 +280,7 @@ Proof.
   inversion Hs; subst; reflexivity.
 Qed.
 
+(* TODO: rename: multi_step_is_supported *)
 Lemma multi_step_supported : forall mdl s s',
   is_supported_module mdl ->
   module s = mdl ->
