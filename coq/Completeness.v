@@ -24,7 +24,6 @@ From SE.Utils Require StringMap.
 From SE.Utils Require ListUtil.
 
 (* TODO: rename to: eval_exp_correspondence *)
-(* TODO: use over_approx_store_via *)
 Lemma eval_correspondence : forall c_ls s_ls c_gs s_gs ot e m,
   is_supported_exp e ->
   over_approx_store_via s_ls c_ls m ->

@@ -299,7 +299,20 @@ Proof.
       apply H; assumption.
     }
   }
-  { admit. }
+  {
+    destruct ot eqn:Eot.
+    {
+      destruct t eqn:Et; inversion Heq.
+      repeat (destruct w; simpl in Heq; try (inversion Heq));
+      (
+        inversion Heq; subst;
+        apply WD_Expr;
+        intros n Hse;
+        inversion Hse
+      ).
+    }
+    { inversion Heq. }
+  }
   {
     destruct b; simpl in Heq.
     {
@@ -408,7 +421,7 @@ Proof.
     { discriminate Heq. }
   }
   { discriminate Heq. }
-Admitted.
+Qed.
 
 Lemma well_defined_sym_eval_phi_args : forall s t args pbid se,
   well_defined s ->
