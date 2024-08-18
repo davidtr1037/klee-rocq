@@ -101,8 +101,8 @@ Fixpoint smt_eval (m : smt_model) (e : smt_expr) : option dynamic_int :=
       | Some di1, Some di2 => smt_eval_cmpop op di1 di2
       | _, _ => None
       end
-  | SMT_ZExt e w => None
-  | SMT_SExt e w => None
+  | SMT_ZExt e w => None (* TODO: ... *)
+  | SMT_SExt e w => None (* TODO: ... *)
   | SMT_ITE e1 e2 e3 =>
       match (smt_eval m e1) with
       | Some (DI_I1 b) =>
