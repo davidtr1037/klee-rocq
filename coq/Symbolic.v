@@ -45,9 +45,9 @@ Record sym_state : Type := mk_sym_state {
 }.
 
 Inductive error_sym_state : sym_state -> Prop :=
-  | ESS_Assert : forall ic cid args anns cs pbid ls stk gs syms pc m d,
-      (find_function m assert_id) = None ->
-      (find_declaration m assert_id) = Some d ->
+  | ESS_Assert : forall ic cid args anns cs pbid ls stk gs syms pc mdl d,
+      (find_function mdl assert_id) = None ->
+      (find_declaration mdl assert_id) = Some d ->
       (dc_type d) = assert_type ->
       TYPE_Function TYPE_Void (get_arg_types args) false = assert_type ->
       error_sym_state
@@ -64,7 +64,7 @@ Inductive error_sym_state : sym_state -> Prop :=
           gs
           syms
           pc
-          m
+          mdl
        )
 .
 
@@ -257,7 +257,7 @@ Inductive sym_step : sym_state -> sym_state -> Prop :=
           pc
           mdl
         )
-  | Sym_Step_Phi : forall ic cid v t args c cs pbid ls stk gs syms pc m se,
+  | Sym_Step_Phi : forall ic cid v t args c cs pbid ls stk gs syms pc mdl se,
       (sym_eval_phi_args ls gs t args pbid) = Some se ->
       sym_step
         (mk_sym_state
@@ -270,7 +270,7 @@ Inductive sym_step : sym_state -> sym_state -> Prop :=
           gs
           syms
           pc
-          m
+          mdl
         )
         (mk_sym_state
           (next_inst_counter ic c)
@@ -282,10 +282,10 @@ Inductive sym_step : sym_state -> sym_state -> Prop :=
           gs
           syms
           pc
-          m
+          mdl
         )
-  | Sym_Step_UnconditionalBr : forall ic cid tbid pbid ls stk gs syms pc m d b c cs,
-      (find_function m (ic_fid ic)) = Some d ->
+  | Sym_Step_UnconditionalBr : forall ic cid tbid pbid ls stk gs syms pc mdl d b c cs,
+      (find_function mdl (ic_fid ic)) = Some d ->
       (fetch_block d tbid) = Some b ->
       (blk_cmds b) = c :: cs ->
       sym_step
@@ -299,7 +299,7 @@ Inductive sym_step : sym_state -> sym_state -> Prop :=
           gs
           syms
           pc
-          m
+          mdl
         )
         (mk_sym_state
           (mk_inst_counter (ic_fid ic) tbid (get_cmd_id c))
@@ -311,11 +311,11 @@ Inductive sym_step : sym_state -> sym_state -> Prop :=
           gs
           syms
           pc
-          m
+          mdl
         )
-  | Sym_Step_Br_True : forall ic cid e bid1 bid2 pbid ls stk gs syms pc m se d b c cs,
+  | Sym_Step_Br_True : forall ic cid e bid1 bid2 pbid ls stk gs syms pc mdl se d b c cs,
       (sym_eval_exp ls gs (Some (TYPE_I 1)) e) = Some se ->
-      (find_function m (ic_fid ic)) = Some d ->
+      (find_function mdl (ic_fid ic)) = Some d ->
       (fetch_block d bid1) = Some b ->
       (blk_cmds b) = c :: cs ->
       sym_step
@@ -329,7 +329,7 @@ Inductive sym_step : sym_state -> sym_state -> Prop :=
           gs
           syms
           pc
-          m
+          mdl
         )
         (mk_sym_state
           (mk_inst_counter (ic_fid ic) bid1 (get_cmd_id c))
@@ -341,11 +341,11 @@ Inductive sym_step : sym_state -> sym_state -> Prop :=
           gs
           syms
           (SMT_BinOp SMT_And pc se)
-          m
+          mdl
         )
-  | Sym_Step_Br_False : forall ic cid e bid1 bid2 pbid ls stk gs syms pc m se d b c cs,
+  | Sym_Step_Br_False : forall ic cid e bid1 bid2 pbid ls stk gs syms pc mdl se d b c cs,
       (sym_eval_exp ls gs (Some (TYPE_I 1)) e) = Some se ->
-      (find_function m (ic_fid ic)) = Some d ->
+      (find_function mdl (ic_fid ic)) = Some d ->
       (fetch_block d bid2) = Some b ->
       (blk_cmds b) = c :: cs ->
       sym_step
@@ -359,7 +359,7 @@ Inductive sym_step : sym_state -> sym_state -> Prop :=
           gs
           syms
           pc
-          m
+          mdl
         )
         (mk_sym_state
           (mk_inst_counter (ic_fid ic) bid2 (get_cmd_id c))
@@ -371,10 +371,10 @@ Inductive sym_step : sym_state -> sym_state -> Prop :=
           gs
           syms
           (SMT_BinOp SMT_And pc (SMT_Not se)) (* TODO: SMT_Not? *)
-          m
+          mdl
         )
-  | Sym_Step_VoidCall : forall ic cid f args anns c cs pbid ls stk gs syms pc m d b c' cs' ls',
-      (find_function_by_exp m f) = Some d ->
+  | Sym_Step_VoidCall : forall ic cid f args anns c cs pbid ls stk gs syms pc mdl d b c' cs' ls',
+      (find_function_by_exp mdl f) = Some d ->
       (dc_type (df_prototype d)) = TYPE_Function TYPE_Void (get_arg_types args) false ->
       (entry_block d) = Some b ->
       (blk_cmds b) = c' :: cs' ->
@@ -390,7 +390,7 @@ Inductive sym_step : sym_state -> sym_state -> Prop :=
           gs
           syms
           pc
-          m
+          mdl
         )
         (mk_sym_state
           (mk_inst_counter (get_fid d) (blk_id b) (get_cmd_id c'))
@@ -402,10 +402,10 @@ Inductive sym_step : sym_state -> sym_state -> Prop :=
           gs
           syms
           pc
-          m
+          mdl
         )
-  | Sym_Step_Call : forall ic cid v t f args anns c cs pbid ls stk gs syms pc m d b c' cs' ls',
-      (find_function_by_exp m f) = Some d ->
+  | Sym_Step_Call : forall ic cid v t f args anns c cs pbid ls stk gs syms pc mdl d b c' cs' ls',
+      (find_function_by_exp mdl f) = Some d ->
       (dc_type (df_prototype d)) = TYPE_Function t (get_arg_types args) false ->
       (entry_block d) = Some b ->
       (blk_cmds b) = c' :: cs' ->
@@ -421,7 +421,7 @@ Inductive sym_step : sym_state -> sym_state -> Prop :=
           gs
           syms
           pc
-          m
+          mdl
         )
         (mk_sym_state
           (mk_inst_counter (get_fid d) (blk_id b) (get_cmd_id c'))
@@ -433,11 +433,11 @@ Inductive sym_step : sym_state -> sym_state -> Prop :=
           gs
           syms
           pc
-          m
+          mdl
         )
   (* TODO: check the return type of the current function *)
-  | Sym_Step_RetVoid : forall ic cid pbid ls ls' ic' pbid' stk gs syms pc m d c' cs',
-      (find_function m (ic_fid ic')) = Some d ->
+  | Sym_Step_RetVoid : forall ic cid pbid ls ls' ic' pbid' stk gs syms pc mdl d c' cs',
+      (find_function mdl (ic_fid ic')) = Some d ->
       (get_trailing_cmds d ic') = Some (c' :: cs') ->
       sym_step
         (mk_sym_state
@@ -450,7 +450,7 @@ Inductive sym_step : sym_state -> sym_state -> Prop :=
           gs
           syms
           pc
-          m
+          mdl
         )
         (mk_sym_state
           ic'
@@ -462,12 +462,12 @@ Inductive sym_step : sym_state -> sym_state -> Prop :=
           gs
           syms
           pc
-          m
+          mdl
         )
   (* TODO: check the return type of the current function *)
-  | Sym_Step_Ret : forall ic cid t e pbid ls ls' ic' pbid' v stk gs syms pc m se d c' cs',
+  | Sym_Step_Ret : forall ic cid t e pbid ls ls' ic' pbid' v stk gs syms pc mdl se d c' cs',
       (sym_eval_exp ls gs (Some t) e) = Some se ->
-      (find_function m (ic_fid ic')) = Some d ->
+      (find_function mdl (ic_fid ic')) = Some d ->
       (get_trailing_cmds d ic') = Some (c' :: cs') ->
       sym_step
         (mk_sym_state
@@ -480,7 +480,7 @@ Inductive sym_step : sym_state -> sym_state -> Prop :=
           gs
           syms
           pc
-          m
+          mdl
         )
         (mk_sym_state
           ic'
@@ -492,12 +492,12 @@ Inductive sym_step : sym_state -> sym_state -> Prop :=
           gs
           syms
           pc
-          m
+          mdl
         )
   (* TODO: what is the expected type of the argument (t)? *)
-  | Sym_Step_Assume : forall ic cid t e attrs c cs pbid ls stk gs syms pc m d se cond,
-      (find_function m klee_assume_id) = None ->
-      (find_declaration m klee_assume_id) = Some d ->
+  | Sym_Step_Assume : forall ic cid t e attrs c cs pbid ls stk gs syms pc mdl d se cond,
+      (find_function mdl klee_assume_id) = None ->
+      (find_declaration mdl klee_assume_id) = Some d ->
       (dc_type d) = klee_assume_type ->
       (sym_eval_exp ls gs (Some t) e) = Some se ->
       (sym_convert Trunc se t (TYPE_I 1)) = Some cond ->
@@ -512,7 +512,7 @@ Inductive sym_step : sym_state -> sym_state -> Prop :=
           gs
           syms
           pc
-          m
+          mdl
         )
         (mk_sym_state
           (next_inst_counter ic c)
@@ -524,11 +524,11 @@ Inductive sym_step : sym_state -> sym_state -> Prop :=
           gs
           syms
           (SMT_BinOp SMT_And pc cond)
-          m
+          mdl
         )
-  | Sym_Step_MakeSymbolicInt32 : forall ic cid v c cs pbid ls stk gs syms pc m d name,
-      (find_function m klee_make_symbolic_int32_id) = None ->
-      (find_declaration m klee_make_symbolic_int32_id) = Some d ->
+  | Sym_Step_MakeSymbolicInt32 : forall ic cid v c cs pbid ls stk gs syms pc mdl d name,
+      (find_function mdl klee_make_symbolic_int32_id) = None ->
+      (find_declaration mdl klee_make_symbolic_int32_id) = Some d ->
       (dc_type d) = klee_make_symbolic_int32_type ->
       (~ In name syms) ->
       sym_step
@@ -542,7 +542,7 @@ Inductive sym_step : sym_state -> sym_state -> Prop :=
           gs
           syms
           pc
-          m
+          mdl
         )
         (mk_sym_state
           (next_inst_counter ic c)
@@ -554,7 +554,7 @@ Inductive sym_step : sym_state -> sym_state -> Prop :=
           gs
           (name :: syms)
           pc
-          m
+          mdl
         )
 .
 
@@ -594,29 +594,33 @@ Fixpoint init_global_smt_store_internal (gs : smt_store) (l : list llvm_global) 
 (* TODO: change later? *)
 Definition init_global_smt_store (m : llvm_module) : smt_store := empty_smt_store.
 
-Definition init_sym_state (m : llvm_module) (d : llvm_definition) : option sym_state :=
-  match (build_inst_counter m d) with
-  | Some ic =>
-      match (entry_block d) with
-      | Some b =>
-          match (blk_cmds b) with
-          | cmd :: tail =>
-              Some (mk_sym_state
-                ic
-                cmd
-                tail
-                None
-                (init_local_smt_store m d)
-                []
-                (init_global_smt_store m)
-                []
-                SMT_True
-                m
-              )
-          | _ => None
-          end
-      | None => None
-      end
+Definition init_sym_state (mdl : llvm_module) (fid : function_id) : option sym_state :=
+  match (find_function mdl fid) with
+  | Some d =>
+    match (build_inst_counter mdl d) with
+    | Some ic =>
+        match (entry_block d) with
+        | Some b =>
+            match (blk_cmds b) with
+            | cmd :: tail =>
+                Some (mk_sym_state
+                  ic
+                  cmd
+                  tail
+                  None
+                  (init_local_smt_store mdl d)
+                  []
+                  (init_global_smt_store mdl)
+                  []
+                  SMT_True
+                  mdl
+                )
+            | _ => None
+            end
+        | None => None
+        end
+    | None => None
+    end
   | None => None
   end
 .
@@ -694,8 +698,8 @@ Inductive over_approx_via : sym_state -> state -> smt_model -> Prop :=
 .
 
 Inductive over_approx : sym_state -> state -> Prop :=
-  | OA_State :
-      forall s c, (exists m, over_approx_via s c m) -> over_approx s c
+  | OA_State : forall s c,
+      (exists m, over_approx_via s c m) -> over_approx s c
 .
 
 Lemma error_correspondence: forall c s,

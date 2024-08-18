@@ -65,9 +65,9 @@ Fixpoint get_arg_types (args : list (function_arg)) : list typ :=
 
 (* TODO: handle TERM_Unreachable? *)
 Inductive error_state : state -> Prop :=
-  | ES_Assert : forall ic cid args anns cs pbid ls stk gs m d,
-      (find_function m assert_id) = None ->
-      (find_declaration m assert_id) = Some d ->
+  | ES_Assert : forall ic cid args anns cs pbid ls stk gs mdl d,
+      (find_function mdl assert_id) = None ->
+      (find_declaration mdl assert_id) = Some d ->
       (dc_type d) = assert_type ->
       TYPE_Function TYPE_Void (get_arg_types args) false = assert_type ->
       error_state
@@ -82,7 +82,7 @@ Inductive error_state : state -> Prop :=
           ls
           stk
           gs
-          m
+          mdl
        )
 .
 
@@ -134,8 +134,8 @@ Definition next_inst_counter (ic : inst_counter) (c : llvm_cmd) : inst_counter :
   mk_inst_counter (ic_fid ic) (ic_bid ic) (get_cmd_id c)
 .
 
-Definition next_inst_counter_on_branch (ic : inst_counter) (bid : block_id) (m : llvm_module) : option inst_counter :=
-  match (find_function m (ic_fid ic)) with
+Definition next_inst_counter_on_branch (ic : inst_counter) (bid : block_id) (mdl :llvm_module) : option inst_counter :=
+  match (find_function mdl (ic_fid ic)) with
   | Some d =>
       match (fetch_block d bid) with
       | Some b =>
@@ -207,7 +207,7 @@ Definition klee_assume_exp : exp typ := EXP_Ident (ID_Global klee_assume_id).
 Definition klee_assume_type := TYPE_Function TYPE_Void [(TYPE_I 64)] false.
 
 Inductive step : state -> state -> Prop :=
-  | Step_OP : forall ic cid v e c cs pbid ls stk gs m dv,
+  | Step_OP : forall ic cid v e c cs pbid ls stk gs mdl dv,
       (eval_exp ls gs None e) = Some dv ->
       step
         (mk_state
@@ -218,7 +218,7 @@ Inductive step : state -> state -> Prop :=
           ls
           stk
           gs
-          m
+          mdl
         )
         (mk_state
           (next_inst_counter ic c)
@@ -228,9 +228,9 @@ Inductive step : state -> state -> Prop :=
           (v !-> Some dv; ls)
           stk
           gs
-          m
+          mdl
         )
-  | Step_Phi : forall ic cid v t args c cs pbid ls stk gs m dv,
+  | Step_Phi : forall ic cid v t args c cs pbid ls stk gs mdl dv,
       (eval_phi_args ls gs t args pbid) = Some dv ->
       step
         (mk_state
@@ -241,7 +241,7 @@ Inductive step : state -> state -> Prop :=
           ls
           stk
           gs
-          m
+          mdl
         )
         (mk_state
           (next_inst_counter ic c)
@@ -251,10 +251,10 @@ Inductive step : state -> state -> Prop :=
           (v !-> Some dv; ls)
           stk
           gs
-          m
+          mdl
         )
-  | Step_UnconditionalBr : forall ic cid tbid pbid ls stk gs m d b c cs,
-      (find_function m (ic_fid ic)) = Some d ->
+  | Step_UnconditionalBr : forall ic cid tbid pbid ls stk gs mdl d b c cs,
+      (find_function mdl (ic_fid ic)) = Some d ->
       (fetch_block d tbid) = Some b ->
       (blk_cmds b) = c :: cs ->
       step
@@ -266,7 +266,7 @@ Inductive step : state -> state -> Prop :=
           ls
           stk
           gs
-          m
+          mdl
         )
         (mk_state
           (mk_inst_counter (ic_fid ic) tbid (get_cmd_id c))
@@ -276,11 +276,11 @@ Inductive step : state -> state -> Prop :=
           ls
           stk
           gs
-          m
+          mdl
         )
-  | Step_Br_True : forall ic cid e bid1 bid2 pbid ls stk gs m d b c cs,
+  | Step_Br_True : forall ic cid e bid1 bid2 pbid ls stk gs mdl d b c cs,
       (eval_exp ls gs (Some (TYPE_I 1)) e) = Some dv_true ->
-      (find_function m (ic_fid ic)) = Some d ->
+      (find_function mdl (ic_fid ic)) = Some d ->
       (fetch_block d bid1) = Some b ->
       (blk_cmds b) = c :: cs ->
       step
@@ -292,7 +292,7 @@ Inductive step : state -> state -> Prop :=
           ls
           stk
           gs
-          m
+          mdl
         )
         (mk_state
           (mk_inst_counter (ic_fid ic) bid1 (get_cmd_id c))
@@ -302,11 +302,11 @@ Inductive step : state -> state -> Prop :=
           ls
           stk
           gs
-          m
+          mdl
         )
-  | Step_Br_False : forall ic cid e bid1 bid2 pbid ls stk gs m d b c cs,
+  | Step_Br_False : forall ic cid e bid1 bid2 pbid ls stk gs mdl d b c cs,
       (eval_exp ls gs (Some (TYPE_I 1)) e) = Some dv_false ->
-      (find_function m (ic_fid ic)) = Some d ->
+      (find_function mdl (ic_fid ic)) = Some d ->
       (fetch_block d bid2) = Some b ->
       (blk_cmds b) = c :: cs ->
       step
@@ -318,7 +318,7 @@ Inductive step : state -> state -> Prop :=
           ls
           stk
           gs
-          m
+          mdl
         )
         (mk_state
           (mk_inst_counter (ic_fid ic) bid2 (get_cmd_id c))
@@ -328,10 +328,10 @@ Inductive step : state -> state -> Prop :=
           ls
           stk
           gs
-          m
+          mdl
         )
-  | Step_VoidCall : forall ic cid f args anns c cs pbid ls stk gs m d b c' cs' ls',
-      (find_function_by_exp m f) = Some d ->
+  | Step_VoidCall : forall ic cid f args anns c cs pbid ls stk gs mdl d b c' cs' ls',
+      (find_function_by_exp mdl f) = Some d ->
       (dc_type (df_prototype d)) = TYPE_Function TYPE_Void (get_arg_types args) false ->
       (entry_block d) = Some b ->
       (blk_cmds b) = c' :: cs' ->
@@ -345,7 +345,7 @@ Inductive step : state -> state -> Prop :=
           ls
           stk
           gs
-          m
+          mdl
         )
         (mk_state
           (mk_inst_counter (get_fid d) (blk_id b) (get_cmd_id c'))
@@ -355,10 +355,10 @@ Inductive step : state -> state -> Prop :=
           ls'
           ((Frame_NoReturn ls (next_inst_counter ic c) pbid) :: stk)
           gs
-          m
+          mdl
         )
-  | Step_Call : forall ic cid v t f args anns c cs pbid ls stk gs m d b c' cs' ls',
-      (find_function_by_exp m f) = Some d ->
+  | Step_Call : forall ic cid v t f args anns c cs pbid ls stk gs mdl d b c' cs' ls',
+      (find_function_by_exp mdl f) = Some d ->
       (dc_type (df_prototype d)) = TYPE_Function t (get_arg_types args) false ->
       (entry_block d) = Some b ->
       (blk_cmds b) = c' :: cs' ->
@@ -372,7 +372,7 @@ Inductive step : state -> state -> Prop :=
           ls
           stk
           gs
-          m
+          mdl
         )
         (mk_state
           (mk_inst_counter (get_fid d) (blk_id b) (get_cmd_id c'))
@@ -382,11 +382,11 @@ Inductive step : state -> state -> Prop :=
           ls'
           ((Frame ls (next_inst_counter ic c) pbid v) :: stk)
           gs
-          m
+          mdl
         )
   (* TODO: check the return type of the current function *)
-  | Step_RetVoid : forall ic cid pbid ls ls' ic' pbid' stk gs m d c' cs',
-      (find_function m (ic_fid ic')) = Some d ->
+  | Step_RetVoid : forall ic cid pbid ls ls' ic' pbid' stk gs mdl d c' cs',
+      (find_function mdl (ic_fid ic')) = Some d ->
       (get_trailing_cmds d ic') = Some (c' :: cs') ->
       step
         (mk_state
@@ -397,7 +397,7 @@ Inductive step : state -> state -> Prop :=
           ls
           ((Frame_NoReturn ls' ic' pbid') :: stk)
           gs
-          m
+          mdl
         )
         (mk_state
           ic'
@@ -407,12 +407,12 @@ Inductive step : state -> state -> Prop :=
           ls'
           stk
           gs
-          m
+          mdl
         )
   (* TODO: check the return type of the current function *)
-  | Step_Ret : forall ic cid t e pbid ls ls' ic' pbid' v stk gs m dv d c' cs',
+  | Step_Ret : forall ic cid t e pbid ls ls' ic' pbid' v stk gs mdl dv d c' cs',
       (eval_exp ls gs (Some t) e) = Some dv ->
-      (find_function m (ic_fid ic')) = Some d ->
+      (find_function mdl (ic_fid ic')) = Some d ->
       (get_trailing_cmds d ic') = Some (c' :: cs') ->
       step
         (mk_state
@@ -423,7 +423,7 @@ Inductive step : state -> state -> Prop :=
           ls
           ((Frame ls' ic' pbid' v) :: stk)
           gs
-          m
+          mdl
         )
         (mk_state
           ic'
@@ -433,11 +433,11 @@ Inductive step : state -> state -> Prop :=
           (v !-> Some dv; ls')
           stk
           gs
-          m
+          mdl
         )
-  | Step_MakeSymbolicInt32 : forall ic cid v c cs pbid ls stk gs m n d,
-      (find_function m klee_make_symbolic_int32_id) = None ->
-      (find_declaration m klee_make_symbolic_int32_id) = Some d ->
+  | Step_MakeSymbolicInt32 : forall ic cid v c cs pbid ls stk gs mdl n d,
+      (find_function mdl klee_make_symbolic_int32_id) = None ->
+      (find_declaration mdl klee_make_symbolic_int32_id) = Some d ->
       (dc_type d) = klee_make_symbolic_int32_type ->
       step
         (mk_state
@@ -448,7 +448,7 @@ Inductive step : state -> state -> Prop :=
           ls
           stk
           gs
-          m
+          mdl
         )
         (mk_state
           (next_inst_counter ic c)
@@ -458,12 +458,12 @@ Inductive step : state -> state -> Prop :=
           (v !-> Some (DV_Int (DI_I32 (repr n))); ls)
           stk
           gs
-          m
+          mdl
         )
   (* TODO: what is the expected type of the argument (t)? *)
-  | Step_Assume : forall ic cid t e attrs c cs pbid ls stk gs m d dv,
-      (find_function m klee_assume_id) = None ->
-      (find_declaration m klee_assume_id) = Some d ->
+  | Step_Assume : forall ic cid t e attrs c cs pbid ls stk gs mdl d dv,
+      (find_function mdl klee_assume_id) = None ->
+      (find_declaration mdl klee_assume_id) = Some d ->
       (dc_type d) = klee_assume_type ->
       (eval_exp ls gs (Some t) e) = Some dv ->
       (* TODO: verify this... *)
@@ -477,7 +477,7 @@ Inductive step : state -> state -> Prop :=
           ls
           stk
           gs
-          m
+          mdl
         )
         (mk_state
           (next_inst_counter ic c)
@@ -487,13 +487,13 @@ Inductive step : state -> state -> Prop :=
           ls
           stk
           gs
-          m
+          mdl
         )
 .
 
 Definition multi_step := multi step.
 
-Definition build_inst_counter (m : llvm_module) (d : llvm_definition) : option inst_counter :=
+Definition build_inst_counter (mdl :llvm_module) (d : llvm_definition) : option inst_counter :=
   match (entry_block d) with
   | Some b =>
       match (get_first_cmd_id b) with
@@ -504,7 +504,7 @@ Definition build_inst_counter (m : llvm_module) (d : llvm_definition) : option i
   end
 .
 
-Definition init_local_store (m : llvm_module) (d : llvm_definition) := empty_dv_store.
+Definition init_local_store (mdl :llvm_module) (d : llvm_definition) := empty_dv_store.
 
 Definition get_global_initializer (g : llvm_global) : option dynamic_value :=
   match (g_exp g) with
@@ -532,47 +532,53 @@ Fixpoint init_global_store_internal (gs : dv_store) (l : list llvm_global) : opt
 .
 
 (* TODO: change later? *)
-Definition init_global_store (m : llvm_module) : dv_store := empty_dv_store.
+Definition init_global_store (mdl :llvm_module) : dv_store := empty_dv_store.
 
 (* TODO: assumes that there are no parameters *)
-Definition init_state (m : llvm_module) (d : llvm_definition) : option state :=
-  match (build_inst_counter m d) with
-  | Some ic =>
-      match (entry_block d) with
-      | Some b =>
-          match (blk_cmds b) with
-          | cmd :: tail =>
-              Some (mk_state
-                ic
-                cmd
-                tail
-                None
-                (init_local_store m d)
-                []
-                (init_global_store m)
-                m
-              )
-          | _ => None
-          end
-      | None => None
-      end
+Definition init_state (mdl : llvm_module) (fid : function_id) : option state :=
+  match (find_function mdl fid) with
+  | Some d =>
+    match (build_inst_counter mdl d) with
+    | Some ic =>
+        match (entry_block d) with
+        | Some b =>
+            match (blk_cmds b) with
+            | cmd :: tail =>
+                Some (mk_state
+                  ic
+                  cmd
+                  tail
+                  None
+                  (init_local_store mdl d)
+                  []
+                  (init_global_store mdl)
+                  mdl
+                )
+            | _ => None
+            end
+        | None => None
+        end
+    | None => None
+    end
   | None => None
   end
 .
 
-Lemma init_state_preserves_module : forall mdl d s,
-  init_state mdl d = Some s -> module s = mdl.
+(* TODO: move to ModuleAssumptions? *)
+Lemma init_state_preserves_module : forall mdl fid s,
+  init_state mdl fid = Some s -> module s = mdl.
 Proof.
-  intros mdl d s H.
+  intros mdl fid s H.
   unfold init_state in H.
-  destruct (build_inst_counter mdl d) as [c_ic | ] eqn:Ec_ic; try discriminate H.
-  destruct (entry_block d) as [c_b | ] eqn:Ec_b; try discriminate H.
-  destruct (blk_cmds c_b) as [ | c_cmd c_cmds ] eqn:Ec_cs; try discriminate H.
+  destruct (find_function mdl fid) as [d | ] eqn:Ed; try discriminate H.
+  destruct (build_inst_counter mdl d) as [ic | ] eqn:Eic; try discriminate H.
+  destruct (entry_block d) as [b | ] eqn:Eb; try discriminate H.
+  destruct (blk_cmds b) as [ | c cs ] eqn:Ecs; try discriminate H.
   inversion H; subst.
   reflexivity.
 Qed.
 
-Definition is_safe_program (mdl : llvm_module) (d : llvm_definition) :=
+Definition is_safe_program (mdl : llvm_module) (fid : function_id) :=
   exists init_s,
-    (init_state mdl d) = Some init_s /\ (forall s, multi_step init_s s -> ~ error_state s)
+    (init_state mdl fid) = Some init_s /\ (forall s, multi_step init_s s -> ~ error_state s)
 .

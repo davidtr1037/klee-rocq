@@ -983,23 +983,25 @@ Proof.
   { admit. } (* assume *)
 Admitted.
 
-Lemma initialization_correspondence : forall mdl d,
-  (exists c, (init_state mdl d) = Some c) <-> (exists s, (init_sym_state mdl d) = Some s).
+(* TODO: rename: init_correspondence *)
+Lemma initialization_correspondence : forall mdl fid,
+  (exists c, (init_state mdl fid) = Some c) <-> (exists s, (init_sym_state mdl fid) = Some s).
 Proof.
-  intros mdl d.
+  intros mdl fid.
   split; intros H.
   {
     destruct H as [c H].
     unfold init_state in H.
-    destruct (build_inst_counter mdl d) as [c_ic | ] eqn:Ec_ic; try discriminate H.
-    destruct (entry_block d) as [c_b | ] eqn:Ec_b; try discriminate H.
+    destruct (find_function mdl fid) as [c_d | ] eqn:Ec_d; try discriminate H.
+    destruct (build_inst_counter mdl c_d) as [c_ic | ] eqn:Ec_ic; try discriminate H.
+    destruct (entry_block c_d) as [c_b | ] eqn:Ec_b; try discriminate H.
     destruct (blk_cmds c_b) as [ | c_cmd c_cmds ] eqn:Ec_cs; try discriminate H.
     exists (mk_sym_state
       c_ic
       c_cmd
       c_cmds
       None
-      (init_local_smt_store mdl d)
+      (init_local_smt_store mdl c_d)
       []
       (init_global_smt_store mdl)
       []
@@ -1008,47 +1010,53 @@ Proof.
     ).
     unfold init_sym_state.
     simpl.
-    rewrite Ec_ic, Ec_b, Ec_cs.
+    rewrite Ec_d, Ec_ic, Ec_b, Ec_cs.
     reflexivity.
   }
   {
     destruct H as [s H].
     unfold init_sym_state in H.
-    destruct (build_inst_counter mdl d) as [s_ic | ] eqn:Es_ic; try discriminate H.
-    destruct (entry_block d) as [s_b | ] eqn:Es_b; try discriminate H.
+    destruct (find_function mdl fid) as [s_d | ] eqn:Es_d; try discriminate H.
+    destruct (build_inst_counter mdl s_d) as [s_ic | ] eqn:Es_ic; try discriminate H.
+    destruct (entry_block s_d) as [s_b | ] eqn:Es_b; try discriminate H.
     destruct (blk_cmds s_b) as [ | s_cmd s_cmds ] eqn:Es_cs; try discriminate H.
     exists (mk_state
       s_ic
       s_cmd
       s_cmds
       None
-      (init_local_store mdl d)
+      (init_local_store mdl s_d)
       []
       (init_global_store mdl)
       mdl
     ).
     unfold init_state.
     simpl.
-    rewrite Es_ic, Es_b, Es_cs.
+    rewrite Es_d, Es_ic, Es_b, Es_cs.
     reflexivity.
   }
 Qed.
 
-Lemma over_approx_init_states : forall mdl d s c,
-  init_sym_state mdl d = Some s ->
-  init_state mdl d = Some c ->
+Lemma over_approx_init_states : forall mdl fid s c,
+  init_sym_state mdl fid = Some s ->
+  init_state mdl fid = Some c ->
   over_approx s c.
 Proof.
-  intros mdl d s c Hs Hc.
+  intros mdl fid s c Hs Hc.
   unfold init_sym_state in Hs.
-  destruct (build_inst_counter mdl d) as [s_ic | ] eqn:Es_ic; try discriminate Hs.
-  destruct (entry_block d) as [s_b | ] eqn:Es_b; try discriminate Hs.
+  destruct (find_function mdl fid) as [s_d | ] eqn:Es_d; try discriminate Hs.
+  destruct (build_inst_counter mdl s_d) as [s_ic | ] eqn:Es_ic; try discriminate Hs.
+  destruct (entry_block s_d) as [s_b | ] eqn:Es_b; try discriminate Hs.
   destruct (blk_cmds s_b) as [ | s_cmd s_cmds ] eqn:Es_cs; try discriminate Hs.
   unfold init_state in Hc.
-  destruct (build_inst_counter mdl d) as [c_ic | ] eqn:Ec_ic; try discriminate Hc.
-  destruct (entry_block d) as [c_b | ] eqn:Ec_b; try discriminate Hc.
+  destruct (find_function mdl fid) as [c_d | ] eqn:Ec_d; try discriminate Hc.
+  destruct (build_inst_counter mdl c_d) as [c_ic | ] eqn:Ec_ic; try discriminate Hc.
+  destruct (entry_block c_d) as [c_b | ] eqn:Ec_b; try discriminate Hc.
   destruct (blk_cmds c_b) as [ | c_cmd c_cmds ] eqn:Ec_cs; try discriminate Hc.
+  inversion Es_d; subst.
+  rewrite Ec_ic in Es_ic.
   inversion Es_ic; subst.
+  rewrite Ec_b in Es_b.
   inversion Es_b; subst.
   rewrite Ec_cs in Es_cs.
   inversion Es_cs; subst.
@@ -1070,31 +1078,31 @@ Proof.
 Qed.
 
 Lemma completeness :
-  forall (mdl : llvm_module) (d : llvm_definition) (init_c c : state),
+  forall (mdl : llvm_module) (fid : function_id) (init_c c : state),
     is_supported_module mdl ->
-    (init_state mdl d) = Some init_c ->
+    (init_state mdl fid) = Some init_c ->
     multi_step init_c c ->
     (exists init_s s,
-      (init_sym_state mdl d) = Some init_s /\ multi_sym_step init_s s /\ over_approx s c).
+      (init_sym_state mdl fid) = Some init_s /\ multi_sym_step init_s s /\ over_approx s c).
 Proof.
-  intros mdl d init_c c Hism Hinit Hms.
+  intros mdl fid init_c c Hism Hinit Hms.
   (* TODO: rename *)
-  assert(L0: exists init_s, init_sym_state mdl d = Some init_s).
-  { apply (initialization_correspondence mdl d). exists init_c. assumption. }
-  destruct L0 as [init_s L0].
+  assert(L1 : exists init_s, init_sym_state mdl fid = Some init_s).
+  { apply (initialization_correspondence mdl fid). exists init_c. assumption. }
+  destruct L1 as [init_s L1].
   exists init_s.
   induction Hms as [init_c c | init_c c c'].
   {
     (* TODO: rename *)
-    assert(L1: exists s, sym_step init_s s /\ over_approx s c).
+    assert(L2 : exists s, sym_step init_s s /\ over_approx s c).
     {
       apply completeness_single_step with (c := init_c).
-      { apply (init_state_supported mdl d); assumption. }
+      { apply (init_state_supported mdl fid); assumption. }
       { assumption. }
-      { apply (well_defined_init_sym_state mdl d). assumption. }
-      { apply (over_approx_init_states mdl d); assumption. }
+      { apply (well_defined_init_sym_state mdl fid). assumption. }
+      { apply (over_approx_init_states mdl fid); assumption. }
     }
-    destruct L1 as [s [L1_1 L1_2]].
+    destruct L2 as [s [L2_1 L2_2]].
     exists s.
     split.
     { assumption. }
@@ -1106,31 +1114,31 @@ Proof.
   }
   {
     (* TODO: rename *)
-    assert(L2:
+    assert(L3 :
       exists s,
-        init_sym_state mdl d = Some init_s /\ multi_sym_step init_s s /\ over_approx s c
+        init_sym_state mdl fid = Some init_s /\ multi_sym_step init_s s /\ over_approx s c
     ).
     { apply IHHms. assumption. }
-    destruct L2 as [s [L2_1 [L2_2 L2_3]]].
+    destruct L3 as [s [L3_1 [L3_2 L3_3]]].
     (* TODO: rename *)
-    assert(L3: exists s', sym_step s s' /\ over_approx s' c').
+    assert(L4 : exists s', sym_step s s' /\ over_approx s' c').
     {
       apply completeness_single_step with (c := c).
       {
         apply (multi_step_supported mdl init_c); try assumption.
-        { apply init_state_preserves_module with (d := d); assumption. }
-        { apply (init_state_supported mdl d); assumption. }
+        { apply init_state_preserves_module with (fid := fid); assumption. }
+        { apply (init_state_supported mdl fid); assumption. }
       }
       { assumption. }
       {
         apply well_defined_multi_sym_step with (s := init_s).
-        apply (well_defined_init_sym_state mdl d).
+        apply (well_defined_init_sym_state mdl fid).
         { assumption. }
         { assumption. }
       }
       { assumption. }
     }
-    destruct L3 as [s' [L3_1 L3_2]].
+    destruct L4 as [s' [L4_1 L4_2]].
     exists s'.
     split.
     { assumption. }

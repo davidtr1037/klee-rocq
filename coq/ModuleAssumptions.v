@@ -97,19 +97,6 @@ Inductive is_supported_state : state -> Prop :=
         )
 .
 
-(* TODO: fix init_state / init_sym_state *)
-Lemma init_state_supported : forall mdl d s,
-  is_supported_module mdl ->
-  init_state mdl d = Some s -> is_supported_state s.
-Proof.
-  intros mdl d s Hism Heq.
-  unfold init_state in Heq.
-  destruct (build_inst_counter mdl d) as [c_ic | ] eqn:Ec_ic; try discriminate Heq.
-  destruct (entry_block d) as [c_b | ] eqn:Ec_b; try discriminate Heq.
-  destruct (blk_cmds c_b) as [ | c_cmd c_cmds ] eqn:Ec_cs; try discriminate Heq.
-  admit.
-Admitted.
-
 Lemma is_supported_propagation : forall mdl fid d bid b cs,
   is_supported_module mdl ->
   find_function mdl fid = Some d ->
@@ -227,6 +214,23 @@ Proof.
   }
 Qed.
 
+(* TODO: fix init_state / init_sym_state *)
+Lemma init_state_supported : forall mdl fid s,
+  is_supported_module mdl ->
+  init_state mdl fid = Some s -> is_supported_state s.
+Proof.
+  intros mdl fid s Hism Heq.
+  unfold init_state in Heq.
+  destruct (find_function mdl fid) as [d | ] eqn:Ed; try discriminate Heq.
+  destruct (build_inst_counter mdl d) as [ic | ] eqn:Eic; try discriminate Heq.
+  destruct (entry_block d) as [b | ] eqn:Eb; try discriminate Heq.
+  destruct (blk_cmds b) as [ | c cs ] eqn:Ecs; try discriminate Heq.
+  inversion Heq; subst.
+  apply is_supported_lemma.
+  unfold entry_block in Eb.
+  apply (is_supported_propagation mdl fid d (init (df_body d)) b (c :: cs)); assumption.
+Qed.
+
 (* TODO: rename: step_is_supported *)
 Lemma step_supported : forall mdl s s',
   is_supported_module mdl ->
@@ -236,36 +240,36 @@ Lemma step_supported : forall mdl s s',
   is_supported_state s'.
 Proof.
   intros mdl s s' Hism Hm Hs His.
-  inversion Hs; subst; inversion His; subst.
+  inversion Hs; subst; inversion His; subst; rename mdl0 into mdl.
   { apply is_supported_lemma; assumption. }
   { apply is_supported_lemma; assumption. }
   {
     apply is_supported_lemma.
-    apply (is_supported_propagation m (ic_fid ic) d tbid b (c :: cs)); assumption.
+    apply (is_supported_propagation mdl (ic_fid ic) d tbid b (c :: cs)); assumption.
   }
   {
     apply is_supported_lemma.
-    apply (is_supported_propagation m (ic_fid ic) d bid1 b (c :: cs)); assumption.
+    apply (is_supported_propagation mdl (ic_fid ic) d bid1 b (c :: cs)); assumption.
   }
   {
     apply is_supported_lemma.
-    apply (is_supported_propagation m (ic_fid ic) d bid2 b (c :: cs)); assumption.
+    apply (is_supported_propagation mdl (ic_fid ic) d bid2 b (c :: cs)); assumption.
   }
   {
     apply is_supported_lemma.
-    apply (is_supported_propagation_with_exp m f d b (c' :: cs')); assumption.
+    apply (is_supported_propagation_with_exp mdl f d b (c' :: cs')); assumption.
   }
   {
     apply is_supported_lemma.
-    apply (is_supported_propagation_with_exp m f d b (c' :: cs')); assumption.
+    apply (is_supported_propagation_with_exp mdl f d b (c' :: cs')); assumption.
   }
   {
     apply is_supported_lemma.
-    apply (is_supported_propagation_traling_cmds m (ic_fid ic') d ic' (c' :: cs')); assumption.
+    apply (is_supported_propagation_traling_cmds mdl (ic_fid ic') d ic' (c' :: cs')); assumption.
   }
   {
     apply is_supported_lemma.
-    apply (is_supported_propagation_traling_cmds m (ic_fid ic') d ic' (c' :: cs')); assumption.
+    apply (is_supported_propagation_traling_cmds mdl (ic_fid ic') d ic' (c' :: cs')); assumption.
   }
   { apply is_supported_lemma; assumption. }
   { apply is_supported_lemma; assumption. }

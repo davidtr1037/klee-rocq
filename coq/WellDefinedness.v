@@ -201,13 +201,14 @@ Proof.
   inversion Heq; subst.
 Qed.
 
-Lemma well_defined_init_sym_state : forall mdl d s,
-  (init_sym_state mdl d) = Some s -> well_defined s.
+Lemma well_defined_init_sym_state : forall mdl fid s,
+  (init_sym_state mdl fid) = Some s -> well_defined s.
 Proof.
-  intros mdl d s H.
+  intros mdl fid s H.
   unfold init_sym_state in H.
-  destruct (build_inst_counter mdl d) as [s_ic | ] eqn:Es_ic; try discriminate H.
-  destruct (entry_block d) as [s_b | ] eqn:Es_b; try discriminate H.
+  destruct (find_function mdl fid) as [s_d | ] eqn:Es_d; try discriminate H.
+  destruct (build_inst_counter mdl s_d) as [s_ic | ] eqn:Es_ic; try discriminate H.
+  destruct (entry_block s_d) as [s_b | ] eqn:Es_b; try discriminate H.
   destruct (blk_cmds s_b) as [ | s_cmd s_cmds ] eqn:Es_cs; try discriminate H.
   inversion H; subst.
   apply WD_State.
