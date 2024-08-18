@@ -567,6 +567,18 @@ Definition init_state (m : llvm_module) (d : llvm_definition) : option state :=
   end
 .
 
+Lemma init_state_preserves_module : forall mdl d s,
+  init_state mdl d = Some s -> module s = mdl.
+Proof.
+  intros mdl d s H.
+  unfold init_state in H.
+  destruct (build_inst_counter mdl d) as [c_ic | ] eqn:Ec_ic; try discriminate H.
+  destruct (entry_block d) as [c_b | ] eqn:Ec_b; try discriminate H.
+  destruct (blk_cmds c_b) as [ | c_cmd c_cmds ] eqn:Ec_cs; try discriminate H.
+  inversion H; subst.
+  reflexivity.
+Qed.
+
 Definition is_safe_program (mdl : llvm_module) (d : llvm_definition) :=
   exists init_s,
     (init_state mdl d) = Some init_s /\ (forall s, multi_step init_s s -> ~ error_state s)

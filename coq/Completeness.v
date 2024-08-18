@@ -1118,7 +1118,8 @@ Proof.
       apply completeness_single_step with (c := c).
       {
         apply (multi_step_supported mdl init_c); try assumption.
-        apply (init_state_supported mdl d); assumption.
+        { apply init_state_preserves_module with (d := d); assumption. }
+        { apply (init_state_supported mdl d); assumption. }
       }
       { assumption. }
       {
