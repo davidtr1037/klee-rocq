@@ -456,6 +456,30 @@ Proof.
       apply equiv_smt_store_update; assumption.
     }
   }
+  {
+    rename se into se1.
+    apply equiv_sym_eval_exp with (ls2 := ls2) (gs2 := gs2) in H2; try assumption.
+    destruct H2 as [se2 [H2_1 H2_2]].
+    exists (mk_sym_state
+      (next_inst_counter ic c)
+      c
+      cs
+      pbid
+      ls2
+      stk2
+      gs2
+      syms
+      (SMT_BinOp SMT_And pc2 se2)
+      mdl
+    ).
+    split.
+    { apply Sym_Step_Assume with (d := d); assumption. }
+    {
+      apply Sym_State_Equiv; try assumption.
+      apply equiv_smt_and; assumption.
+    }
+  }
+  { admit. }
 Admitted.
 
 Lemma safe_subtree_equiv: forall s1 s2 l,
