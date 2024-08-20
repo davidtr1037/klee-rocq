@@ -235,6 +235,16 @@ Inductive equiv_smt_expr : smt_expr -> smt_expr -> Prop :=
       equiv_smt_expr e1 e2
 .
 
+Lemma equiv_smt_expr_symmetry : forall e1 e2,
+  equiv_smt_expr e1 e2 -> equiv_smt_expr e2 e1.
+Proof.
+Admitted.
+
+Lemma equiv_smt_expr_unsat : forall e1 e2,
+  equiv_smt_expr e1 e2 -> unsat e1 -> unsat e2.
+Proof.
+Admitted.
+
 Definition subst_var (e : smt_expr) (x y : string) : smt_expr :=
   e
 .

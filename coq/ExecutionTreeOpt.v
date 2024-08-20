@@ -44,10 +44,53 @@ Inductive equiv_smt_store : smt_store -> smt_store -> Prop :=
       ) -> equiv_smt_store s1 s2
 .
 
+Inductive equiv_sym_frame : sym_frame -> sym_frame -> Prop :=
+  | EquivSymFrame : forall s1 s2 ic pbid v,
+      equiv_smt_store s1 s2 ->
+      equiv_sym_frame (Sym_Frame s1 ic pbid v) (Sym_Frame s2 ic pbid v)
+.
+
+Inductive equiv_sym_stack : list sym_frame -> list sym_frame -> Prop :=
+  | EquivSymStack_Empty :
+      equiv_sym_stack [] []
+  | EquivSymStack_NonEmpty : forall f1 stk1 f2 stk2,
+      equiv_sym_stack stk1 stk2 ->
+      equiv_sym_frame f1 f2 ->
+      equiv_sym_stack (f1 :: stk1) (f2 :: stk2)
+.
+
+(* TODO: handle syms *)
 Inductive equiv_sym_state : sym_state -> sym_state -> Prop :=
-  | Sym_State_Equiv : forall s1 s2,
-      s1 = s2 ->
-      equiv_sym_state s1 s2
+  | Sym_State_Equiv : forall ic c cs pbid ls1 stk1 gs1 pc1 ls2 stk2 gs2 pc2 syms mdl,
+      equiv_smt_store ls1 ls2 ->
+      equiv_sym_stack stk1 stk2 ->
+      equiv_smt_store gs1 gs2 ->
+      equiv_smt_expr pc1 pc2 ->
+      equiv_sym_state
+        (mk_sym_state
+          ic
+          c
+          cs
+          pbid
+          ls1
+          stk1
+          gs1
+          syms
+          pc1
+          mdl
+        )
+        (mk_sym_state
+          ic
+          c
+          cs
+          pbid
+          ls2
+          stk2
+          gs2
+          syms
+          pc2
+          mdl
+        )
 .
 
 Lemma equiv_sym_state_symmetry: forall s1 s2,
@@ -55,10 +98,21 @@ Lemma equiv_sym_state_symmetry: forall s1 s2,
 Proof.
 Admitted.
 
+Lemma equiv_sym_state_transitivity: forall s1 s2 s3,
+  equiv_sym_state s1 s2 -> equiv_sym_state s2 s3 -> equiv_sym_state s1 s3.
+Proof.
+Admitted.
+
 Lemma error_equiv_sym_state: forall s1 s2,
   equiv_sym_state s1 s2 -> ~ error_sym_state s1 -> ~ error_sym_state s2.
 Proof.
-Admitted.
+  intros s1 s2 Heq Hes1.
+  inversion Heq; subst.
+  intros Hes2.
+  apply Hes1.
+  inversion Hes2; subst.
+  apply ESS_Assert with (d := d); assumption.
+Qed.
 
 Inductive safe_et_opt : execution_tree -> Prop :=
   | Safe_Leaf_RetVoid: forall ic cid pbid ls gs syms pc mdl,
@@ -151,19 +205,55 @@ Proof.
   { right. right. assumption. }
 Admitted.
 
-Lemma safe_subtree_equiv: forall s1 s2 l,
-  equiv_sym_state s1 s2 ->
-  safe_et_opt (t_subtree s1 l) ->
-  safe_et_opt (t_subtree s2 l).
-Proof.
-Admitted.
-
 Lemma equiv_sym_state_on_step: forall s1 s1' s2,
   equiv_sym_state s1 s2 ->
   sym_step s1 s1' ->
   (exists s2', sym_step s2 s2' /\ equiv_sym_state s1' s2').
 Proof.
 Admitted.
+
+Lemma safe_subtree_equiv: forall s1 s2 l,
+  equiv_sym_state s1 s2 ->
+  safe_et_opt (t_subtree s1 l) ->
+  safe_et_opt (t_subtree s2 l).
+Proof.
+  intros s1 s2 l Heq Hs1.
+  inversion Hs1; subst.
+  apply Safe_Subtree.
+  { apply error_equiv_sym_state with (s1 := s1); assumption. }
+  {
+    intros s2' Hstep.
+    apply equiv_sym_state_on_step with (s1 := s2) (s2 := s1) in Hstep.
+    {
+      destruct Hstep as [s1' [Hstep_1 Hstep_2]].
+      specialize (H2 s1').
+      apply H2 in Hstep_1.
+      destruct Hstep_1 as [Hstep_1 | Hstep_1].
+      {
+        destruct Hstep_1 as [t [Hstep_1_1 [Hstep_1_2 Hstep_1_3]]].
+        left.
+        exists t.
+        split.
+        { assumption. }
+        {
+          split.
+          { assumption. }
+          { apply equiv_sym_state_transitivity with (s2 := s1'); assumption. }
+        }
+      }
+      {
+        right.
+        inversion Hstep_2; subst.
+        inversion Hstep_1; subst.
+        apply Unsat_State.
+        apply equiv_smt_expr_unsat with (e1 := pc2) (e2 := pc1).
+        { apply equiv_smt_expr_symmetry. assumption. }
+        { assumption. }
+      }
+    }
+    { apply equiv_sym_state_symmetry. assumption. }
+  }
+Qed.
 
 Lemma safe_multi_step: forall s s' l,
   safe_et_opt (t_subtree s l) ->
