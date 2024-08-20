@@ -44,6 +44,14 @@ Inductive equiv_smt_store : smt_store -> smt_store -> Prop :=
       ) -> equiv_smt_store s1 s2
 .
 
+Lemma equiv_empty_smt_store : equiv_smt_store empty_smt_store empty_smt_store.
+Proof.
+  apply EquivSMTSTore.
+  intros x.
+  left.
+  split; (unfold empty_smt_store; rewrite apply_empty_map; reflexivity).
+Qed.
+
 Lemma equiv_smt_store_update : forall s1 s2 v se1 se2,
   equiv_smt_store s1 s2 ->
   equiv_smt_expr se1 se2 ->
@@ -110,7 +118,49 @@ Lemma equiv_fill_smt_store : forall ls1 gs1 ls2 gs2 l ls1',
   exists ls2',
     fill_smt_store ls2 gs2 l = Some ls2' /\ equiv_smt_store ls1' ls2'.
 Proof.
-Admitted.
+  intros ls1 gs1 ls2 gs2 l ls1' Heq1 Heq2 Hf.
+  generalize dependent ls1'.
+  induction l as [ | (x, arg) tail]; intros ls1' Hf.
+  {
+    simpl in Hf.
+    inversion Hf; subst.
+    exists empty_smt_store.
+    split.
+    { reflexivity. }
+    { apply equiv_empty_smt_store. }
+  }
+  {
+    simpl in Hf.
+    destruct arg, t.
+    destruct (sym_eval_exp ls1 gs1 (Some t) e) as [se1 | ] eqn:E1.
+    {
+      destruct (fill_smt_store ls1 gs1 tail) as [ls1'' | ] eqn:E2.
+      {
+        apply equiv_sym_eval_exp with (ls2 := ls2) (gs2 := gs2) in E1; try assumption.
+        destruct E1 as [se2 [E1_1 E1_2]].
+        assert(L :
+          exists ls2' : smt_store,
+             fill_smt_store ls2 gs2 tail = Some ls2' /\ equiv_smt_store ls1'' ls2'
+        ).
+        { apply IHtail. reflexivity. }
+        destruct L as [ls2'' [L_1 L_2]].
+        exists (x !-> Some se2; ls2'').
+        split.
+        {
+          simpl.
+          rewrite E1_1, L_1.
+          reflexivity.
+        }
+        {
+          inversion Hf; subst.
+          apply equiv_smt_store_update; assumption.
+        }
+      }
+      { discriminate Hf. }
+    }
+    { discriminate Hf. }
+  }
+Qed.
 
 Lemma equiv_create_local_store : forall ls1 gs1 ls2 gs2 d args ls1',
   equiv_smt_store ls1 ls2 ->
