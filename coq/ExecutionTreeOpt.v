@@ -817,59 +817,59 @@ Theorem completeness_via_et: forall mdl d init_s l,
 Proof.
   intros mdl d init_s l Hism Hinit Hse.
   unfold is_safe_program.
-  assert(L0: exists init_c, init_state mdl d = Some init_c).
+  assert(L1: exists init_c, init_state mdl d = Some init_c).
   { apply (initialization_correspondence mdl d). exists init_s. assumption. }
-  destruct L0 as [init_c L0].
+  destruct L1 as [init_c L1].
   exists init_c.
   split.
   { assumption. }
   {
     intros c Hms.
-    assert(L1 :
+    assert(L2 :
       (exists init_s s,
         (init_sym_state mdl d) = Some init_s /\ multi_sym_step init_s s /\ over_approx s c)
     ).
     { apply completeness with (init_c :=  init_c); assumption. }
-    destruct L1 as [init_s' [s [L1_1 [L1_2 L1_3]]]].
-    rewrite L1_1 in Hinit.
+    destruct L2 as [init_s' [s [L2_1 [L2_2 L2_3]]]].
+    rewrite L2_1 in Hinit.
     inversion Hinit; subst.
     (* TODO: rename L *)
-    assert(L :
+    assert(L3 :
       safe_et_opt (t_leaf s) \/
       (exists so l', equiv_sym_state s so /\ safe_et_opt (t_subtree so l')) \/
       unsat_sym_state s
     ).
     { apply (safe_multi_step init_s s l); assumption. }
     (* TODO: can use same names for lemmas *)
-    destruct L as [L | [L | L]].
+    destruct L3 as [L3 | [L3 | L3]].
     {
-      assert(L2: ~ error_sym_state s).
+      assert(L4: ~ error_sym_state s).
       { apply safe_leaf. assumption. }
       intros Hes.
-      apply error_correspondence in L1_3.
-      apply L1_3 in Hes.
-      apply L2.
+      apply error_correspondence in L2_3.
+      apply L2_3 in Hes.
+      apply L4.
       assumption.
     }
     {
-      destruct L as [so [l' [L_1 L_2]]].
-      assert(L3: ~ error_sym_state s).
+      destruct L3 as [so [l' [L_1 L_2]]].
+      assert(L4: ~ error_sym_state s).
       {
         apply error_equiv_sym_state with (s1 := so) (s2 := s).
         { apply equiv_sym_state_symmetry. assumption. }
         { apply safe_subtree with (l := l'). assumption. }
       }
       intros Hes.
-      apply error_correspondence in L1_3.
-      apply L1_3 in Hes.
-      apply L3.
+      apply error_correspondence in L2_3.
+      apply L2_3 in Hes.
+      apply L4.
       assumption.
     }
     {
-      inversion L1_3; subst.
+      inversion L2_3; subst.
       destruct H as [m H].
       inversion H; subst.
-      inversion L; subst.
+      inversion L3; subst.
       unfold unsat in H5.
       destruct H5.
       unfold sat.
