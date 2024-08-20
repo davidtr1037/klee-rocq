@@ -375,18 +375,10 @@ Proof.
     apply OA_Stack_NonEmpty.
     {
       inversion H; subst.
-      {
-        apply OA_Frame.
-        apply over_approx_store_non_interference with (syms := syms); try assumption.
-        inversion Hwd; subst.
-        assumption.
-      }
-      {
-        apply OA_Frame_NoReturn.
-        apply over_approx_store_non_interference with (syms := syms); try assumption.
-        inversion Hwd; subst.
-        assumption.
-      }
+      apply OA_Frame.
+      apply over_approx_store_non_interference with (syms := syms); try assumption.
+      inversion Hwd; subst.
+      assumption.
     }
     {
       apply IHHoa.
@@ -735,7 +727,7 @@ Proof.
       cs'
       None
       s_ls'
-      ((Sym_Frame_NoReturn s_ls (next_inst_counter c_ic c) c_pbid) :: s_stk)
+      ((Sym_Frame s_ls (next_inst_counter c_ic c) c_pbid None) :: s_stk)
       s_gs
       s_syms
       s_pc
@@ -748,7 +740,7 @@ Proof.
       exists m.
       apply OAV_State; try assumption.
       apply OA_Stack_NonEmpty; try assumption.
-      apply OA_Frame_NoReturn.
+      apply OA_Frame .
       assumption.
     }
   }
@@ -775,7 +767,7 @@ Proof.
       cs'
       None
       s_ls'
-      ((Sym_Frame s_ls (next_inst_counter c_ic c) c_pbid v) :: s_stk)
+      ((Sym_Frame s_ls (next_inst_counter c_ic c) c_pbid (Some v)) :: s_stk)
       s_gs
       s_syms
       s_pc

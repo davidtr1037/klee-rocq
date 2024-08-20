@@ -38,10 +38,6 @@ Inductive well_defined_stack : list sym_frame -> list string -> Prop :=
       well_defined_smt_store ls syms ->
       well_defined_stack stk syms ->
       well_defined_stack ((Sym_Frame ls ic pbid v) :: stk) syms
-  | WD_FrameNoReturn : forall ls ic pbid stk syms,
-      well_defined_smt_store ls syms ->
-      well_defined_stack stk syms ->
-      well_defined_stack ((Sym_Frame_NoReturn ls ic pbid) :: stk) syms
 .
 
 (* TODO: use record getters? *)
@@ -529,14 +525,6 @@ Proof.
     }
     { assumption. }
   }
-  {
-    apply WD_FrameNoReturn.
-    {
-      apply well_defined_smt_store_ext.
-      assumption.
-    }
-    { assumption. }
-  }
 Qed.
 
 Lemma well_defined_sym_step : forall (s s' : sym_state),
@@ -713,7 +701,7 @@ Proof.
       { assumption. }
       {
         split.
-        { apply WD_FrameNoReturn; assumption. }
+        { apply WD_Frame; assumption. }
         { assumption. }
       }
     }

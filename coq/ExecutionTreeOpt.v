@@ -36,6 +36,14 @@ Arguments root {X}.
 
 Definition execution_tree := tree sym_state.
 
+Inductive equiv_smt_store : smt_store -> smt_store -> Prop :=
+  | EquivSMTSTore : forall (s1 s2 : smt_store),
+      (forall x se1 se2,
+        ((s1 x) = None /\ (s2 x) = None) \/
+        ((s1 x) = Some se1 /\ (s2 x) = Some se2 /\ equiv_smt_expr se1 se2)
+      ) -> equiv_smt_store s1 s2
+.
+
 Inductive equiv_sym_state : sym_state -> sym_state -> Prop :=
   | Sym_State_Equiv : forall s1 s2,
       s1 = s2 ->

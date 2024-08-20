@@ -25,9 +25,7 @@ Definition smt_store := total_map (option smt_expr).
 Definition empty_smt_store : smt_store := empty_map None.
 
 Inductive sym_frame : Type :=
-  | Sym_Frame (s : smt_store) (ic : inst_counter) (pbid : option block_id) (v : raw_id)
-  (* TODO: rename *)
-  | Sym_Frame_NoReturn (s : smt_store) (ic : inst_counter) (pbid : option block_id)
+  | Sym_Frame (s : smt_store) (ic : inst_counter) (pbid : option block_id) (v : option raw_id)
 .
 
 (* TODO: define as an inductive type? *)
@@ -398,7 +396,7 @@ Inductive sym_step : sym_state -> sym_state -> Prop :=
           cs'
           None
           ls'
-          ((Sym_Frame_NoReturn ls (next_inst_counter ic c) pbid) :: stk)
+          ((Sym_Frame ls (next_inst_counter ic c) pbid None) :: stk)
           gs
           syms
           pc
@@ -429,7 +427,7 @@ Inductive sym_step : sym_state -> sym_state -> Prop :=
           cs'
           None
           ls'
-          ((Sym_Frame ls (next_inst_counter ic c) pbid v) :: stk)
+          ((Sym_Frame ls (next_inst_counter ic c) pbid (Some v)) :: stk)
           gs
           syms
           pc
@@ -446,7 +444,7 @@ Inductive sym_step : sym_state -> sym_state -> Prop :=
           []
           pbid
           ls
-          ((Sym_Frame_NoReturn ls' ic' pbid') :: stk)
+          ((Sym_Frame ls' ic' pbid' None) :: stk)
           gs
           syms
           pc
@@ -476,7 +474,7 @@ Inductive sym_step : sym_state -> sym_state -> Prop :=
           []
           pbid
           ls
-          ((Sym_Frame ls' ic' pbid' v) :: stk)
+          ((Sym_Frame ls' ic' pbid' (Some v)) :: stk)
           gs
           syms
           pc
@@ -645,12 +643,6 @@ Inductive over_approx_frame_via : sym_frame -> frame -> smt_model -> Prop :=
       over_approx_frame_via
         (Sym_Frame s_s ic pbid v)
         (Frame c_s ic pbid v)
-        m
-  | OA_Frame_NoReturn : forall s_s c_s m ic pbid,
-      over_approx_store_via s_s c_s m ->
-      over_approx_frame_via
-        (Sym_Frame_NoReturn s_s ic pbid)
-        (Frame_NoReturn c_s ic pbid)
         m
 .
 

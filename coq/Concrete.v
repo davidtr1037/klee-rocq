@@ -25,8 +25,7 @@ Definition dv_store := total_map (option dynamic_value).
 Definition empty_dv_store : dv_store := empty_map None.
 
 Inductive frame : Type :=
-  | Frame (s : dv_store) (ic : inst_counter) (pbid : option block_id) (v : raw_id)
-  | Frame_NoReturn (s : dv_store) (ic : inst_counter) (pbid : option block_id)
+  | Frame (s : dv_store) (ic : inst_counter) (pbid : option block_id) (v : option raw_id)
 .
 
 (* TODO: define as an inductive type? *)
@@ -353,7 +352,7 @@ Inductive step : state -> state -> Prop :=
           cs'
           None
           ls'
-          ((Frame_NoReturn ls (next_inst_counter ic c) pbid) :: stk)
+          ((Frame ls (next_inst_counter ic c) pbid None) :: stk)
           gs
           mdl
         )
@@ -380,7 +379,7 @@ Inductive step : state -> state -> Prop :=
           cs'
           None
           ls'
-          ((Frame ls (next_inst_counter ic c) pbid v) :: stk)
+          ((Frame ls (next_inst_counter ic c) pbid (Some v)) :: stk)
           gs
           mdl
         )
@@ -395,7 +394,7 @@ Inductive step : state -> state -> Prop :=
           []
           pbid
           ls
-          ((Frame_NoReturn ls' ic' pbid') :: stk)
+          ((Frame ls' ic' pbid' None) :: stk)
           gs
           mdl
         )
@@ -421,7 +420,7 @@ Inductive step : state -> state -> Prop :=
           []
           pbid
           ls
-          ((Frame ls' ic' pbid' v) :: stk)
+          ((Frame ls' ic' pbid' (Some v)) :: stk)
           gs
           mdl
         )
