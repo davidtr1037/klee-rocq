@@ -8,6 +8,7 @@ Completeness.v
 Coqlib.v
 DynamicValue.v
 ExecutionTree.v
+ExecutionTreeOpt.v
 IDMap.v
 Symbolic.v
 LLVMAst.v
