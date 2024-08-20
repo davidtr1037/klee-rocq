@@ -67,6 +67,24 @@ Lemma equiv_sym_eval_phi_args : forall ls1 gs1 ls2 gs2 t args pbid se1,
 Proof.
 Admitted.
 
+Lemma equiv_fill_store : forall ls1 gs1 ls2 gs2 l ls1',
+  equiv_smt_store ls1 ls2 ->
+  equiv_smt_store gs1 gs2 ->
+  fill_smt_store ls1 gs1 l = Some ls1' ->
+  exists ls2',
+    fill_smt_store ls2 gs2 l = Some ls2' /\ equiv_smt_store ls1' ls2'.
+Proof.
+Admitted.
+
+Lemma equiv_create_local_store : forall ls1 gs1 ls2 gs2 d args ls1',
+  equiv_smt_store ls1 ls2 ->
+  equiv_smt_store gs1 gs2 ->
+  create_local_smt_store d ls1 gs1 args = Some ls1' ->
+  exists ls2',
+    create_local_smt_store d ls2 gs2 args = Some ls2' /\ equiv_smt_store ls1' ls2'.
+Proof.
+Admitted.
+
 Inductive equiv_sym_frame : sym_frame -> sym_frame -> Prop :=
   | EquivSymFrame : forall s1 s2 ic pbid v,
       equiv_smt_store s1 s2 ->
@@ -216,17 +234,28 @@ Proof.
     {
       simpl in Hss_3.
       left.
-      admit.
+      inversion Hss_2; subst.
+      {
+        inversion Hss_3; subst.
+        inversion H13; subst.
+        apply Safe_Leaf_RetVoid.
+      }
+      {
+        inversion Hss_3; subst.
+        inversion H13; subst.
+        apply Safe_Leaf_Ret.
+      }
     }
     {
       simpl in Hss_3.
       right.
       left.
-      admit.
+      exists x, l'.
+      split; try assumption.
     }
   }
   { right. right. assumption. }
-Admitted.
+Qed.
 
 Lemma equiv_sym_state_on_step: forall s1 s1' s2,
   equiv_sym_state s1 s2 ->
@@ -354,7 +383,7 @@ Proof.
       exists ls2',
         create_local_smt_store d ls2 gs2 args = Some ls2' /\ equiv_smt_store ls1' ls2'
     ).
-    { admit. }
+    { apply equiv_create_local_store with (ls1 := ls1) (gs1 := gs1); assumption. }
     destruct L as [ls2' [L_1 L_2]].
     exists (mk_sym_state
       (mk_inst_counter (get_fid d) (blk_id b) (get_cmd_id c'))
@@ -383,7 +412,7 @@ Proof.
       exists ls2',
         create_local_smt_store d ls2 gs2 args = Some ls2' /\ equiv_smt_store ls1' ls2'
     ).
-    { admit. }
+    { apply equiv_create_local_store with (ls1 := ls1) (gs1 := gs1); assumption. }
     destruct L as [ls2' [L_1 L_2]].
     exists (mk_sym_state
       (mk_inst_counter (get_fid d) (blk_id b) (get_cmd_id c'))
