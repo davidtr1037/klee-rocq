@@ -5,6 +5,7 @@ Import ListNotations.
 From SE Require Import CFG.
 From SE Require Import Concrete.
 From SE Require Import LLVMAst.
+From SE Require Import Symbolic.
 
 (* TODO: use later *)
 Inductive is_supported_ibinop : ibinop -> Prop :=
@@ -192,8 +193,7 @@ Proof.
   { inversion Ht. }
 Qed.
 
-(* TODO: rename *)
-Lemma is_supported_lemma : forall ic c cs pbid ls stk gs mdl,
+Lemma is_supported_state_lemma : forall ic c cs pbid ls stk gs mdl,
   is_supported_cmd_list (c :: cs) ->
   is_supported_state
     (mk_state
@@ -232,7 +232,7 @@ Proof.
   destruct (entry_block d) as [b | ] eqn:Eb; try discriminate Heq.
   destruct (blk_cmds b) as [ | c cs ] eqn:Ecs; try discriminate Heq.
   inversion Heq; subst.
-  apply is_supported_lemma.
+  apply is_supported_state_lemma.
   unfold entry_block in Eb.
   apply (is_supported_propagation mdl fid d (init (df_body d)) b (c :: cs)); assumption.
 Qed.
@@ -247,38 +247,38 @@ Lemma step_supported : forall mdl s s',
 Proof.
   intros mdl s s' Hism Hm Hs His.
   inversion Hs; subst; inversion His; subst; rename mdl0 into mdl.
-  { apply is_supported_lemma; assumption. }
-  { apply is_supported_lemma; assumption. }
+  { apply is_supported_state_lemma; assumption. }
+  { apply is_supported_state_lemma; assumption. }
   {
-    apply is_supported_lemma.
+    apply is_supported_state_lemma.
     apply (is_supported_propagation mdl (ic_fid ic) d tbid b (c :: cs)); assumption.
   }
   {
-    apply is_supported_lemma.
+    apply is_supported_state_lemma.
     apply (is_supported_propagation mdl (ic_fid ic) d bid1 b (c :: cs)); assumption.
   }
   {
-    apply is_supported_lemma.
+    apply is_supported_state_lemma.
     apply (is_supported_propagation mdl (ic_fid ic) d bid2 b (c :: cs)); assumption.
   }
   {
-    apply is_supported_lemma.
+    apply is_supported_state_lemma.
     apply (is_supported_propagation_with_exp mdl f d b (c' :: cs')); assumption.
   }
   {
-    apply is_supported_lemma.
+    apply is_supported_state_lemma.
     apply (is_supported_propagation_with_exp mdl f d b (c' :: cs')); assumption.
   }
   {
-    apply is_supported_lemma.
+    apply is_supported_state_lemma.
     apply (is_supported_propagation_traling_cmds mdl (ic_fid ic') d ic' (c' :: cs')); assumption.
   }
   {
-    apply is_supported_lemma.
+    apply is_supported_state_lemma.
     apply (is_supported_propagation_traling_cmds mdl (ic_fid ic') d ic' (c' :: cs')); assumption.
   }
-  { apply is_supported_lemma; assumption. }
-  { apply is_supported_lemma; assumption. }
+  { apply is_supported_state_lemma; assumption. }
+  { apply is_supported_state_lemma; assumption. }
 Qed.
 
 Lemma step_preserves_module : forall mdl s s',
@@ -316,3 +316,74 @@ Proof.
     { inversion Hm; subst. reflexivity. }
   }
 Qed.
+
+Inductive is_supported_sym_state : sym_state -> Prop :=
+  | IS_SymState : forall ic c cs pbid ls stk gs syms pc mdl,
+      is_supported_cmd c ->
+      is_supported_cmd_list cs ->
+      is_supported_sym_state
+        (mk_sym_state
+          ic
+          c
+          cs
+          pbid
+          ls
+          stk
+          gs
+          syms
+          pc
+          mdl
+        )
+.
+
+Lemma is_supported_sym_state_lemma : forall ic c cs pbid ls stk gs syms pc mdl,
+  is_supported_cmd_list (c :: cs) ->
+  is_supported_sym_state
+    (mk_sym_state
+      ic
+      c
+      cs
+      pbid
+      ls
+      stk
+      gs
+      syms
+      pc
+      mdl
+    ).
+Proof.
+Admitted.
+
+Lemma init_sym_state_supported : forall mdl fid s,
+  is_supported_module mdl ->
+  init_sym_state mdl fid = Some s -> is_supported_sym_state s.
+Proof.
+Admitted.
+
+Lemma sym_step_supported : forall mdl s s',
+  is_supported_module mdl ->
+  sym_module s = mdl ->
+  sym_step s s' ->
+  is_supported_sym_state s ->
+  is_supported_sym_state s'.
+Proof.
+Admitted.
+
+Lemma sym_step_preserves_module : forall mdl s s',
+  sym_module s = mdl ->
+  sym_step s s' ->
+  sym_module s' = mdl.
+Proof.
+  intros mdl s s' Heq Hs.
+  inversion Hs; subst; reflexivity.
+Qed.
+
+(* TODO: rename: multi_step_is_supported *)
+Lemma multi_sym_step_supported : forall mdl s s',
+  is_supported_module mdl ->
+  sym_module s = mdl ->
+  multi_sym_step s s' ->
+  is_supported_sym_state s ->
+  (sym_module s' = mdl /\ is_supported_sym_state s').
+Proof.
+Admitted.
