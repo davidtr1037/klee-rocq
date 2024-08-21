@@ -378,6 +378,13 @@ Proof.
   inversion Hs; subst; reflexivity.
 Qed.
 
+Lemma multi_sym_step_preserves_module : forall mdl s s',
+  sym_module s = mdl ->
+  multi_sym_step s s' ->
+  sym_module s' = mdl.
+Proof.
+Admitted.
+
 (* TODO: rename: multi_step_is_supported *)
 Lemma multi_sym_step_supported : forall mdl s s',
   is_supported_module mdl ->

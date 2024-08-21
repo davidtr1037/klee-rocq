@@ -152,13 +152,12 @@ Proof.
 Qed.
 
 Lemma equiv_sym_eval_exp : forall ls1 gs1 ls2 gs2 ot e se1,
+  is_supported_exp e ->
   equiv_smt_store ls1 ls2 ->
   equiv_smt_store gs1 gs2 ->
   sym_eval_exp ls1 gs1 ot e = Some se1 ->
   (exists se2, (sym_eval_exp ls2 gs2 ot e) = Some se2 /\ equiv_smt_expr se1 se2).
 Proof.
-Admitted.
-(*
   intros ls1 gs1 ls2 gs2 ot e se1 His Heq1 Heq2 Heval.
   generalize dependent se1.
   generalize dependent ot.
@@ -216,17 +215,18 @@ Admitted.
     inversion Heval; subst.
     exists (SMT_BinOp SMT_Add se1'' se2'').
     split; try reflexivity.
-    admit.
+    apply equiv_smt_expr_binop; assumption.
   }
-*)
+Qed.
 
 Lemma equiv_sym_eval_phi_args : forall ls1 gs1 ls2 gs2 t args pbid se1,
+  (forall bid e, In (bid, e) args -> is_supported_exp e) ->
   equiv_smt_store ls1 ls2 ->
   equiv_smt_store gs1 gs2 ->
   sym_eval_phi_args ls1 gs1 t args pbid = Some se1 ->
   (exists se2, sym_eval_phi_args ls2 gs2 t args pbid = Some se2 /\ equiv_smt_expr se1 se2).
 Proof.
-  intros ls1 gs1 ls2 gs2 t args pbid se1 Heq1 Heq2 Heval.
+  intros ls1 gs1 ls2 gs2 t args pbid se1 His Heq1 Heq2 Heval.
   induction args as [ | arg args_tail].
   { discriminate Heval. }
   {
@@ -236,9 +236,15 @@ Proof.
     {
       rewrite raw_id_eqb_eq in E.
       apply equiv_sym_eval_exp with (ls2 := ls2) (gs2 := gs2) in Heval; try assumption.
+      apply (His bid e).
+      left.
+      reflexivity.
     }
     {
-      apply IHargs_tail.
+      apply IHargs_tail; try assumption.
+      intros bid' e' Hin.
+      apply (His bid' e').
+      right.
       assumption.
     }
   }
@@ -247,11 +253,12 @@ Qed.
 Lemma equiv_fill_smt_store : forall ls1 gs1 ls2 gs2 l ls1',
   equiv_smt_store ls1 ls2 ->
   equiv_smt_store gs1 gs2 ->
+  (forall x arg, In (x, arg) l -> is_supported_function_arg arg) ->
   fill_smt_store ls1 gs1 l = Some ls1' ->
   exists ls2',
     fill_smt_store ls2 gs2 l = Some ls2' /\ equiv_smt_store ls1' ls2'.
 Proof.
-  intros ls1 gs1 ls2 gs2 l ls1' Heq1 Heq2 Hf.
+  intros ls1 gs1 ls2 gs2 l ls1' Heq1 Heq2 His Hf.
   generalize dependent ls1'.
   induction l as [ | (x, arg) tail]; intros ls1' Hf.
   {
@@ -270,23 +277,37 @@ Proof.
       destruct (fill_smt_store ls1 gs1 tail) as [ls1'' | ] eqn:E2.
       {
         apply equiv_sym_eval_exp with (ls2 := ls2) (gs2 := gs2) in E1; try assumption.
-        destruct E1 as [se2 [E1_1 E1_2]].
-        assert(L :
-          exists ls2' : smt_store,
-             fill_smt_store ls2 gs2 tail = Some ls2' /\ equiv_smt_store ls1'' ls2'
-        ).
-        { apply IHtail. reflexivity. }
-        destruct L as [ls2'' [L_1 L_2]].
-        exists (x !-> Some se2; ls2'').
-        split.
         {
-          simpl.
-          rewrite E1_1, L_1.
-          reflexivity.
+          destruct E1 as [se2 [E1_1 E1_2]].
+          assert(L :
+            exists ls2' : smt_store,
+               fill_smt_store ls2 gs2 tail = Some ls2' /\ equiv_smt_store ls1'' ls2'
+          ).
+          {
+            apply IHtail; try reflexivity.
+            intros x' arg' Hin.
+            apply (His x' arg').
+            apply in_cons.
+            assumption.
+          }
+          destruct L as [ls2'' [L_1 L_2]].
+          exists (x !-> Some se2; ls2'').
+          split.
+          {
+            simpl.
+            rewrite E1_1, L_1.
+            reflexivity.
+          }
+          {
+            inversion Hf; subst.
+            apply equiv_smt_store_update; assumption.
+          }
         }
         {
-          inversion Hf; subst.
-          apply equiv_smt_store_update; assumption.
+          assert(Larg : is_supported_function_arg ((t, e), l)).
+          { apply His with (x := x). apply in_eq. }
+          inversion Larg; subst.
+          assumption.
         }
       }
       { discriminate Hf. }
@@ -298,14 +319,19 @@ Qed.
 Lemma equiv_create_local_store : forall ls1 gs1 ls2 gs2 d args ls1',
   equiv_smt_store ls1 ls2 ->
   equiv_smt_store gs1 gs2 ->
+  (forall arg, In arg args -> is_supported_function_arg arg) ->
   create_local_smt_store d ls1 gs1 args = Some ls1' ->
   exists ls2',
     create_local_smt_store d ls2 gs2 args = Some ls2' /\ equiv_smt_store ls1' ls2'.
 Proof.
-  intros ls1 gs1 ls2 gs2 d args ls1' Heq1 Heq2 Hc.
+  intros ls1 gs1 ls2 gs2 d args ls1' Heq1 Heq2 His Hc.
   unfold create_local_smt_store in *.
   destruct (ListUtil.merge_lists (df_args d) args) eqn:E.
-  { apply equiv_fill_smt_store with (ls2 := ls2) (gs2 := gs2) in Hc; try assumption.  }
+  {
+    apply equiv_fill_smt_store with (ls2 := ls2) (gs2 := gs2) in Hc; try assumption.
+    apply ListUtil.merge_lists_preserves_prop with (xs := (df_args d)) (ys := args);
+    assumption.
+  }
   { discriminate Hc. }
 Qed.
 
@@ -541,10 +567,11 @@ Qed.
 
 Lemma equiv_sym_state_on_step: forall s1 s1' s2,
   equiv_sym_state s1 s2 ->
+  is_supported_sym_state s1 ->
   sym_step s1 s1' ->
   (exists s2', sym_step s2 s2' /\ equiv_sym_state s1' s2').
 Proof.
-  intros s1 s1' s2 Heq Hs1.
+  intros s1 s1' s2 Heq His Hs1.
   inversion Hs1;
   subst; rename ls into ls1, stk into stk1, gs into gs1, pc into pc1;
   inversion Heq; subst.
@@ -570,6 +597,11 @@ Proof.
       apply EquivSymState; try assumption.
       apply equiv_smt_store_update; assumption.
     }
+    {
+      inversion His; subst.
+      inversion H2; subst.
+      assumption.
+    }
   }
   {
     rename se into se1.
@@ -592,6 +624,11 @@ Proof.
     {
       apply EquivSymState; try assumption.
       apply equiv_smt_store_update; assumption.
+    }
+    {
+      inversion His; subst.
+      inversion H2; subst.
+      assumption.
     }
   }
   {
@@ -633,6 +670,11 @@ Proof.
       apply EquivSymState; try assumption.
       apply equiv_smt_expr_binop; assumption.
     }
+    {
+      inversion His; subst.
+      inversion H5; subst.
+      assumption.
+    }
   }
   {
     rename se into se1.
@@ -658,6 +700,11 @@ Proof.
       apply equiv_smt_expr_not.
       assumption.
     }
+    {
+      inversion His; subst.
+      inversion H5; subst.
+      assumption.
+    }
   }
   {
     rename ls' into ls1'.
@@ -665,7 +712,12 @@ Proof.
       exists ls2',
         create_local_smt_store d ls2 gs2 args = Some ls2' /\ equiv_smt_store ls1' ls2'
     ).
-    { apply equiv_create_local_store with (ls1 := ls1) (gs1 := gs1); assumption. }
+    {
+      apply equiv_create_local_store with (ls1 := ls1) (gs1 := gs1); try assumption.
+      inversion His; subst.
+      inversion H6; subst.
+      assumption.
+    }
     destruct L as [ls2' [L_1 L_2]].
     exists (mk_sym_state
       (mk_inst_counter (get_fid d) (blk_id b) (get_cmd_id c'))
@@ -694,7 +746,12 @@ Proof.
       exists ls2',
         create_local_smt_store d ls2 gs2 args = Some ls2' /\ equiv_smt_store ls1' ls2'
     ).
-    { apply equiv_create_local_store with (ls1 := ls1) (gs1 := gs1); assumption. }
+    {
+      apply equiv_create_local_store with (ls1 := ls1) (gs1 := gs1); try assumption.
+      inversion His; subst.
+      inversion H6; subst.
+      assumption.
+    }
     destruct L as [ls2' [L_1 L_2]].
     exists (mk_sym_state
       (mk_inst_counter (get_fid d) (blk_id b) (get_cmd_id c'))
@@ -766,6 +823,11 @@ Proof.
       apply EquivSymState; try assumption.
       apply equiv_smt_store_update; assumption.
     }
+    {
+      inversion His; subst.
+      inversion H5; subst.
+      assumption.
+    }
   }
   {
     rename se into se1.
@@ -789,16 +851,26 @@ Proof.
       apply EquivSymState; try assumption.
       apply equiv_smt_expr_binop; assumption.
     }
+    {
+      inversion His; subst.
+      inversion H5; subst.
+      assert(Larg : is_supported_function_arg (TYPE_I BinNums.xH, e, attrs)).
+      { apply H4. apply in_eq. }
+      inversion Larg; subst.
+      assumption.
+    }
   }
   { admit. }
 Admitted.
 
 Lemma safe_subtree_equiv: forall s1 s2 l,
   equiv_sym_state s1 s2 ->
+  is_supported_sym_state s1 ->
+  is_supported_sym_state s2 ->
   safe_et_opt (t_subtree s1 l) ->
   safe_et_opt (t_subtree s2 l).
 Proof.
-  intros s1 s2 l Heq Hs1.
+  intros s1 s2 l Heq His1 His2 Hs1.
   inversion Hs1; subst.
   apply Safe_Subtree.
   { apply error_equiv_sym_state with (s1 := s1); assumption. }
@@ -833,10 +905,21 @@ Proof.
       }
     }
     { apply equiv_sym_state_symmetry. assumption. }
+    { assumption. }
   }
 Qed.
 
-Lemma safe_multi_step: forall s s' l,
+Lemma is_supported_sym_state_equiv : forall s1 s2,
+  equiv_sym_state s1 s2 ->
+  is_supported_sym_state s1 ->
+  is_supported_sym_state s2.
+Proof.
+Admitted.
+
+Lemma safe_multi_step: forall mdl s s' l,
+  is_supported_module mdl ->
+  sym_module s = mdl ->
+  is_supported_sym_state s ->
   safe_et_opt (t_subtree s l) ->
   multi_sym_step s s' ->
   (
@@ -845,7 +928,7 @@ Lemma safe_multi_step: forall s s' l,
     unsat_sym_state s'
   ).
 Proof.
-  intros s s' l Hs Hss.
+  intros mdl s s' l Hism Hm His Hs Hss.
   induction Hss as [s s' | s s' s''].
   { apply safe_single_step with (s := s) (l := l); assumption. }
   {
@@ -858,6 +941,19 @@ Proof.
       {
         apply safe_subtree_equiv with (s1 := so').
         { apply equiv_sym_state_symmetry. assumption. }
+        {
+          apply is_supported_sym_state_equiv with (s1 := s'); try assumption.
+          assert(L : sym_module s' = mdl /\ is_supported_sym_state s').
+          { apply multi_sym_step_supported with (s := s); assumption. }
+          destruct L as [_ L].
+          assumption.
+        }
+        {
+          assert(L : sym_module s' = mdl /\ is_supported_sym_state s').
+          { apply multi_sym_step_supported with (s := s); assumption. }
+          destruct L as [_ L].
+          assumption.
+        }
         { assumption. }
       }
       { assumption. }
@@ -867,19 +963,21 @@ Proof.
       right.
       apply pc_unsat_lemma with (s := s'); assumption.
     }
+    { assumption. }
+    { assumption. }
   }
 Qed.
 
-Theorem completeness_via_et: forall mdl d init_s l,
+Theorem completeness_via_et: forall mdl fid init_s l,
   is_supported_module mdl ->
-  (init_sym_state mdl d) = Some init_s ->
+  (init_sym_state mdl fid) = Some init_s ->
   safe_et_opt (t_subtree init_s l) -> 
-  is_safe_program mdl d.
+  is_safe_program mdl fid.
 Proof.
-  intros mdl d init_s l Hism Hinit Hse.
+  intros mdl fid init_s l Hism Hinit Hse.
   unfold is_safe_program.
-  assert(L1: exists init_c, init_state mdl d = Some init_c).
-  { apply (initialization_correspondence mdl d). exists init_s. assumption. }
+  assert(L1: exists init_c, init_state mdl fid = Some init_c).
+  { apply (initialization_correspondence mdl fid). exists init_s. assumption. }
   destruct L1 as [init_c L1].
   exists init_c.
   split.
@@ -888,7 +986,7 @@ Proof.
     intros c Hms.
     assert(L2 :
       (exists init_s s,
-        (init_sym_state mdl d) = Some init_s /\ multi_sym_step init_s s /\ over_approx s c)
+        (init_sym_state mdl fid) = Some init_s /\ multi_sym_step init_s s /\ over_approx s c)
     ).
     { apply completeness with (init_c :=  init_c); assumption. }
     destruct L2 as [init_s' [s [L2_1 [L2_2 L2_3]]]].
@@ -899,7 +997,14 @@ Proof.
       (exists so l', equiv_sym_state s so /\ safe_et_opt (t_subtree so l')) \/
       unsat_sym_state s
     ).
-    { apply (safe_multi_step init_s s l); assumption. }
+    {
+      apply (safe_multi_step mdl init_s s l); try assumption.
+      {
+        apply init_sym_state_same_module with (fid := fid).
+        assumption.
+      }
+      { apply init_sym_state_supported with (mdl := mdl) (fid := fid); assumption. }
+    }
     destruct L3 as [L3 | [L3 | L3]].
     {
       assert(L4: ~ error_sym_state s).
