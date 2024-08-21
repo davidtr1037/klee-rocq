@@ -41,7 +41,11 @@ Inductive smt_expr : Type :=
   | SMT_Const_I16 (n : int16)
   | SMT_Const_I32 (n : int32)
   | SMT_Const_I64 (n : int64)
-  | SMT_Var (x : string)
+  | SMT_Var_I1 (x : string)
+  | SMT_Var_I8 (x : string)
+  | SMT_Var_I16 (x : string)
+  | SMT_Var_I32 (x : string)
+  | SMT_Var_I64 (x : string)
   | SMT_BinOp (op : smt_binop) (e1 e2 : smt_expr)
   | SMT_CmpOp (op : smt_cmpop) (e1 e2 : smt_expr)
   | SMT_ZExt (e : smt_expr) (w : positive)
@@ -118,4 +122,17 @@ Inductive subexpr : smt_expr -> smt_expr -> Prop :=
       subexpr e e2 -> subexpr e (SMT_Concat e1 e2)
   | SubExpr_Extract : forall e e1 i w,
       subexpr e e1 -> subexpr e (SMT_Extract e1 i w)
+.
+
+Inductive contains_var : smt_expr -> string -> Prop :=
+  | ContainsName_I1 : forall x e,
+      subexpr (SMT_Var_I1 x) e -> contains_var e x
+  | ContainsName_I8 : forall x e,
+      subexpr (SMT_Var_I8 x) e -> contains_var e x
+  | ContainsName_I16 : forall x e,
+      subexpr (SMT_Var_I16 x) e -> contains_var e x
+  | ContainsName_I32 : forall x e,
+      subexpr (SMT_Var_I32 x) e -> contains_var e x
+  | ContainsName_I64 : forall x e,
+      subexpr (SMT_Var_I64 x) e -> contains_var e x
 .

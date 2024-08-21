@@ -90,7 +90,31 @@ Fixpoint smt_eval (m : smt_model) (e : smt_expr) : option dynamic_int :=
   | SMT_Const_I16 n => Some (DI_I16 n)
   | SMT_Const_I32 n => Some (DI_I32 n)
   | SMT_Const_I64 n => Some (DI_I64 n)
-  | SMT_Var x => Some ((bv_model m) x)
+  | SMT_Var_I1 x =>
+      match ((bv_model m) x) with
+      | DI_I1 n => Some (DI_I1 n)
+      | _ => None
+      end
+  | SMT_Var_I8 x =>
+      match ((bv_model m) x) with
+      | DI_I8 n => Some (DI_I8 n)
+      | _ => None
+      end
+  | SMT_Var_I16 x =>
+      match ((bv_model m) x) with
+      | DI_I16 n => Some (DI_I16 n)
+      | _ => None
+      end
+  | SMT_Var_I32 x =>
+      match ((bv_model m) x) with
+      | DI_I32 n => Some (DI_I32 n)
+      | _ => None
+      end
+  | SMT_Var_I64 x =>
+      match ((bv_model m) x) with
+      | DI_I64 n => Some (DI_I64 n)
+      | _ => None
+      end
   | SMT_BinOp op e1 e2 =>
       match (smt_eval m e1), (smt_eval m e2) with
       | Some di1, Some di2 => smt_eval_binop op di1 di2
@@ -168,8 +192,10 @@ Proof.
 Qed.
 
 Lemma subexpr_non_interference : forall e x m n,
-  (~ subexpr (SMT_Var x) e) -> smt_eval m e = smt_eval (mk_smt_model (x !-> n; bv_model m)) e.
+  (~ contains_var e x ) -> smt_eval m e = smt_eval (mk_smt_model (x !-> n; bv_model m)) e.
 Proof.
+Admitted.
+(*
   intros e x m n H.
   induction e; simpl; try reflexivity.
   {
@@ -228,12 +254,19 @@ Proof.
     reflexivity.
   }
 Qed.
+*)
 
 Inductive equiv_smt_expr : smt_expr -> smt_expr -> Prop :=
   | EquivSMTExpr : forall e1 e2,
-      (forall m, exists dv, smt_eval m e1 = Some dv /\ smt_eval m e2 = Some dv) ->
-      equiv_smt_expr e1 e2
+      (forall m,
+        (smt_eval m e1 = None /\ smt_eval m e2 = None) \/
+        (exists dv, smt_eval m e1 = Some dv /\ smt_eval m e2 = Some dv)
+      ) -> equiv_smt_expr e1 e2
 .
+
+Lemma equiv_smt_expr_refl : forall e, equiv_smt_expr e e.
+Proof.
+Admitted.
 
 Lemma equiv_smt_expr_symmetry : forall e1 e2,
   equiv_smt_expr e1 e2 -> equiv_smt_expr e2 e1.
@@ -250,33 +283,61 @@ Lemma equiv_smt_expr_unsat : forall e1 e2,
 Proof.
 Admitted.
 
-Lemma equiv_smt_not : forall e1 e2,
+Lemma equiv_smt_expr_not : forall e1 e2,
   equiv_smt_expr e1 e2 ->
   equiv_smt_expr (SMT_Not e1) (SMT_Not e2).
 Proof.
 Admitted.
 
-Lemma equiv_smt_and : forall e1 e2 e3 e4,
+Lemma equiv_smt_expr_binop : forall op e1 e2 e3 e4,
   equiv_smt_expr e1 e2 ->
   equiv_smt_expr e3 e4 ->
-  equiv_smt_expr (SMT_BinOp SMT_And e1 e3) (SMT_BinOp SMT_And e2 e4).
+  equiv_smt_expr (SMT_BinOp op e1 e3) (SMT_BinOp op e2 e4).
 Proof.
-Admitted.
+  intros op e1 e2 e3 e4 Heq1 Heq2.
+  inversion Heq1; subst.
+  inversion Heq2; subst.
+  apply EquivSMTExpr.
+  intros m.
+  specialize (H m).
+  specialize (H0 m).
+  destruct H as [[H_1 H_2] | [dv1 [H_1 H_2]]].
+  {
+    left.
+    simpl.
+    rewrite H_1, H_2.
+    split; reflexivity.
+  }
+  {
+    destruct H0 as [[H0_1 H0_2] | [dv2 [H0_1 H0_2]]].
+    {
+      left.
+      simpl.
+      rewrite H_1, H_2, H0_1, H0_2.
+      split; reflexivity.
+    }
+    {
+      simpl.
+      rewrite H_1, H_2, H0_1, H0_2.
+      destruct (smt_eval_binop op dv1 dv2) as [di | ] eqn:E.
+      { right. exists di. split; reflexivity. }
+      { left. split; reflexivity. }
+    }
+  }
+Qed.
 
 Definition subst_var (e : smt_expr) (x y : string) : smt_expr :=
   e
 .
 
-Inductive eq_smt_expr_with_subst : smt_expr -> smt_expr -> Prop :=
-  | Eq_Subst : forall x y e1 e2,
+(*
+Inductive iso_smt_expr : smt_expr -> smt_expr -> Prop :=
+  | Iso_Eq : forall e,
+      iso_smt_expr e e
+  | Iso_Subst : forall e1 e2 e3 x y,
       ~ subexpr (SMT_Var y) e2 ->
       e1 = (subst_var e2 x y) ->
-      eq_smt_expr_with_subst e1 e2
+      iso_smt_expr e2 e3 ->
+      iso_smt_expr e1 e3
 .
-
-Inductive equiv_smt_expr_with_subst : smt_expr -> smt_expr -> Prop :=
-  | Iso_Subst : forall x y e1 e2,
-      ~ subexpr (SMT_Var y) e2 ->
-      equiv_smt_expr e1 (subst_var e2 x y) ->
-      equiv_smt_expr_with_subst e1 e2
-.
+*)

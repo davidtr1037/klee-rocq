@@ -306,7 +306,7 @@ Lemma LX0 : forall s x se name syms,
   well_defined_smt_store s syms ->
   ~ In name syms ->
   s x = Some se ->
-  ~ subexpr (SMT_Var name) se.
+  ~ contains_var se name.
 Proof.
   intros s x se name syms Hwd Hin Heq.
   inversion Hwd; subst.
@@ -879,7 +879,7 @@ Proof.
       c
       cs
       c_pbid
-      (v !-> Some (SMT_Var name); s_ls)
+      (v !-> Some (SMT_Var_I32 name); s_ls)
       s_stk
       s_gs
       (name :: s_syms)

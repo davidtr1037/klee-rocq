@@ -545,7 +545,7 @@ Inductive sym_step : sym_state -> sym_state -> Prop :=
           c
           cs
           pbid
-          (v !-> Some (SMT_Var name); ls)
+          (v !-> Some (SMT_Var_I32 name); ls)
           stk
           gs
           (name :: syms)

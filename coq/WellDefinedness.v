@@ -19,9 +19,15 @@ From SE.SMT Require Import Model.
 From SE.Utils Require Import ListUtil.
 From SE.Utils Require Import Util.
 
-Inductive well_defined_smt_expr : smt_expr -> list string -> Prop :=
+(*
   | WD_Expr : forall se syms,
       (forall n, subexpr (SMT_Var n) se -> In n syms) ->
+      well_defined_smt_expr se syms
+*)
+
+Inductive well_defined_smt_expr : smt_expr -> list string -> Prop :=
+  | WD_Expr : forall se syms,
+      (forall n, contains_var se n -> In n syms) ->
       well_defined_smt_expr se syms
 .
 
@@ -65,10 +71,26 @@ Inductive well_defined : sym_state -> Prop :=
         )
 .
 
+(* TODO: rename *)
+Lemma subexpr_var_not : forall x e,
+  contains_var (SMT_Not e) x -> contains_var e x.
+Proof.
+Admitted.
+
+(* TODO: rename *)
+Lemma subexpr_var_binop : forall x op e1 e2,
+  contains_var (SMT_BinOp op e1 e2) x ->
+  contains_var e1 x \/ contains_var e2 x.
+Proof.
+Admitted.
+
+(* TODO: rename *)
 Lemma subexpr_var_ibinop : forall x op e1 e2,
-  subexpr (SMT_Var x) (sym_eval_ibinop op e1 e2) ->
-  subexpr (SMT_Var x) e1 \/ subexpr (SMT_Var x) e2 .
+  contains_var (sym_eval_ibinop op e1 e2) x ->
+  contains_var e1 x \/ contains_var e2 x.
 Proof.
+Admitted.
+(*
   intros x op e1 e2 Hse.
   destruct op; simpl in Hse; (
     inversion Hse; subst;
@@ -78,11 +100,15 @@ Proof.
     ]
   ).
 Qed.
+*)
 
+(* TODO: rename *)
 Lemma subexpr_var_icmp : forall x op e1 e2,
-  subexpr (SMT_Var x) (sym_eval_icmp op e1 e2) ->
-  subexpr (SMT_Var x) e1 \/ subexpr (SMT_Var x) e2 .
+  contains_var (sym_eval_icmp op e1 e2) x ->
+  contains_var e1 x \/ contains_var e2 x.
 Proof.
+Admitted.
+(*
   intros x op e1 e2 Hse.
   destruct op; simpl in Hse; (
     inversion Hse; subst;
@@ -92,12 +118,16 @@ Proof.
     ]
   ).
 Qed.
+*)
 
+(* TODO: rename *)
 Lemma subexpr_var_conv : forall x conv e1 t1 t2 e2,
   (sym_convert conv e1 t1 t2) = Some e2 ->
-  subexpr (SMT_Var x) e2 ->
-  subexpr (SMT_Var x) e1.
+  contains_var e2 x ->
+  contains_var e1 x.
 Proof.
+Admitted.
+(*
   intros x conv e1 t1 t2 e2 Heq Hse.
   destruct conv; simpl in *.
   {
@@ -174,6 +204,7 @@ Proof.
     assumption.
   }
 Qed.
+*)
 
 (* TODO: rename *)
 Lemma well_defined_smt_expr_ext : forall se sym syms,
@@ -225,7 +256,7 @@ Proof.
       {
         apply WD_Expr.
         intros n Hse.
-        inversion Hse.
+        inversion Hse; subst; inversion H0.
       }
     }
   }
@@ -304,7 +335,7 @@ Proof.
         inversion Heq; subst;
         apply WD_Expr;
         intros n Hse;
-        inversion Hse
+        inversion Hse; subst; inversion H
       ).
     }
     { inversion Heq. }
@@ -316,14 +347,14 @@ Proof.
       rewrite <- Heq.
       apply WD_Expr.
       intros n Hse.
-      inversion Hse.
+      inversion Hse; subst; inversion H.
     }
     {
       injection Heq. clear Heq.  intros Heq.
       rewrite <- Heq.
       apply WD_Expr.
       intros n Hse.
-      inversion Hse.
+      inversion Hse; subst; inversion H.
     }
   }
   {
@@ -629,7 +660,8 @@ Proof.
         { assumption. }
         apply WD_Expr.
         intros n Hse.
-        inversion Hse; subst.
+        apply subexpr_var_binop in Hse.
+        destruct Hse as [Hse | Hse].
         {
           inversion Hwd_pc; subst.
           apply H.
@@ -666,7 +698,8 @@ Proof.
         { assumption. }
         apply WD_Expr.
         intros n Hse.
-        inversion Hse; subst.
+        apply subexpr_var_binop in Hse.
+        destruct Hse as [Hse | Hse].
         {
           inversion Hwd_pc; subst.
           apply H.
@@ -686,7 +719,7 @@ Proof.
           }
           inversion L; subst.
           apply H.
-          inversion H1; subst.
+          apply subexpr_var_not in Hse.
           assumption.
         }
       }
@@ -767,7 +800,8 @@ Proof.
         { assumption. }
         apply WD_Expr.
         intros n Hse.
-        inversion Hse; subst.
+        apply subexpr_var_binop in Hse.
+        destruct Hse as [Hse | Hse].
         {
           inversion Hwd_pc; subst.
           apply H.
@@ -808,7 +842,7 @@ Proof.
         subst.
         apply WD_Expr.
         intros n Hse.
-        inversion Hse; subst.
+        inversion Hse; subst; try inversion H0.
         apply in_eq.
       }
       {

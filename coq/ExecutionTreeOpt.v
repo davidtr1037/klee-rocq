@@ -158,6 +158,67 @@ Lemma equiv_sym_eval_exp : forall ls1 gs1 ls2 gs2 ot e se1,
   (exists se2, (sym_eval_exp ls2 gs2 ot e) = Some se2 /\ equiv_smt_expr se1 se2).
 Proof.
 Admitted.
+(*
+  intros ls1 gs1 ls2 gs2 ot e se1 His Heq1 Heq2 Heval.
+  generalize dependent se1.
+  generalize dependent ot.
+  induction e; intros ot se1 Heval; simpl in Heval; try inversion His; subst.
+  {
+    unfold sym_lookup_ident in Heval.
+    destruct id as [x | x] eqn:E.
+    {
+      inversion Heq2; subst.
+      specialize (H x).
+      destruct H as [[H_1 H_2]| H].
+      { rewrite Heval in H_1. discriminate H_1. }
+      {
+        destruct H as [se1' [se2 [H_1 [H_2 H_3]]]].
+        rewrite H_1 in Heval.
+        inversion Heval; subst.
+        exists se2.
+        split.
+        { simpl. assumption. }
+        { assumption. }
+      }
+    }
+    {
+      inversion Heq1; subst.
+      specialize (H x).
+      destruct H as [[H_1 H_2]| H].
+      { rewrite Heval in H_1. discriminate H_1. }
+      {
+        destruct H as [se1' [se2 [H_1 [H_2 H_3]]]].
+        rewrite H_1 in Heval.
+        inversion Heval; subst.
+        exists se2.
+        split.
+        { simpl. assumption. }
+        { assumption. }
+      }
+    }
+  }
+  {
+    exists se1.
+    split.
+    { simpl. assumption. }
+    { apply equiv_smt_expr_refl. }
+  }
+  {
+    destruct (sym_eval_exp ls1 gs1 (Some t) e1) as [se1' | ] eqn:E1; try discriminate Heval.
+    destruct (sym_eval_exp ls1 gs1 (Some t) e2) as [se2' | ] eqn:E2; try discriminate Heval.
+    simpl in Heval.
+    apply IHe1 with (ot := Some t) (se1 := se1') in H1; try assumption.
+    destruct H1 as [se1'' [H1_1 H1_2]].
+    apply IHe2 with (ot := Some t) (se1 := se2') in H4; try assumption.
+    destruct H4 as [se2'' [H4_1 H4_2]].
+    simpl.
+    rewrite H1_1, H4_1.
+    inversion Heval; subst.
+    exists (SMT_BinOp SMT_Add se1'' se2'').
+    split; try reflexivity.
+    admit.
+  }
+*)
 
 Lemma equiv_sym_eval_phi_args : forall ls1 gs1 ls2 gs2 t args pbid se1,
   equiv_smt_store ls1 ls2 ->
@@ -570,7 +631,7 @@ Proof.
     { apply Sym_Step_Br_True with (d := d) (b := b); assumption. }
     {
       apply EquivSymState; try assumption.
-      apply equiv_smt_and; assumption.
+      apply equiv_smt_expr_binop; assumption.
     }
   }
   {
@@ -593,8 +654,8 @@ Proof.
     { apply Sym_Step_Br_False with (d := d) (b := b); assumption. }
     {
       apply EquivSymState; try assumption.
-      apply equiv_smt_and; try assumption.
-      apply equiv_smt_not.
+      apply equiv_smt_expr_binop; try assumption.
+      apply equiv_smt_expr_not.
       assumption.
     }
   }
@@ -726,7 +787,7 @@ Proof.
     { apply Sym_Step_Assume with (d := d); assumption. }
     {
       apply EquivSymState; try assumption.
-      apply equiv_smt_and; assumption.
+      apply equiv_smt_expr_binop; assumption.
     }
   }
   { admit. }
