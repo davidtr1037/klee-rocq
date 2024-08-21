@@ -141,9 +141,36 @@ Lemma contains_var_binop : forall x op e1 e2,
   contains_var (SMT_BinOp op e1 e2) x ->
   contains_var e1 x \/ contains_var e2 x.
 Proof.
-Admitted.
+  intros x op e1 e2 Hc.
+  inversion Hc; subst; (
+    inversion H; subst;
+    [
+      left;
+      try (apply ContainsVar_I1; assumption);
+      try (apply ContainsVar_I8; assumption);
+      try (apply ContainsVar_I16; assumption);
+      try (apply ContainsVar_I32; assumption);
+      try (apply ContainsVar_I64; assumption) |
+      right;
+      try (apply ContainsVar_I1; assumption);
+      try (apply ContainsVar_I8; assumption);
+      try (apply ContainsVar_I16; assumption);
+      try (apply ContainsVar_I32; assumption);
+      try (apply ContainsVar_I64; assumption)
+    ]
+  ).
+Qed.
 
 Lemma contains_var_not : forall x e,
   contains_var (SMT_Not e) x -> contains_var e x.
 Proof.
-Admitted.
+  intros x e Hc.
+  inversion Hc; subst; (
+    inversion H; subst;
+    try (apply ContainsVar_I1; assumption);
+    try (apply ContainsVar_I8; assumption);
+    try (apply ContainsVar_I16; assumption);
+    try (apply ContainsVar_I32; assumption);
+    try (apply ContainsVar_I64; assumption)
+  ).
+Qed.
