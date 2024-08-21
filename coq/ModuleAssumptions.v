@@ -6,6 +6,12 @@ From SE Require Import CFG.
 From SE Require Import Concrete.
 From SE Require Import LLVMAst.
 
+(* TODO: use later *)
+Inductive is_supported_ibinop : ibinop -> Prop :=
+  | IS_Add : is_supported_ibinop (Add false false)
+.
+
+(* TODO: support OP_ICmp *)
 Inductive is_supported_exp : (exp typ) -> Prop :=
   | IS_EXP_Ident : forall id,
       is_supported_exp (EXP_Ident id)
