@@ -65,50 +65,35 @@ Inductive well_defined : sym_state -> Prop :=
         )
 .
 
-(* TODO: rename *)
-Lemma subexpr_var_ibinop : forall x op e1 e2,
+Lemma contains_var_ibinop : forall x op e1 e2,
   contains_var (sym_eval_ibinop op e1 e2) x ->
   contains_var e1 x \/ contains_var e2 x.
 Proof.
-Admitted.
-(*
-  intros x op e1 e2 Hse.
-  destruct op; simpl in Hse; (
-    inversion Hse; subst;
-    [
-      left; assumption |
-      right; assumption
-    ]
+  intros x op e1 e2 Hc.
+  destruct op; (
+    simpl in Hc;
+    apply contains_var_binop in Hc;
+    assumption
   ).
 Qed.
-*)
 
-(* TODO: rename *)
-Lemma subexpr_var_icmp : forall x op e1 e2,
+Lemma contains_var_icmp : forall x op e1 e2,
   contains_var (sym_eval_icmp op e1 e2) x ->
   contains_var e1 x \/ contains_var e2 x.
 Proof.
-Admitted.
-(*
-  intros x op e1 e2 Hse.
-  destruct op; simpl in Hse; (
-    inversion Hse; subst;
-    [
-      left; assumption |
-      right; assumption
-    ]
+  intros x op e1 e2 Hc.
+  destruct op; (
+    simpl in Hc;
+    apply contains_var_cmpop in Hc;
+    assumption
   ).
 Qed.
-*)
 
-(* TODO: rename *)
-Lemma subexpr_var_conv : forall x conv e1 t1 t2 e2,
+Lemma contains_var_conv : forall x conv e1 t1 t2 e2,
   (sym_convert conv e1 t1 t2) = Some e2 ->
   contains_var e2 x ->
   contains_var e1 x.
 Proof.
-Admitted.
-(*
   intros x conv e1 t1 t2 e2 Heq Hse.
   destruct conv; simpl in *.
   {
@@ -120,7 +105,7 @@ Admitted.
         {
           injection Heq. clear Heq. intros Heq.
           subst.
-          inversion Hse; subst.
+          apply contains_var_extract with (i := 0%N) (w := w0).
           assumption.
         }
         { discriminate Heq. }
@@ -141,12 +126,12 @@ Admitted.
           destruct (w0 <=? w)%positive eqn:E2.
           {
             inversion Heq; subst.
-            inversion Hse; subst.
+            apply contains_var_extract with (i := 0%N) (w := w0).
             assumption.
           }
           {
             inversion Heq; subst.
-            inversion Hse; subst.
+            apply contains_var_zext with (w := w0).
             assumption.
           }
         }
@@ -167,12 +152,12 @@ Admitted.
           destruct (w0 <=? w)%positive eqn:E2.
           {
             inversion Heq; subst.
-            inversion Hse; subst.
+            apply contains_var_extract with (i := 0%N) (w := w0).
             assumption.
           }
           {
             inversion Heq; subst.
-            inversion Hse; subst.
+            apply contains_var_sext with (w := w0).
             assumption.
           }
         }
@@ -185,7 +170,6 @@ Admitted.
     assumption.
   }
 Qed.
-*)
 
 (* TODO: rename *)
 Lemma well_defined_smt_expr_ext : forall se sym syms,
@@ -361,7 +345,7 @@ Proof.
         subst.
         apply WD_Expr.
         intros n Hse.
-        apply subexpr_var_ibinop in Hse.
+        apply contains_var_ibinop in Hse.
         destruct Hse as [Hse | Hse].
         {
           assert(L : well_defined_smt_expr se1 syms).
@@ -393,7 +377,7 @@ Proof.
         subst.
         apply WD_Expr.
         intros n Hse.
-        apply subexpr_var_icmp in Hse.
+        apply contains_var_icmp in Hse.
         destruct Hse as [Hse | Hse].
         {
           assert(L : well_defined_smt_expr se1 syms).
@@ -424,7 +408,7 @@ Proof.
       { apply IHe. reflexivity. }
       inversion L; subst.
       apply H.
-      apply (subexpr_var_conv n conv se' t1 t2 se); assumption.
+      apply (contains_var_conv n conv se' t1 t2 se); assumption.
     }
     { discriminate Heq. }
   }
