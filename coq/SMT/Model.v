@@ -201,11 +201,11 @@ Proof.
       rewrite String.eqb_eq in E;
       subst;
       destruct H;
-      try (apply ContainsName_I1; apply SubExpr_Refl);
-      try (apply ContainsName_I8; apply SubExpr_Refl);
-      try (apply ContainsName_I16; apply SubExpr_Refl);
-      try (apply ContainsName_I32; apply SubExpr_Refl);
-      try (apply ContainsName_I64; apply SubExpr_Refl);
+      try (apply ContainsVar_I1; apply SubExpr_Refl);
+      try (apply ContainsVar_I8; apply SubExpr_Refl);
+      try (apply ContainsVar_I16; apply SubExpr_Refl);
+      try (apply ContainsVar_I32; apply SubExpr_Refl);
+      try (apply ContainsVar_I64; apply SubExpr_Refl);
       apply SubExpr_Refl |
       rewrite String.eqb_neq in E;
       rewrite update_map_neq;
