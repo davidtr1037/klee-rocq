@@ -270,17 +270,73 @@ Inductive equiv_smt_expr : smt_expr -> smt_expr -> Prop :=
 
 Lemma equiv_smt_expr_refl : forall e, equiv_smt_expr e e.
 Proof.
-Admitted.
+  intros e.
+  apply EquivSMTExpr.
+  intros m.
+  destruct (smt_eval m e) as [se | ] eqn:E.
+  {
+    right.
+    exists se.
+    split; reflexivity.
+  }
+  {
+    left.
+    split; reflexivity.
+  }
+Qed.
 
 Lemma equiv_smt_expr_symmetry : forall e1 e2,
   equiv_smt_expr e1 e2 -> equiv_smt_expr e2 e1.
 Proof.
-Admitted.
+  intros s1 s2 Heq.
+  inversion Heq; subst.
+  apply EquivSMTExpr.
+  intros m.
+  specialize (H m).
+  destruct H as [[H_1 H_2]| H].
+  {
+    left.
+    split; assumption.
+  }
+  {
+    destruct H as [dv [H_1 H_2]].
+    right.
+    exists dv.
+    split; assumption.
+  }
+Qed.
 
 Lemma equiv_smt_expr_transitivity : forall e1 e2 e3,
   equiv_smt_expr e1 e2 -> equiv_smt_expr e2 e3 -> equiv_smt_expr e1 e3.
 Proof.
-Admitted.
+  intros e1 e2 e3 Heq1 Heq2.
+  inversion Heq1; subst.
+  inversion Heq2; subst.
+  apply EquivSMTExpr.
+  intros m.
+  specialize (H m).
+  specialize (H0 m).
+  destruct H as [[H_1 H_2]| [dv1 [H_1 H_2]]].
+  {
+    destruct H0 as [[H0_1 H0_2]| [dv2 [H0_1 H0_2]]].
+    {
+      left.
+      split; assumption.
+    }
+    { rewrite H_2 in H0_1. discriminate H0_1. }
+  }
+  {
+    destruct H0 as [[H0_1 H0_2]| [dv2 [H0_1 H0_2]]].
+    { rewrite H_2 in H0_1. discriminate H0_1. }
+    {
+      right.
+      exists dv1.
+      split.
+      { assumption. }
+      { rewrite H_2 in H0_1. rewrite <- H0_1 in H0_2. assumption. }
+    }
+  }
+Qed.
 
 Lemma equiv_smt_expr_unsat : forall e1 e2,
   equiv_smt_expr e1 e2 -> unsat e1 -> unsat e2.
