@@ -413,7 +413,7 @@ Proof.
     {
       apply eval_correspondence; try assumption.
       inversion Hiss; subst.
-      inversion H2; subst.
+      inversion H3; subst.
       assumption.
     }
     inversion L; subst.
@@ -499,7 +499,7 @@ Proof.
     {
       apply eval_phi_args_correspondence; try assumption.
       inversion Hiss; subst.
-      inversion H2; subst.
+      inversion H3; subst.
       assumption.
     }
     inversion L; subst.
@@ -608,7 +608,7 @@ Proof.
     {
       apply eval_correspondence; try assumption.
       inversion Hiss; subst.
-      inversion H2; subst.
+      inversion H3; subst.
       assumption.
     }
     inversion L; subst.
@@ -662,7 +662,7 @@ Proof.
     {
       apply eval_correspondence; try assumption.
       inversion Hiss; subst.
-      inversion H2; subst.
+      inversion H3; subst.
       assumption.
     }
     inversion L; subst.
@@ -717,7 +717,7 @@ Proof.
     {
       apply create_local_store_correspondence with (c_ls := c_ls) (c_gs := c_gs); try assumption.
       inversion Hiss; subst.
-      inversion H2; subst.
+      inversion H3; subst.
       assumption.
     }
     destruct L as [s_ls' [L_1 L_2]].
@@ -757,7 +757,7 @@ Proof.
     {
       apply create_local_store_correspondence with (c_ls := c_ls) (c_gs := c_gs); try assumption.
       inversion Hiss; subst.
-      inversion H2; subst.
+      inversion H3; subst.
       assumption.
     }
     destruct L as [s_ls' [L_1 L_2]].
@@ -825,7 +825,7 @@ Proof.
     {
       apply eval_correspondence; try assumption.
       inversion Hiss; subst.
-      inversion H2; subst.
+      inversion H4; subst.
       assumption.
     }
     inversion L; subst.
@@ -939,7 +939,7 @@ Proof.
     {
       apply eval_correspondence; try assumption.
       inversion Hiss; subst.
-      inversion H2; subst.
+      inversion H3; subst.
       specialize (H1 (TYPE_I 1, e, attrs)).
       assert(Larg : is_supported_function_arg (TYPE_I 1, e, attrs)).
       { apply H1. apply in_eq. }
@@ -1101,7 +1101,7 @@ Proof.
     assert(L2 : exists s, sym_step init_s s /\ over_approx s c).
     {
       apply completeness_single_step with (c := init_c).
-      { apply (init_state_supported mdl fid); assumption. }
+      { apply (is_supported_init_state mdl fid); assumption. }
       { assumption. }
       { apply (well_defined_init_sym_state mdl fid). assumption. }
       { apply (over_approx_init_states mdl fid); assumption. }
@@ -1129,9 +1129,8 @@ Proof.
     {
       apply completeness_single_step with (c := c).
       {
-        apply (multi_step_supported mdl init_c); try assumption.
-        { apply init_state_preserves_module with (fid := fid); assumption. }
-        { apply (init_state_supported mdl fid); assumption. }
+        apply (is_supported_multi_step init_c); try assumption.
+        apply (is_supported_init_state mdl fid); assumption.
       }
       { assumption. }
       {

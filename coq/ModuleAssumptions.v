@@ -87,11 +87,11 @@ Inductive is_supported_module : llvm_module -> Prop :=
       is_supported_module mdl
 .
 
-(* TODO: add is_supported_module *)
 Inductive is_supported_state : state -> Prop :=
   | IS_State : forall ic c cs pbid ls stk gs mdl,
       is_supported_cmd c ->
       is_supported_cmd_list cs ->
+      is_supported_module mdl ->
       is_supported_state
         (mk_state
           ic
@@ -195,6 +195,7 @@ Proof.
 Qed.
 
 Lemma is_supported_state_lemma : forall ic c cs pbid ls stk gs mdl,
+  is_supported_module mdl ->
   is_supported_cmd_list (c :: cs) ->
   is_supported_state
     (mk_state
@@ -208,7 +209,7 @@ Lemma is_supported_state_lemma : forall ic c cs pbid ls stk gs mdl,
       mdl
     ).
 Proof.
-  intros ic c cs pbid ls stk gs mdl H.
+  intros ic c cs pbid ls stk gs mdl Hism H.
   inversion H; subst.
   apply IS_State.
   { apply H0. apply in_eq. }
@@ -219,10 +220,11 @@ Proof.
     apply in_cons.
     assumption.
   }
+  { assumption. }
 Qed.
 
 (* TODO: fix init_state / init_sym_state *)
-Lemma init_state_supported : forall mdl fid s,
+Lemma is_supported_init_state : forall mdl fid s,
   is_supported_module mdl ->
   init_state mdl fid = Some s -> is_supported_state s.
 Proof.
@@ -233,88 +235,65 @@ Proof.
   destruct (entry_block d) as [b | ] eqn:Eb; try discriminate Heq.
   destruct (blk_cmds b) as [ | c cs ] eqn:Ecs; try discriminate Heq.
   inversion Heq; subst.
-  apply is_supported_state_lemma.
+  apply is_supported_state_lemma; try assumption.
   unfold entry_block in Eb.
   apply (is_supported_propagation mdl fid d (init (df_body d)) b (c :: cs)); assumption.
 Qed.
 
-(* TODO: rename: step_is_supported *)
-Lemma step_supported : forall mdl s s',
-  is_supported_module mdl ->
-  module s = mdl ->
+Lemma is_supported_step : forall s s',
   step s s' ->
   is_supported_state s ->
   is_supported_state s'.
 Proof.
-  intros mdl s s' Hism Hm Hs His.
-  inversion Hs; subst; inversion His; subst; rename mdl0 into mdl.
+  intros s s' Hs His.
+  inversion Hs; subst; inversion His; subst.
   { apply is_supported_state_lemma; assumption. }
   { apply is_supported_state_lemma; assumption. }
   {
-    apply is_supported_state_lemma.
+    apply is_supported_state_lemma; try assumption.
     apply (is_supported_propagation mdl (ic_fid ic) d tbid b (c :: cs)); assumption.
   }
   {
-    apply is_supported_state_lemma.
+    apply is_supported_state_lemma; try assumption.
     apply (is_supported_propagation mdl (ic_fid ic) d bid1 b (c :: cs)); assumption.
   }
   {
-    apply is_supported_state_lemma.
+    apply is_supported_state_lemma; try assumption.
     apply (is_supported_propagation mdl (ic_fid ic) d bid2 b (c :: cs)); assumption.
   }
   {
-    apply is_supported_state_lemma.
+    apply is_supported_state_lemma; try assumption.
     apply (is_supported_propagation_with_exp mdl f d b (c' :: cs')); assumption.
   }
   {
-    apply is_supported_state_lemma.
+    apply is_supported_state_lemma; try assumption.
     apply (is_supported_propagation_with_exp mdl f d b (c' :: cs')); assumption.
   }
   {
-    apply is_supported_state_lemma.
+    apply is_supported_state_lemma; try assumption.
     apply (is_supported_propagation_traling_cmds mdl (ic_fid ic') d ic' (c' :: cs')); assumption.
   }
   {
-    apply is_supported_state_lemma.
+    apply is_supported_state_lemma; try assumption.
     apply (is_supported_propagation_traling_cmds mdl (ic_fid ic') d ic' (c' :: cs')); assumption.
   }
   { apply is_supported_state_lemma; assumption. }
   { apply is_supported_state_lemma; assumption. }
 Qed.
 
-Lemma step_preserves_module : forall mdl s s',
-  module s = mdl ->
-  step s s' ->
-  module s' = mdl.
-Proof.
-  intros mdl s s' Heq Hs.
-  inversion Hs; subst; reflexivity.
-Qed.
-
-(* TODO: rename: multi_step_is_supported *)
-Lemma multi_step_supported : forall mdl s s',
-  is_supported_module mdl ->
-  module s = mdl ->
+Lemma is_supported_multi_step : forall s s',
   multi_step s s' ->
   is_supported_state s ->
-  (module s' = mdl /\ is_supported_state s').
+  is_supported_state s'.
 Proof.
-  intros mdl s s' Hism Hm Hms His.
+  intros s s' Hms His.
   induction Hms as [s s' | s s' s''].
   {
-    split.
-    { apply step_preserves_module with (s := s); assumption. }
-    { apply (step_supported mdl s s'); assumption. }
+    { apply (is_supported_step s s'); assumption. }
   }
   {
     apply IHHms in His.
-    {
-      destruct His as [His_1 His_2].
-      split.
-      { apply step_preserves_module with (s := s'); assumption. }
-      { apply (step_supported mdl s' s''); assumption. }
-    }
-    { inversion Hm; subst. reflexivity. }
+    apply (is_supported_step s' s''); assumption.
   }
 Qed.
 
