@@ -45,21 +45,6 @@ Proof.
   reflexivity.
 Qed.
 
-Lemma update_map_shadow : forall (A : Type) (m : total_map A) x v1 v2,
-  (x !-> v2 ; x !-> v1 ; m) = (x !-> v2 ; m).
-Proof.
-  (* FILL IN HERE *) Admitted.
-
-Theorem update_map_same : forall (A : Type) (m : total_map A) x,
-  (x !-> m x ; m) = m.
-Proof.
-  (* FILL IN HERE *) Admitted.
-
-Theorem update_map_permute : forall (A : Type) (m : total_map A) v1 v2 x1 x2,
-  x2 <> x1 -> (x1 !-> v1 ; x2 !-> v2 ; m) = (x2 !-> v2 ; x1 !-> v1 ; m).
-Proof.
-  (* FILL IN HERE *) Admitted.
-
 Inductive map_equiv {A : Type} : (total_map A) -> (total_map A) -> Prop :=
   | MapEquiv : forall m1 m2,
       (forall x, m1 x = m2 x) -> map_equiv m1 m2
