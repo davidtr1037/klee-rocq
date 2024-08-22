@@ -935,7 +935,11 @@ Lemma is_supported_sym_state_equiv : forall s1 s2,
   is_supported_sym_state s1 ->
   is_supported_sym_state s2.
 Proof.
-Admitted.
+  intros s1 s2 Heq His.
+  inversion Heq; subst.
+  inversion His; subst.
+  apply IS_SymState; assumption.
+Qed.
 
 Lemma safe_multi_step: forall s s' l,
   is_supported_sym_state s ->
