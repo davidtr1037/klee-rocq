@@ -692,12 +692,6 @@ Inductive over_approx : sym_state -> state -> Prop :=
       (exists m, over_approx_via s c m) -> over_approx s c
 .
 
-Lemma init_sym_state_same_module : forall mdl fid s,
-  init_sym_state mdl fid = Some s ->
-  sym_module s = mdl.
-Proof.
-Admitted.
-
 Lemma error_correspondence: forall c s,
   over_approx s c -> (error_sym_state s <-> error_state c).
 Proof.

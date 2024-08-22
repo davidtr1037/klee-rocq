@@ -600,7 +600,7 @@ Proof.
     }
     {
       inversion His; subst.
-      inversion H2; subst.
+      inversion H3; subst.
       assumption.
     }
   }
@@ -628,7 +628,7 @@ Proof.
     }
     {
       inversion His; subst.
-      inversion H2; subst.
+      inversion H3; subst.
       assumption.
     }
   }
@@ -673,7 +673,7 @@ Proof.
     }
     {
       inversion His; subst.
-      inversion H5; subst.
+      inversion H6; subst.
       assumption.
     }
   }
@@ -703,7 +703,7 @@ Proof.
     }
     {
       inversion His; subst.
-      inversion H5; subst.
+      inversion H6; subst.
       assumption.
     }
   }
@@ -716,7 +716,7 @@ Proof.
     {
       apply equiv_create_local_store with (ls1 := ls1) (gs1 := gs1); try assumption.
       inversion His; subst.
-      inversion H6; subst.
+      inversion H7; subst.
       assumption.
     }
     destruct L as [ls2' [L_1 L_2]].
@@ -750,7 +750,7 @@ Proof.
     {
       apply equiv_create_local_store with (ls1 := ls1) (gs1 := gs1); try assumption.
       inversion His; subst.
-      inversion H6; subst.
+      inversion H7; subst.
       assumption.
     }
     destruct L as [ls2' [L_1 L_2]].
@@ -826,7 +826,7 @@ Proof.
     }
     {
       inversion His; subst.
-      inversion H5; subst.
+      inversion H7; subst.
       assumption.
     }
   }
@@ -854,7 +854,7 @@ Proof.
     }
     {
       inversion His; subst.
-      inversion H5; subst.
+      inversion H6; subst.
       assert(Larg : is_supported_function_arg (TYPE_I BinNums.xH, e, attrs)).
       { apply H4. apply in_eq. }
       inversion Larg; subst.
@@ -937,9 +937,7 @@ Lemma is_supported_sym_state_equiv : forall s1 s2,
 Proof.
 Admitted.
 
-Lemma safe_multi_step: forall mdl s s' l,
-  is_supported_module mdl ->
-  sym_module s = mdl ->
+Lemma safe_multi_step: forall s s' l,
   is_supported_sym_state s ->
   safe_et_opt (t_subtree s l) ->
   multi_sym_step s s' ->
@@ -949,7 +947,7 @@ Lemma safe_multi_step: forall mdl s s' l,
     unsat_sym_state s'
   ).
 Proof.
-  intros mdl s s' l Hism Hm His Hs Hss.
+  intros s s' l His Hs Hss.
   induction Hss as [s s' | s s' s''].
   { apply safe_single_step with (s := s) (l := l); assumption. }
   {
@@ -964,17 +962,9 @@ Proof.
         { apply equiv_sym_state_symmetry. assumption. }
         {
           apply is_supported_sym_state_equiv with (s1 := s'); try assumption.
-          assert(L : sym_module s' = mdl /\ is_supported_sym_state s').
-          { apply multi_sym_step_supported with (s := s); assumption. }
-          destruct L as [_ L].
-          assumption.
+          apply is_supported_multi_sym_step with (s := s); assumption.
         }
-        {
-          assert(L : sym_module s' = mdl /\ is_supported_sym_state s').
-          { apply multi_sym_step_supported with (s := s); assumption. }
-          destruct L as [_ L].
-          assumption.
-        }
+        { apply is_supported_multi_sym_step with (s := s); assumption.  }
         { assumption. }
       }
       { assumption. }
@@ -984,7 +974,6 @@ Proof.
       right.
       apply pc_unsat_lemma with (s := s'); assumption.
     }
-    { assumption. }
     { assumption. }
   }
 Qed.
@@ -1019,12 +1008,8 @@ Proof.
       unsat_sym_state s
     ).
     {
-      apply (safe_multi_step mdl init_s s l); try assumption.
-      {
-        apply init_sym_state_same_module with (fid := fid).
-        assumption.
-      }
-      { apply init_sym_state_supported with (mdl := mdl) (fid := fid); assumption. }
+      apply (safe_multi_step init_s s l); try assumption.
+      { apply is_supported_init_sym_state with (mdl := mdl) (fid := fid); assumption. }
     }
     destruct L3 as [L3 | [L3 | L3]].
     {
