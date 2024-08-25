@@ -9,7 +9,15 @@
 using namespace std;
 using namespace klee;
 
-string CoqExpr::dump() const {
+static string space(int indent) {
+  std::ostringstream os;
+  for (int i = 0; i < indent; i++) {
+    os << "  ";
+  }
+  return os.str();
+}
+
+string CoqExpr::dump(int indent) const {
   assert(false);
 }
 
@@ -17,16 +25,20 @@ CoqVariable::CoqVariable(const string &name) : name(name) {
 
 }
 
-string CoqVariable::dump() const {
-  return name;
+string CoqVariable::dump(int indent) const {
+  std::ostringstream os;
+  os << space(indent) << name;
+  return os.str();
 }
 
 CoqString::CoqString(const string &s) : s(s) {
 
 }
 
-string CoqString::dump() const {
-  return "\"" + s + "\"" + "%string";
+string CoqString::dump(int indent) const {
+  std::ostringstream os;
+  os << space(indent) << "\"" << s << "\"" << "\%string";
+  return os.str();
 }
 
 CoqApplication::CoqApplication(const ref<CoqExpr> &function,
@@ -35,21 +47,14 @@ CoqApplication::CoqApplication(const ref<CoqExpr> &function,
 
 }
 
-string CoqApplication::dump() const {
+string CoqApplication::dump(int indent) const {
   std::ostringstream os;
 
-  os << "(";
-  os << function->dump();
-  os << " ";
-
+  os << space(indent) << "(" << function->dump(0) << "\n";
   for (size_t i = 0; i < args.size(); i++) {
-    if (i != 0) {
-      os << " ";
-    }
-    os << args[i]->dump();
+    os << args[i]->dump(indent + 1) << "\n";
   }
-
-  os << ")";
+  os << space(indent) << ")";
 
   return os.str();
 }
@@ -59,14 +64,13 @@ CoqPair::CoqPair(const ref<CoqExpr> &left, const ref<CoqExpr> &right) :
 
 }
 
-string CoqPair::dump() const {
+string CoqPair::dump(int indent) const {
   std::ostringstream os;
 
-  os << "(";
-  os << left->dump();
-  os << ", ";
-  os << right->dump();
-  os << ")";
+  os << space(indent) << "(\n";
+  os << left->dump(indent + 1) << ",\n";
+  os << right->dump(indent + 1) << "\n";
+  os << space(indent) << ")";
 
   return os.str();
 }
@@ -76,19 +80,22 @@ CoqList::CoqList(const std::vector<ref<CoqExpr>> &args) :
 
 }
 
-string CoqList::dump() const {
+string CoqList::dump(int indent) const {
   std::ostringstream os;
 
-  os << "[";
-
-  for (size_t i = 0; i < args.size(); i++) {
-    if (i != 0) {
-      os << "; ";
+  if (args.size() == 0) {
+    os << space(indent) << "[]";
+  } else {
+    os << space(indent) << "[\n";
+    for (size_t i = 0; i < args.size(); i++) {
+      os << args[i]->dump(indent + 1);
+      if (i != args.size() - 1) {
+        os << ";";
+      }
+      os << "\n";
     }
-    os << args[i]->dump();
+    os << space(indent) << "]";
   }
-
-  os << "]";
 
   return os.str();
 }

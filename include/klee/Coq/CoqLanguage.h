@@ -17,7 +17,7 @@ public:
 
   class ReferenceCounter _refCount;
   
-  virtual std::string dump() const;
+  virtual std::string dump(int indent = 0) const;
 
   virtual ~CoqExpr() { }
 
@@ -31,7 +31,7 @@ public:
 
     CoqVariable(const std::string &name);
 
-    std::string dump() const;
+    std::string dump(int indent = 0) const;
 
 };
 
@@ -43,7 +43,7 @@ public:
 
     CoqString(const std::string &s);
 
-    std::string dump() const;
+    std::string dump(int indent = 0) const;
 
 };
 
@@ -56,7 +56,7 @@ public:
 
     CoqApplication(const ref<CoqExpr> &function, const std::vector<ref<CoqExpr>> &args);
 
-    std::string dump() const;
+    std::string dump(int indent = 0) const;
 
 };
 
@@ -69,7 +69,7 @@ public:
 
     CoqPair(const ref<CoqExpr> &left, const ref<CoqExpr> &right);
 
-    std::string dump() const;
+    std::string dump(int indent = 0) const;
 
 };
 
@@ -81,7 +81,7 @@ public:
 
     CoqList(const std::vector<ref<CoqExpr>> &args);
 
-    std::string dump() const;
+    std::string dump(int indent = 0) const;
 
 };
 
