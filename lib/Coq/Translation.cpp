@@ -17,12 +17,13 @@ ModuleTranslator::ModuleTranslator(Module &m) : m(m) {
 
 }
 
-ref<CoqExpr> ModuleTranslator::translate() {
+ref<CoqExpr> ModuleTranslator::translateModule() {
+  std::vector<ref<CoqExpr>> coq_defs;
   for (Function &f : m) {
     /* TODO: add predicate */
     if (!f.isIntrinsic()) {
       ref<CoqExpr> coq_f = translateFunction(f);
-      errs() << coq_f->dump() << "\n";
+      coq_defs.push_back(coq_f);
     }
   }
 
@@ -35,7 +36,7 @@ ref<CoqExpr> ModuleTranslator::translate() {
       new CoqList({}),
       new CoqList({}),
       new CoqList({}),
-      new CoqList({}),
+      new CoqList(coq_defs),
     }
   );
 
@@ -202,7 +203,6 @@ ref<CoqExpr> ModuleTranslator::translateBinaryOperator(Instruction &inst) {
   }
 
   assert(false);
-  return nullptr;
 }
 
 ref<CoqExpr> ModuleTranslator::createBinOp(ref<CoqExpr> target,
@@ -250,7 +250,6 @@ ref<CoqExpr> ModuleTranslator::translateCmpInst(CmpInst *inst) {
   }
 
   assert(false);
-  return nullptr;
 }
 
 
@@ -313,7 +312,6 @@ ref<CoqExpr> ModuleTranslator::translateBranchInst(BranchInst *inst) {
   }
 
   assert(false);
-  return nullptr;
 }
 
 ref<CoqExpr> ModuleTranslator::translatePHINode(PHINode *inst) {
@@ -479,7 +477,6 @@ ref<CoqExpr> ModuleTranslator::translateValue(Value *value) {
   }
 
   assert(false);
-  return nullptr;
 }
 
 ref<CoqExpr> ModuleTranslator::translateType(Type *t) {

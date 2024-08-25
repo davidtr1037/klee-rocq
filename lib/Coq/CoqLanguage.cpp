@@ -2,12 +2,13 @@
 
 #include "klee/Coq/CoqLanguage.h"
 
-//#include <iostream>
 #include <string>
 #include <sstream>
 
 using namespace std;
 using namespace klee;
+
+/* TODO: don't use std:: */
 
 static string space(int indent) {
   std::ostringstream os;
@@ -104,4 +105,25 @@ klee::ref<CoqExpr> klee::createZ(uint64_t n) {
   std::ostringstream os;
   os << "(" << n << ")" << "%Z";
   return new CoqVariable(os.str());
+}
+
+CoqImport::CoqImport(const string &module_name) : module_name(module_name) {
+
+}
+
+string CoqImport::dump(int indent) const {
+  std::ostringstream os;
+  os << "Import " << module_name << ".";
+  return os.str();
+}
+
+CoqRequire::CoqRequire(const string &path, const std::string &module_name, bool use_import) :
+  path(path), module_name(module_name), use_import(use_import) {
+
+}
+
+string CoqRequire::dump(int indent) const {
+  std::ostringstream os;
+  os << "From " << path << " Require " << (use_import ? " Import " : "") << module_name << ".";
+  return os.str();
 }

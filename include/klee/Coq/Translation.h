@@ -17,7 +17,7 @@ public:
 
     ModuleTranslator(llvm::Module &m);
 
-    ref<CoqExpr> translate();
+    ref<CoqExpr> translateModule();
 
     ref<CoqExpr> translateFunction(llvm::Function &f);
 

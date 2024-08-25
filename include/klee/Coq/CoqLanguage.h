@@ -87,6 +87,32 @@ public:
 
 ref<CoqExpr> createZ(uint64_t n);
 
+class CoqImport : public CoqExpr {
+
+public:
+
+    std::string module_name;
+
+    CoqImport(const std::string &module_name);
+
+    std::string dump(int indent = 0) const;
+
+};
+
+class CoqRequire : public CoqExpr {
+
+public:
+
+    std::string path;
+    std::string module_name;
+    bool use_import;
+
+    CoqRequire(const std::string &path, const std::string &module_name, bool use_import);
+
+    std::string dump(int indent = 0) const;
+
+};
+
 }
 
 #endif
