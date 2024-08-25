@@ -34,6 +34,18 @@ public:
 
 };
 
+class CoqString : public CoqExpr {
+
+public:
+
+    std::string s;
+
+    CoqString(std::string s);
+
+    std::string dump() const;
+
+};
+
 class CoqApplication : public CoqExpr {
 
 public:
@@ -42,6 +54,19 @@ public:
     std::vector<ref<CoqExpr>> args;
 
     CoqApplication(const ref<CoqExpr> &function, const std::vector<ref<CoqExpr>> &args);
+
+    std::string dump() const;
+
+};
+
+class CoqPair : public CoqExpr {
+
+public:
+
+    ref<CoqExpr> left;
+    ref<CoqExpr> right;
+
+    CoqPair(const ref<CoqExpr> &left, const ref<CoqExpr> &right);
 
     std::string dump() const;
 

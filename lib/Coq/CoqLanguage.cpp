@@ -21,6 +21,14 @@ string CoqVariable::dump() const {
   return name;
 }
 
+CoqString::CoqString(string s) : s(s) {
+
+}
+
+string CoqString::dump() const {
+  return "\"" + s + "\"" + "%string";
+}
+
 CoqApplication::CoqApplication(const ref<CoqExpr> &function,
                                const std::vector<ref<CoqExpr>> &args) :
     function(function), args(args) {
@@ -41,6 +49,23 @@ string CoqApplication::dump() const {
     os << args[i]->dump();
   }
 
+  os << ")";
+
+  return os.str();
+}
+
+CoqPair::CoqPair(const ref<CoqExpr> &left, const ref<CoqExpr> &right) :
+    left(left), right(right) {
+
+}
+
+string CoqPair::dump() const {
+  std::ostringstream os;
+
+  os << "(";
+  os << left->dump();
+  os << ", ";
+  os << right->dump();
   os << ")";
 
   return os.str();
