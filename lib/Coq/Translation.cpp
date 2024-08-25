@@ -40,23 +40,13 @@ ref<CoqExpr> ModuleTranslator::translate() {
 }
 
 ref<CoqExpr> ModuleTranslator::translateFunction(Function &f) {
-  ref<CoqExpr> coq_decl = translateDecl(f);
-  std::vector<ref<CoqExpr>> coq_args;
-  ref<CoqExpr> coq_cfg = createCFG(f);
-  std::vector<ref<CoqExpr>> coq_bbs;
-
-  //for (BasicBlock &bb : f) {
-  //  ref<CoqExpr> coq_bb = translateBasicBlock(bb);
-  //  coq_bbs.push_back(coq_bb);
-  //}
-
   ref<CoqExpr> coq_f = new CoqApplication(
     new CoqVariable("mk_definition"),
     {
       new CoqVariable("_"),
-      coq_decl,
-      new CoqList(coq_args),
-      coq_cfg,
+      translateDecl(f),
+      createArgs(f),
+      createCFG(f),
     }
   );
 
@@ -112,7 +102,51 @@ ref<CoqExpr> ModuleTranslator::createAnnotations(Function &f) {
   return new CoqList({});
 }
 
+ref<CoqExpr> ModuleTranslator::createArgs(Function &f) {
+  std::vector<ref<CoqExpr>> coq_args;
+
+  for (Argument &arg : f.args()) {
+    coq_args.push_back(createName(arg.getName().str()));
+  }
+
+  return new CoqList(coq_args);
+}
+
 ref<CoqExpr> ModuleTranslator::createCFG(Function &f) {
+  std::vector<ref<CoqExpr>> coq_bbs;
+  BasicBlock &entry = f.getEntryBlock();
+
+  for (BasicBlock &bb : f) {
+    coq_bbs.push_back(translateBasicBlock(bb));
+  }
+
+  return new CoqApplication(
+    new CoqVariable("mk_cfg"),
+    {
+      createName(entry.getName().str()),
+      new CoqList(coq_bbs),
+    }
+  );
+}
+
+ref<CoqExpr> ModuleTranslator::translateBasicBlock(BasicBlock &bb) {
+  std::vector<ref<CoqExpr>> coq_insts;
+
+  for (Instruction &inst : bb) {
+    ref<CoqExpr> coq_inst = translateInst(inst);
+    coq_insts.push_back(coq_inst);
+  }
+
+  return new CoqApplication(
+    new CoqVariable("mk_block"),
+      {
+        createName(bb.getName().str()),
+        new CoqList(coq_insts),
+      }
+  );
+}
+
+ref<CoqExpr> ModuleTranslator::translateInst(Instruction &inst) {
   return new CoqVariable("None");
 }
 

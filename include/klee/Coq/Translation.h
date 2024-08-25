@@ -30,15 +30,17 @@ public:
 
     ref<CoqExpr> createAnnotations(llvm::Function &f);
 
+    ref<CoqExpr> createArgs(llvm::Function &f);
+
     ref<CoqExpr> createCFG(llvm::Function &f);
 
     ref<CoqExpr> translateBasicBlock(llvm::BasicBlock &bb);
 
+    ref<CoqExpr> translateInst(llvm::Instruction &inst);
+
     ref<CoqExpr> translateType(llvm::Type *t);
 
     ref<CoqExpr> createName(const std::string &name);
-
-    ref<CoqExpr> translateInst(llvm::Instruction &inst);
 
     ~ModuleTranslator();
 };

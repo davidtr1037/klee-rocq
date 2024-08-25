@@ -13,7 +13,7 @@ string CoqExpr::dump() const {
   assert(false);
 }
 
-CoqVariable::CoqVariable(string name) : name(name) {
+CoqVariable::CoqVariable(const string &name) : name(name) {
 
 }
 
@@ -21,7 +21,7 @@ string CoqVariable::dump() const {
   return name;
 }
 
-CoqString::CoqString(string s) : s(s) {
+CoqString::CoqString(const string &s) : s(s) {
 
 }
 

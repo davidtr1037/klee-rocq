@@ -28,7 +28,7 @@ public:
 
     std::string name;
 
-    CoqVariable(std::string name);
+    CoqVariable(const std::string &name);
 
     std::string dump() const;
 
@@ -40,7 +40,7 @@ public:
 
     std::string s;
 
-    CoqString(std::string s);
+    CoqString(const std::string &s);
 
     std::string dump() const;
 
