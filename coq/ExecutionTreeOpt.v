@@ -39,7 +39,7 @@ Arguments root {X}.
 Definition execution_tree := tree sym_state.
 
 Inductive equiv_smt_store : smt_store -> smt_store -> Prop :=
-  | EquivSMTSTore : forall (s1 s2 : smt_store),
+  | EquivSMTStore : forall (s1 s2 : smt_store),
       (forall x,
         ((s1 x) = None /\ (s2 x) = None) \/
         (exists se1 se2, (s1 x) = Some se1 /\ (s2 x) = Some se2 /\ equiv_smt_expr se1 se2)
@@ -51,7 +51,7 @@ Lemma equiv_smt_store_symmetry : forall s1 s2,
 Proof.
   intros s1 s2 Heq.
   inversion Heq; subst.
-  apply EquivSMTSTore.
+  apply EquivSMTStore.
   intros x.
   specialize (H x).
   destruct H as [H | H].
@@ -77,7 +77,7 @@ Proof.
   intros s1 s2 s3 Heq1 Heq2.
   inversion Heq1; subst.
   inversion Heq2; subst.
-  apply EquivSMTSTore.
+  apply EquivSMTStore.
   intros x.
   specialize (H x).
   destruct H as [H | H].
@@ -120,7 +120,7 @@ Qed.
 
 Lemma equiv_empty_smt_store : equiv_smt_store empty_smt_store empty_smt_store.
 Proof.
-  apply EquivSMTSTore.
+  apply EquivSMTStore.
   intros x.
   left.
   split; (unfold empty_smt_store; rewrite apply_empty_map; reflexivity).
@@ -132,7 +132,7 @@ Lemma equiv_smt_store_update : forall s1 s2 v se1 se2,
   equiv_smt_store (v !-> Some se1; s1) (v !-> Some se2; s2).
 Proof.
   intros s1 s2 v se1 se2 Hs He.
-  apply EquivSMTSTore.
+  apply EquivSMTStore.
   intros x.
   inversion Hs; subst.
   specialize (H x).
