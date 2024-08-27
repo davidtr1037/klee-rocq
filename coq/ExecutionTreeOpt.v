@@ -46,6 +46,23 @@ Inductive equiv_smt_store : smt_store -> smt_store -> Prop :=
       ) -> equiv_smt_store s1 s2
 .
 
+Lemma equiv_smt_store_refl : forall s,
+  equiv_smt_store s s.
+Proof.
+  intros s.
+  apply EquivSMTStore.
+  intros x.
+  destruct (s x) as [se | ] eqn:E.
+  {
+    right.
+    exists se, se.
+    split; try reflexivity.
+    split; try reflexivity.
+    apply equiv_smt_expr_refl.
+  }
+  { left. split; reflexivity. }
+Qed.
+
 Lemma equiv_smt_store_symmetry : forall s1 s2,
   equiv_smt_store s1 s2 -> equiv_smt_store s2 s1.
 Proof.
@@ -351,6 +368,23 @@ Inductive equiv_sym_stack : list sym_frame -> list sym_frame -> Prop :=
       equiv_sym_frame f1 f2 ->
       equiv_sym_stack (f1 :: stk1) (f2 :: stk2)
 .
+
+Lemma equiv_sym_stack_refl : forall stk,
+  equiv_sym_stack stk stk.
+Proof.
+  intros stk.
+  induction stk as [ | f stk'].
+  { apply EquivSymStack_Empty. }
+  {
+    apply EquivSymStack_NonEmpty.
+    { assumption. }
+    {
+      destruct f.
+      apply EquivSymFrame.
+      apply equiv_smt_store_refl.
+    }
+  }
+Qed.
 
 Lemma equiv_sym_stack_symmetry : forall stk1 stk2,
   equiv_sym_stack stk1 stk2 -> equiv_sym_stack stk2 stk1.
