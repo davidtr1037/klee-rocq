@@ -12,6 +12,7 @@ ExecutionTreeOpt.v
 Symbolic.v
 LLVMAst.v
 ModuleAssumptions.v
+ProofGeneration.v
 Numeric/Archi.v
 Numeric/Floats.v
 Numeric/IEEE754_extra.v
