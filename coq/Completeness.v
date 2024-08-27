@@ -123,6 +123,87 @@ Proof.
       }
     }
   }
+  {
+    apply IHe1 with (ot := (Some t)) in H1.
+    apply IHe2 with (ot := (Some t)) in H4.
+    destruct (eval_exp c_ls c_gs (Some t) e1) as [dv1 | ] eqn:E1.
+    {
+      destruct (eval_exp c_ls c_gs (Some t) e2) as [dv2 | ] eqn:E2.
+      {
+        inversion H1; subst.
+        inversion H4; subst.
+        rename se into se1, di into di1, se0 into se2, di0 into di2.
+        destruct di1 as [n1 | n1 | n1 | n1 | n1], di2 as [n2 | n2 | n2 | n2 | n2]; try (
+          simpl;
+          apply EVM_NoneViaModel; (
+            destruct op;
+            (
+              unfold sym_eval_icmp;
+              simpl;
+              rewrite H2, H5;
+              reflexivity
+            )
+          )
+        ); (
+          simpl;
+          unfold eval_icmp_generic, sym_eval_icmp;
+          destruct (eval_cmp_result op n1 n2) eqn:E; (
+            destruct op; (
+              apply EVM_Some;
+              simpl;
+              rewrite H2, H5;
+              unfold smt_eval_cmpop;
+              simpl in *;
+              rewrite E;
+              reflexivity
+            )
+          )
+        ).
+      }
+      {
+        inversion H1; subst.
+        rename se into se1, di into di1.
+        inversion H4; subst.
+        { apply EVM_None. }
+        {
+          apply EVM_NoneViaModel.
+          unfold sym_eval_icmp.
+          destruct op;
+          (simpl; rewrite H2, H3; reflexivity).
+        }
+      }
+    }
+    {
+      destruct (eval_exp c_ls c_gs (Some t) e2) as [dv2 | ] eqn:E2.
+      {
+        inversion H1; subst.
+        { apply EVM_None. }
+        {
+          inversion H4; subst.
+          apply EVM_NoneViaModel.
+          unfold sym_eval_icmp.
+          destruct op;
+          (simpl; rewrite H0; reflexivity).
+        }
+      }
+      {
+        inversion H1; subst.
+        { apply EVM_None. }
+        {
+          rename se into se1.
+          inversion H4; subst.
+          { apply EVM_None. }
+          {
+            rename se into se2.
+            apply EVM_NoneViaModel.
+            unfold sym_eval_icmp.
+            destruct op;
+            (simpl; rewrite H0; reflexivity).
+          }
+        }
+      }
+    }
+  }
 Qed.
 
 Lemma empty_store_correspondence : forall m,

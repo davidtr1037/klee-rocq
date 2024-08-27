@@ -12,7 +12,6 @@ Inductive is_supported_ibinop : ibinop -> Prop :=
   | IS_Add : is_supported_ibinop (Add false false)
 .
 
-(* TODO: support OP_ICmp *)
 Inductive is_supported_exp : (exp typ) -> Prop :=
   | IS_EXP_Ident : forall id,
       is_supported_exp (EXP_Ident id)
@@ -22,6 +21,10 @@ Inductive is_supported_exp : (exp typ) -> Prop :=
       is_supported_exp e1 ->
       is_supported_exp e2 ->
       is_supported_exp (OP_IBinop (Add false false) t e1 e2)
+  | IS_OP_ICmp : forall op t e1 e2,
+      is_supported_exp e1 ->
+      is_supported_exp e2 ->
+      is_supported_exp (OP_ICmp op t e1 e2)
 .
 
 Inductive is_supported_function_arg : function_arg -> Prop :=

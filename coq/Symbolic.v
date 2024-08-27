@@ -105,20 +105,23 @@ Definition sym_eval_ibinop (op : ibinop) (e1 e2 : smt_expr) : smt_expr :=
   end
 .
 
-Definition sym_eval_icmp (op : icmp) (e1 e2 : smt_expr) : smt_expr :=
+Definition icmp_to_smt_cmoop (op : icmp) : smt_cmpop :=
   match op with
-  | Eq => SMT_CmpOp SMT_Eq e1 e2
-  | Ne => SMT_CmpOp SMT_Ne e1 e2
-  | Ugt => SMT_CmpOp SMT_Uge e1 e2
-  | Uge => SMT_CmpOp SMT_Uge e1 e2
-  | Ult => SMT_CmpOp SMT_Ult e1 e2
-  | Ule => SMT_CmpOp SMT_Ule e1 e2
-  | Sgt => SMT_CmpOp SMT_Sgt e1 e2
-  | Sge => SMT_CmpOp SMT_Sge e1 e2
-  | Slt => SMT_CmpOp SMT_Slt e1 e2
-  | Sle => SMT_CmpOp SMT_Sle e1 e2
+  | Eq => SMT_Eq
+  | Ne => SMT_Ne
+  | Ugt => SMT_Ugt
+  | Uge => SMT_Uge
+  | Ult => SMT_Ult
+  | Ule => SMT_Ule
+  | Sgt => SMT_Sgt
+  | Sge => SMT_Sge
+  | Slt => SMT_Slt
+  | Sle => SMT_Sle
   end
 .
+
+Definition sym_eval_icmp (op : icmp) (e1 e2 : smt_expr) : smt_expr :=
+  SMT_CmpOp (icmp_to_smt_cmoop op) e1 e2.
 
 Definition sym_convert (conv : conversion_type) (e : smt_expr) t1 t2 : option smt_expr :=
   match conv with

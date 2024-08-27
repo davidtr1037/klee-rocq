@@ -408,7 +408,7 @@ Proof.
   intros m.
   specialize (H m).
   specialize (H0 m).
-  destruct H as [[H_1 H_2] | [dv1 [H_1 H_2]]].
+  destruct H as [[H_1 H_2] | [di1 [H_1 H_2]]].
   {
     left.
     simpl.
@@ -416,7 +416,7 @@ Proof.
     split; reflexivity.
   }
   {
-    destruct H0 as [[H0_1 H0_2] | [dv2 [H0_1 H0_2]]].
+    destruct H0 as [[H0_1 H0_2] | [di2 [H0_1 H0_2]]].
     {
       left.
       simpl.
@@ -426,7 +426,44 @@ Proof.
     {
       simpl.
       rewrite H_1, H_2, H0_1, H0_2.
-      destruct (smt_eval_binop op dv1 dv2) as [di | ] eqn:E.
+      destruct (smt_eval_binop op di1 di2) as [di | ] eqn:E.
+      { right. exists di. split; reflexivity. }
+      { left. split; reflexivity. }
+    }
+  }
+Qed.
+
+Lemma equiv_smt_expr_cmpop : forall op e1 e2 e3 e4,
+  equiv_smt_expr e1 e2 ->
+  equiv_smt_expr e3 e4 ->
+  equiv_smt_expr (SMT_CmpOp op e1 e3) (SMT_CmpOp op e2 e4).
+Proof.
+  intros op e1 e2 e3 e4 Heq1 Heq2.
+  inversion Heq1; subst.
+  inversion Heq2; subst.
+  apply EquivSMTExpr.
+  intros m.
+  specialize (H m).
+  specialize (H0 m).
+  destruct H as [[H_1 H_2] | [di1 [H_1 H_2]]].
+  {
+    left.
+    simpl.
+    rewrite H_1, H_2.
+    split; reflexivity.
+  }
+  {
+    destruct H0 as [[H0_1 H0_2] | [di2 [H0_1 H0_2]]].
+    {
+      left.
+      simpl.
+      rewrite H_1, H_2, H0_1, H0_2.
+      split; reflexivity.
+    }
+    {
+      simpl.
+      rewrite H_1, H_2, H0_1, H0_2.
+      destruct (smt_eval_cmpop op di1 di2) as [di | ] eqn:E.
       { right. exists di. split; reflexivity. }
       { left. split; reflexivity. }
     }

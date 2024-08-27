@@ -236,6 +236,25 @@ Proof.
     split; try reflexivity.
     apply equiv_smt_expr_binop; assumption.
   }
+  {
+    destruct (sym_eval_exp ls1 gs1 (Some t) e1) as [se1' | ] eqn:E1; try discriminate Heval.
+    destruct (sym_eval_exp ls1 gs1 (Some t) e2) as [se2' | ] eqn:E2; try discriminate Heval.
+    destruct op eqn:Eop; (
+      simpl in Heval;
+      apply IHe1 with (ot := Some t) (se1 := se1') in H1; try assumption;
+      destruct H1 as [se1'' [H1_1 H1_2]];
+      apply IHe2 with (ot := Some t) (se1 := se2') in H4; try assumption;
+      destruct H4 as [se2'' [H4_1 H4_2]];
+      simpl;
+      rewrite H1_1, H4_1;
+      injection Heval; clear Heval; intros Heval;
+      exists (SMT_CmpOp (icmp_to_smt_cmoop op) se1'' se2'');
+      split; rewrite Eop; [
+        reflexivity |
+        (rewrite <- Heval; apply equiv_smt_expr_cmpop; assumption)
+      ]
+    ).
+  }
 Qed.
 
 Lemma equiv_sym_eval_phi_args : forall ls1 gs1 ls2 gs2 t args pbid se1,
