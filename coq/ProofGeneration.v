@@ -120,6 +120,29 @@ Proof.
   inversion H.
 Qed.
 
+Lemma LAUX_not_error_void_call : forall ic cid f args anns cs pbid ls stk gs syms pc mdl,
+  f <> (TYPE_Void, assert_exp) ->
+  ~ error_sym_state
+    (mk_sym_state
+      ic
+      (CMD_Inst cid (INSTR_VoidCall f args anns))
+      cs
+      pbid
+      ls
+      stk
+      gs
+      syms
+      pc
+      mdl
+    ).
+Proof.
+  intros ic cid f args anns cs pbid ls stk gs syms pc mdl Hf.
+  intros H.
+  inversion H; subst.
+  apply Hf.
+  reflexivity.
+Qed.
+
 Lemma LAUX_not_error_ret : forall ic cid e cs pbid ls stk gs syms pc mdl,
   ~ error_sym_state
     (mk_sym_state
