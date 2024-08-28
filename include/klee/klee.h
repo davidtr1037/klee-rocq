@@ -158,6 +158,10 @@ extern "C" {
 
   /* Get errno value of the current state */
   int klee_get_errno(void);
+
+  int klee_make_symbolic_int32(void);
+
+  void klee_assume_bool(bool);
 #ifdef __cplusplus
 }
 #endif

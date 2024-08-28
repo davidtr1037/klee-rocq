@@ -26,6 +26,10 @@ int main(int argc, char *argv[]) {
 
     char *path = argv[1];
     std::unique_ptr<Module> m = parseIRFile(path, err, context);
+    if (!m) {
+        cout << "failed to parse IR\n";
+        return 1;
+    }
 
     ProofGenerator p(*m);
     string proof = p.generate();

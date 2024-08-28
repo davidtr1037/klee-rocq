@@ -53,6 +53,7 @@ vector<klee::ref<CoqExpr>> ProofGenerator::generateImports() {
     new CoqImport("ListNotations"),
     new CoqRequire("SE", "BitVectors"),
     new CoqRequire("SE", "CFG"),
+    new CoqRequire("SE", "ChoiceAxiom"),
     new CoqRequire("SE", "Concrete"),
     new CoqRequire("SE", "DynamicValue"),
     new CoqRequire("SE", "ExecutionTreeOpt"),

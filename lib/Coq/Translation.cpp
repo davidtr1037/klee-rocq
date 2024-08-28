@@ -23,7 +23,7 @@ ref<CoqExpr> ModuleTranslator::translateModule() {
   std::vector<ref<CoqExpr>> coq_defs;
   for (Function &f : m) {
     /* TODO: add predicate */
-    if (!f.isIntrinsic()) {
+    if (!f.isIntrinsic() && !f.isDeclaration()) {
       ref<CoqExpr> coq_f = translateFunctionCached(f);
       coq_defs.push_back(coq_f);
     }
