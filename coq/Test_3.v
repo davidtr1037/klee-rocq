@@ -414,11 +414,13 @@ Proof.
         {
           simpl.
           inversion Hse; subst.
+          (* TODO: add specific lemma *)
           inversion H16; subst.
           inversion H17; subst.
           apply EquivSymState.
           {
             simpl in H15.
+            (* TODO: avoid *)
             inversion H15; subst.
             apply equiv_smt_store_refl.
           }
@@ -509,6 +511,7 @@ Proof.
           inversion H19; subst.
           apply EquivSymState.
           {
+            (* TODO: avoid *)
             inversion H20; subst.
             apply equiv_smt_store_refl.
           }
