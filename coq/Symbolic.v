@@ -105,7 +105,7 @@ Definition sym_eval_ibinop (op : ibinop) (e1 e2 : smt_expr) : smt_expr :=
   end
 .
 
-Definition icmp_to_smt_cmoop (op : icmp) : smt_cmpop :=
+Definition icmp_to_smt_cmpop (op : icmp) : smt_cmpop :=
   match op with
   | Eq => SMT_Eq
   | Ne => SMT_Ne
@@ -121,7 +121,7 @@ Definition icmp_to_smt_cmoop (op : icmp) : smt_cmpop :=
 .
 
 Definition sym_eval_icmp (op : icmp) (e1 e2 : smt_expr) : smt_expr :=
-  SMT_CmpOp (icmp_to_smt_cmoop op) e1 e2.
+  SMT_CmpOp (icmp_to_smt_cmpop op) e1 e2.
 
 Definition sym_convert (conv : conversion_type) (e : smt_expr) t1 t2 : option smt_expr :=
   match conv with

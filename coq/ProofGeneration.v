@@ -40,6 +40,65 @@ Proof.
   inversion H.
 Qed.
 
+Lemma LAUX_not_error_phi : forall ic cid v t args cs pbid ls stk gs syms pc mdl,
+  ~ error_sym_state
+    (mk_sym_state
+      ic
+      (CMD_Phi cid (Phi v t args))
+      cs
+      pbid
+      ls
+      stk
+      gs
+      syms
+      pc
+      mdl
+    ).
+Proof.
+  intros ic cid v t args cs pbid ls stk gs syms pc mdl.
+  intros H.
+  inversion H.
+Qed.
+
+Lemma LAUX_not_error_unconditional_br : forall ic cid bid cs pbid ls stk gs syms pc mdl,
+  ~ error_sym_state
+    (mk_sym_state
+      ic
+      (CMD_Term cid (TERM_UnconditionalBr bid))
+      cs
+      pbid
+      ls
+      stk
+      gs
+      syms
+      pc
+      mdl
+    ).
+Proof.
+  intros ic cid bid cs pbid ls stk gs syms pc mdl.
+  intros H.
+  inversion H.
+Qed.
+
+Lemma LAUX_not_error_br : forall ic cid e bid1 bid2 cs pbid ls stk gs syms pc mdl,
+  ~ error_sym_state
+    (mk_sym_state
+      ic
+      (CMD_Term cid (TERM_Br e bid1 bid2))
+      cs
+      pbid
+      ls
+      stk
+      gs
+      syms
+      pc
+      mdl
+    ).
+Proof.
+  intros ic cid e bid1 bid2 cs pbid ls stk gs syms pc mdl.
+  intros H.
+  inversion H.
+Qed.
 
 Lemma LAUX_1 : forall s v se1 se2 se3,
   Some se1 = Some se2 ->

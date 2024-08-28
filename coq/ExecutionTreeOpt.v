@@ -248,7 +248,7 @@ Proof.
       simpl;
       rewrite H1_1, H4_1;
       injection Heval; clear Heval; intros Heval;
-      exists (SMT_CmpOp (icmp_to_smt_cmoop op) se1'' se2'');
+      exists (SMT_CmpOp (icmp_to_smt_cmpop op) se1'' se2'');
       split; rewrite Eop; [
         reflexivity |
         (rewrite <- Heval; apply equiv_smt_expr_cmpop; assumption)
