@@ -124,7 +124,7 @@ CoqRequire::CoqRequire(const string &path, const std::string &module_name, bool 
 
 string CoqRequire::dump(int indent) const {
   std::ostringstream os;
-  os << "From " << path << " Require " << (use_import ? " Import " : "") << module_name << ".";
+  os << "From " << path << " Require " << (use_import ? "Import " : "") << module_name << ".";
   return os.str();
 }
 

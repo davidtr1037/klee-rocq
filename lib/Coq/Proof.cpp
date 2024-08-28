@@ -55,7 +55,12 @@ vector<klee::ref<CoqExpr>> ProofGenerator::generateImports() {
     new CoqRequire("SE", "CFG"),
     new CoqRequire("SE", "Concrete"),
     new CoqRequire("SE", "DynamicValue"),
+    new CoqRequire("SE", "ExecutionTreeOpt"),
     new CoqRequire("SE", "IDMap"),
     new CoqRequire("SE", "LLVMAst"),
+    new CoqRequire("SE", "Symbolic"),
+    new CoqRequire("SE", "ProofGeneration"),
+    new CoqRequire("SE.SMT", "Expr"),
+    new CoqRequire("SE.SMT", "Model"),
   };
 }
