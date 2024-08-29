@@ -19,6 +19,8 @@ public:
 
   ref<CoqExpr> translateConstantExpr(ref<ConstantExpr> e);
 
+  ref<CoqExpr> createSMTBinOp(std::string constructor, ref<Expr> left, ref<Expr> right);
+
   ref<CoqExpr> translateCmpExpr(ref<CmpExpr> e);
 
   ~ExprTranslator();

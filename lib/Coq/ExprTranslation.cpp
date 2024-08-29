@@ -18,26 +18,19 @@ ref<CoqExpr> ExprTranslator::translate(ref<Expr> e) {
     return translateConstantExpr(dyn_cast<ConstantExpr>(e));
   }
 
-  /* */
+  if (isa<CmpExpr>(e)) {
+    return translateCmpExpr(dyn_cast<CmpExpr>(e));
+  }
 
-  if (isa<NonConstantExpr>(e)) {
-    /* unsupported:
-       - NotOptimizedExpr
-       - ReadExpr
-       - SelectExpr
-       - ConcatExpr
-       - ExtractExpr
-       - NotExpr
-       - CastExpr
-    */
-    if (isa<BinaryExpr>(e)) {
-      if (isa<CmpExpr>(e)) {
-        return translateCmpExpr(dyn_cast<CmpExpr>(e));
-      }
-      if (isa<AddExpr>(e)) {
-
-      }
-
+  if (isa<BinaryExpr>(e)) {
+    ref<BinaryExpr> be = dyn_cast<BinaryExpr>(e);
+    ref<Expr> left = be->left;
+    ref<Expr> right = be->right;
+    if (isa<AddExpr>(e)) {
+      return createSMTBinOp("SMT_Add", left, right);
+    }
+    if (isa<AndExpr>(e)) {
+      return createSMTBinOp("SMT_And", left, right);
     }
   }
 
@@ -85,6 +78,19 @@ ref<CoqExpr> ExprTranslator::translateConstantExpr(ref<ConstantExpr> e) {
         new CoqVariable(repr),
         {new CoqVariable(std::to_string(e->getZExtValue()))}
       )
+    }
+  );
+}
+
+ref<CoqExpr> ExprTranslator::createSMTBinOp(std::string op,
+                                            ref<Expr> left,
+                                            ref<Expr> right) {
+  return new CoqApplication(
+    new CoqVariable("SMT_BinOp"),
+    {
+      new CoqVariable(op),
+      translate(left),
+      translate(right),
     }
   );
 }
