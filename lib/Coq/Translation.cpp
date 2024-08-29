@@ -4,6 +4,7 @@
 #include "llvm/IR/Operator.h"
 #include "llvm/IR/Constants.h"
 
+#include "klee/Support/ErrorHandling.h"
 #include "klee/Coq/CoqLanguage.h"
 #include "klee/Coq/Translation.h"
 
@@ -21,12 +22,20 @@ ModuleTranslator::ModuleTranslator(Module &m) : m(m) {
 }
 
 ref<CoqExpr> ModuleTranslator::translateModule() {
+  std::vector<ref<CoqExpr>> coq_decls;
   std::vector<ref<CoqExpr>> coq_defs;
+
   for (Function &f : m) {
-    /* TODO: add predicate */
-    if (!f.isIntrinsic() && !f.isDeclaration()) {
-      ref<CoqExpr> coq_f = translateFunctionCached(f);
-      coq_defs.push_back(coq_f);
+    if (isSupportedFunction(&f)) {
+      if (f.isDeclaration()) {
+        ref<CoqExpr> coq_decl = translateDeclCached(f);
+        coq_decls.push_back(coq_decl);
+      } else {
+        ref<CoqExpr> coq_f = translateFunctionCached(f);
+        coq_defs.push_back(coq_f);
+      }
+    } else {
+      //klee_warning("Ignoring unsupported function: %s", f.getName().str().c_str());
     }
   }
 
@@ -38,7 +47,7 @@ ref<CoqExpr> ModuleTranslator::translateModule() {
       new CoqVariable("None"),
       new CoqList({}),
       new CoqList({}),
-      new CoqList({}),
+      new CoqList(coq_decls),
       new CoqList(coq_defs),
     }
   );
@@ -52,12 +61,9 @@ ref<CoqExpr> ModuleTranslator::translateFunctionCached(Function &f) {
     return i->second;
   }
 
-  uint64_t varId = functionCache.size();
-  std::string varName = "def_" + std::to_string(varId);
-
   ref<CoqExpr> expr = translateFunction(f);
+  std::string varName = "def_" + f.getName().str();
   ref<CoqExpr> alias = new CoqVariable(varName);
-
   functionCache.insert(std::make_pair(&f, alias));
   ref<CoqExpr> def = new CoqDefinition(varName, "llvm_definition", expr);
   functionDefs.push_back(def);
@@ -70,13 +76,29 @@ ref<CoqExpr> ModuleTranslator::translateFunction(Function &f) {
     new CoqVariable("mk_definition"),
     {
       new CoqVariable("_"),
-      translateDecl(f),
+      translateDeclCached(f),
       createArgs(f),
       createCFG(f),
     }
   );
 
   return coq_f;
+}
+
+ref<CoqExpr> ModuleTranslator::translateDeclCached(Function &f) {
+  auto i = declCache.find(&f);
+  if (i != declCache.end()) {
+    return i->second;
+  }
+
+  ref<CoqExpr> expr = translateDecl(f);
+  std::string varName = "decl_" + f.getName().str();
+  ref<CoqExpr> alias = new CoqVariable(varName);
+  declCache.insert(std::make_pair(&f, alias));
+  ref<CoqExpr> def = new CoqDefinition(varName, "llvm_declaration", expr);
+  declDefs.push_back(def);
+
+  return alias;
 }
 
 ref<CoqExpr> ModuleTranslator::translateDecl(Function &f) {
@@ -632,6 +654,28 @@ ref<CoqExpr> ModuleTranslator::createName(const std::string &name) {
     new CoqVariable("Name"),
     { new CoqString(name), }
   );
+}
+
+bool ModuleTranslator::isSupportedFunction(Function *f) {
+  if (f->isIntrinsic()) {
+    return false;
+  }
+
+  if (!isSupportedType(f->getReturnType())) {
+    return false;
+  }
+
+  for (Argument &arg : f->args()) {
+    if (!isSupportedType(arg.getType())) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+bool ModuleTranslator::isSupportedType(Type *t) {
+  return (t->isIntegerTy() || t->isVoidTy());
 }
 
 ModuleTranslator::~ModuleTranslator() {

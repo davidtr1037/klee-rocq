@@ -29,6 +29,10 @@ public:
 
   std::vector<ref<CoqExpr>> bbDefs;
 
+  std::map<llvm::Function*, ref<CoqExpr>> declCache;
+
+  std::vector<ref<CoqExpr>> declDefs;
+
   std::map<llvm::Function*, ref<CoqExpr>> functionCache;
 
   std::vector<ref<CoqExpr>> functionDefs;
@@ -40,6 +44,8 @@ public:
   ref<CoqExpr> translateFunctionCached(llvm::Function &f);
 
   ref<CoqExpr> translateFunction(llvm::Function &f);
+
+  ref<CoqExpr> translateDeclCached(llvm::Function &f);
 
   ref<CoqExpr> translateDecl(llvm::Function &f);
 
@@ -108,6 +114,10 @@ public:
   ref<CoqExpr> createGlobalID(const std::string &name);
 
   ref<CoqExpr> createName(const std::string &name);
+
+  bool isSupportedFunction(llvm::Function *f);
+
+  bool isSupportedType(llvm::Type *t);
 
   ~ModuleTranslator();
 };

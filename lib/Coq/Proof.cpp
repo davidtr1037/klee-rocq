@@ -30,6 +30,10 @@ string ProofGenerator::generate() {
     output << def->dump() << "\n";
   }
 
+  for (ref<CoqExpr> def : t.declDefs) {
+    output << def->dump() << "\n";
+  }
+
   for (ref<CoqExpr> def : t.functionDefs) {
     output << def->dump() << "\n";
   }
