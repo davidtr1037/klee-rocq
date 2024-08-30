@@ -47,7 +47,9 @@ CoqInteger::CoqInteger(uint64_t n) : n(n) {
 }
 
 string CoqInteger::dump(int indent) const {
-  return std::to_string(n);
+  std::ostringstream os;
+  os << space(indent) << std::to_string(n);
+  return os.str();
 }
 
 CoqApplication::CoqApplication(const ref<CoqExpr> &function,

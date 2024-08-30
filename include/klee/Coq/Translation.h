@@ -15,7 +15,7 @@ class ModuleTranslator {
 
 private:
 
-  unsigned cmdId = 0;
+  std::map<llvm::Instruction*, uint64_t> instIDs;
 
 public:
 
@@ -69,7 +69,7 @@ public:
 
   ref<CoqExpr> translateInst(llvm::Instruction &inst);
 
-  ref<CoqExpr> translateBinaryOperator(llvm::Instruction &inst);
+  ref<CoqExpr> translateBinaryOperator(llvm::BinaryOperator *inst);
 
   ref<CoqExpr> createBinOp(ref<CoqExpr> target,
                            ref<CoqExpr> ibinop,
@@ -97,13 +97,13 @@ public:
 
   ref<CoqExpr> translateReturnInst(llvm::ReturnInst *inst);
 
-  ref<CoqExpr> translateUnreachableInst();
+  ref<CoqExpr> translateUnreachableInst(llvm::UnreachableInst *inst);
 
-  ref<CoqExpr> createCMDInst(unsigned id, ref<CoqExpr> e);
+  ref<CoqExpr> createCMDInst(uint64_t id, ref<CoqExpr> e);
 
-  ref<CoqExpr> createCMDTerm(unsigned id, ref<CoqExpr> e);
+  ref<CoqExpr> createCMDTerm(uint64_t id, ref<CoqExpr> e);
 
-  ref<CoqExpr> createCMDPhi(unsigned id, ref<CoqExpr> e);
+  ref<CoqExpr> createCMDPhi(uint64_t id, ref<CoqExpr> e);
 
   ref<CoqExpr> translateValue(llvm::Value *v);
 
@@ -120,6 +120,8 @@ public:
   bool isSupportedInst(llvm::Instruction &inst);
 
   bool isSupportedType(llvm::Type *t);
+
+  uint64_t getInstID(llvm::Instruction *inst);
 
   ~ModuleTranslator();
 };

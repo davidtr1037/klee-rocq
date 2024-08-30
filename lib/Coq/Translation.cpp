@@ -205,7 +205,6 @@ ref<CoqExpr> ModuleTranslator::translateBasicBlock(BasicBlock &bb) {
     /* TODO: add ignore predicate? */
     if (!coq_inst.isNull()) {
       coq_insts.push_back(coq_inst);
-      cmdId++;
     }
   }
 
@@ -244,8 +243,10 @@ ref<CoqExpr> ModuleTranslator::translateInstCached(Instruction &inst) {
 }
 
 ref<CoqExpr> ModuleTranslator::translateInst(Instruction &inst) {
+  ref<CoqExpr> coq_inst = nullptr;
+
   if (isa<BinaryOperator>(&inst)) {
-    return translateBinaryOperator(inst);
+    return translateBinaryOperator(dyn_cast<BinaryOperator>(&inst));
   }
 
   if (isa<CmpInst>(&inst)) {
@@ -269,24 +270,24 @@ ref<CoqExpr> ModuleTranslator::translateInst(Instruction &inst) {
   }
 
   if (isa<UnreachableInst>(&inst)) {
-    return translateUnreachableInst();
+    return translateUnreachableInst(dyn_cast<UnreachableInst>(&inst));
   }
 
   assert(false);
 }
 
-ref<CoqExpr> ModuleTranslator::translateBinaryOperator(Instruction &inst) {
-  Value *v1 = inst.getOperand(0);
-  Value *v2 = inst.getOperand(1);
+ref<CoqExpr> ModuleTranslator::translateBinaryOperator(BinaryOperator *inst) {
+  Value *v1 = inst->getOperand(0);
+  Value *v2 = inst->getOperand(1);
 
   assert(v1->getType() == v2->getType());
   Type *operandType = v1->getType();
 
-  if (inst.getOpcode() == Instruction::Add) {
+  if (inst->getOpcode() == Instruction::Add) {
     return createCMDInst(
-      cmdId,
+      getInstID(inst),
       createBinOp(
-        createName(inst.getName().str()),
+        createName(inst->getName().str()),
         new CoqApplication(
           new CoqVariable("LLVMAst.Add"),
           {new CoqVariable("false"), new CoqVariable("false"), }
@@ -333,7 +334,7 @@ ref<CoqExpr> ModuleTranslator::translateCmpInst(CmpInst *inst) {
   switch (inst->getPredicate()) {
   case ICmpInst::ICMP_SGT:
     return createCMDInst(
-      cmdId,
+      getInstID(inst),
       createCmpOp(
         createName(inst->getName().str()),
         new CoqVariable("Sgt"),
@@ -377,7 +378,7 @@ ref<CoqExpr> ModuleTranslator::translateBranchInst(BranchInst *inst) {
   if (inst->isUnconditional()) {
     BasicBlock *bb = inst->getSuccessor(0);
     return createCMDTerm(
-      cmdId,
+      getInstID(inst),
       new CoqApplication(
         new CoqVariable("TERM_UnconditionalBr"),
         { createName(bb->getName().str()), }
@@ -394,7 +395,7 @@ ref<CoqExpr> ModuleTranslator::translateBranchInst(BranchInst *inst) {
     }
 
     return createCMDTerm(
-      cmdId,
+      getInstID(inst),
       new CoqApplication(
         new CoqVariable("TERM_Br"),
         {
@@ -429,7 +430,7 @@ ref<CoqExpr> ModuleTranslator::translatePHINode(PHINode *inst) {
   }
 
   return createCMDPhi(
-    cmdId,
+    getInstID(inst),
     new CoqApplication(
       new CoqVariable("Phi"),
       {
@@ -456,7 +457,7 @@ ref<CoqExpr> ModuleTranslator::translateCallInst(CallInst *inst) {
 
   if (returnType->isVoidTy()) {
     return createCMDInst(
-      cmdId,
+      getInstID(inst),
       new CoqApplication(
         new CoqVariable("INSTR_VoidCall"),
         {
@@ -471,7 +472,7 @@ ref<CoqExpr> ModuleTranslator::translateCallInst(CallInst *inst) {
     );
   } else {
     return createCMDInst(
-      cmdId,
+      getInstID(inst),
       new CoqApplication(
         new CoqVariable("INSTR_Call"),
         {
@@ -529,7 +530,7 @@ ref<CoqExpr> ModuleTranslator::translateReturnInst(ReturnInst *inst) {
   if (v) {
     Type *returnType = v->getType();
     return createCMDTerm(
-      cmdId,
+      getInstID(inst),
       new CoqApplication(
         new CoqVariable("TERM_Ret"),
         {
@@ -542,22 +543,22 @@ ref<CoqExpr> ModuleTranslator::translateReturnInst(ReturnInst *inst) {
     );
   } else {
     return createCMDTerm(
-      cmdId,
+      getInstID(inst),
       new CoqVariable("TERM_RetVoid")
     );
   }
 }
 
-ref<CoqExpr> ModuleTranslator::translateUnreachableInst() {
+ref<CoqExpr> ModuleTranslator::translateUnreachableInst(UnreachableInst *inst) {
   return createCMDTerm(
-    cmdId,
+    getInstID(inst),
     new CoqVariable("TERM_Unreachable")
   );
 }
 
 /* TODO: manage command id's */
 /* TODO: pass the name of the constructor? */
-ref<CoqExpr> ModuleTranslator::createCMDInst(unsigned id, ref<CoqExpr> e) {
+ref<CoqExpr> ModuleTranslator::createCMDInst(uint64_t id, ref<CoqExpr> e) {
   return new CoqApplication(
     new CoqVariable("CMD_Inst"),
     {
@@ -567,7 +568,7 @@ ref<CoqExpr> ModuleTranslator::createCMDInst(unsigned id, ref<CoqExpr> e) {
   );
 }
 
-ref<CoqExpr> ModuleTranslator::createCMDTerm(unsigned id, ref<CoqExpr> e) {
+ref<CoqExpr> ModuleTranslator::createCMDTerm(uint64_t id, ref<CoqExpr> e) {
   return new CoqApplication(
     new CoqVariable("CMD_Term"),
     {
@@ -577,7 +578,7 @@ ref<CoqExpr> ModuleTranslator::createCMDTerm(unsigned id, ref<CoqExpr> e) {
   );
 }
 
-ref<CoqExpr> ModuleTranslator::createCMDPhi(unsigned id, ref<CoqExpr> e) {
+ref<CoqExpr> ModuleTranslator::createCMDPhi(uint64_t id, ref<CoqExpr> e) {
   return new CoqApplication(
     new CoqVariable("CMD_Phi"),
     {
@@ -685,6 +686,20 @@ bool ModuleTranslator::isSupportedInst(Instruction &inst) {
 
 bool ModuleTranslator::isSupportedType(Type *t) {
   return (t->isIntegerTy() || t->isVoidTy());
+}
+
+uint64_t ModuleTranslator::getInstID(Instruction *inst) {
+  uint64_t id;
+
+  auto i = instIDs.find(inst);
+  if (i == instIDs.end()) {
+    id = instIDs.size();
+    instIDs.insert(std::make_pair(inst, id));
+  } else {
+    id = i->second;
+  }
+
+  return id;
 }
 
 ModuleTranslator::~ModuleTranslator() {
