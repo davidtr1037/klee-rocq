@@ -17,6 +17,7 @@
 
 #include "ExecutionState.h"
 #include "UserSearcher.h"
+#include "ProofGenerator.h"
 
 #include "klee/ADT/RNG.h"
 #include "klee/Core/BranchTypes.h"
@@ -28,7 +29,6 @@
 #include "klee/Module/KInstruction.h"
 #include "klee/Module/KModule.h"
 #include "klee/System/Time.h"
-#include "klee/Coq/Translation.h"
 
 #include "llvm/ADT/Twine.h"
 #include "llvm/Support/raw_ostream.h"
@@ -209,14 +209,14 @@ private:
   /// Typeids used during exception handling
   std::vector<ref<Expr>> eh_typeids;
 
+  /* TODO: add docs */
+  ProofGenerator *proofGenerator;
+
   /// Return the typeid corresponding to a certain `type_info`
   ref<ConstantExpr> getEhTypeidFor(ref<Expr> type_info);
 
   llvm::Function* getTargetFunction(llvm::Value *calledVal);
 
-  /* TODO: rename */
-  ModuleTranslator *mt;
-  
   void executeInstruction(ExecutionState &state, KInstruction *ki);
 
   void run(ExecutionState &initialState);

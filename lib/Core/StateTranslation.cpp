@@ -1,7 +1,9 @@
 #include "StateTranslation.h"
 #include "ExecutionState.h"
 
+#include "klee/Module/KModule.h"
 #include "klee/Module/KInstruction.h"
+#include "klee/Module/Cell.h"
 #include "klee/Support/ErrorHandling.h"
 #include "klee/Coq/CoqLanguage.h"
 #include "klee/Coq/Translation.h"
@@ -80,6 +82,28 @@ ref<CoqExpr> StateTranslator::createPrevBID(ExecutionState &es) {
 }
 
 ref<CoqExpr> StateTranslator::createLocalStore(ExecutionState &es) {
+  //StackFrame &sf = es.stack.back();
+  //for (RegisterUpdate &ru : sf.updates) {
+  //  errs() << ru.name << " : " << ru.value << "\n";
+  //}
+
+  //for (auto i = sf.updates.rbegin(); i != sf.updates.rend(); i++) {
+  //  RegisterUpdate &ru = *i;
+  //  if (ru.value.isNull()) {
+  //    continue;
+  //  }
+  //}
+
+  //for (unsigned i = 0; i < sf.kf->numRegisters; i++) {
+  //  ref<Expr> e = sf.locals[i].value;
+  //  if (!e.isNull()) {
+  //    Instruction *inst = sf.kf->getInstruction(i);
+  //    errs() << *inst << "\n";
+  //    errs() << inst->getName() << "\n";
+  //    errs() << sf.locals[i].value << "\n";
+  //  }
+  //}
+
   return new CoqVariable("None");
 }
 

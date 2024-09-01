@@ -27,6 +27,7 @@
 #include "StatsTracker.h"
 #include "TimingSolver.h"
 #include "UserSearcher.h"
+#include "ProofGenerator.h"
 
 #include "klee/ADT/KTest.h"
 #include "klee/ADT/RNG.h"
@@ -118,6 +119,11 @@ cl::OptionCategory
 
 cl::OptionCategory TestGenCat("Test generation options",
                               "These options impact test generation.");
+
+cl::OptionCategory ProofGenerationCat(
+  "Proof generation options",
+  "These options impact proof generation."
+);
 
 cl::opt<std::string> MaxTime(
     "max-time",
@@ -471,6 +477,12 @@ cl::opt<bool> DebugCheckForImpliedValues(
     "debug-check-for-implied-values", cl::init(false),
     cl::desc("Debug the implied value optimization"),
     cl::cat(DebugCat));
+
+cl::opt<std::string> ProofOutputPath(
+  "proof-output-path",
+  cl::desc(""),
+  cl::value_desc(""),
+  cl::cat(ProofGenerationCat));
 
 } // namespace
 
@@ -3610,9 +3622,14 @@ void Executor::doDumpStates() {
 void Executor::run(ExecutionState &initialState) {
   bindModuleConstants();
 
-  /* TODO: remove from here */
-  mt = new ModuleTranslator(*kmodule->module);
-  mt->translateModule();
+  /* TODO: should be here? */
+  std::string error;
+  std::unique_ptr<raw_fd_ostream> os = klee_open_output_file(ProofOutputPath, error);
+  if (!os) {
+    klee_error("failed to open file '%s' error '%s'", ProofOutputPath.c_str(), error.c_str());
+  }
+  proofGenerator = new ProofGenerator(*kmodule->module, *os);
+  proofGenerator->generate();
 
   // Delay init till now so that ticks don't accrue during optimization and such.
   timers.reset();
@@ -3695,11 +3712,10 @@ void Executor::run(ExecutionState &initialState) {
     stepInstruction(state);
 
     errs() << "executing " << *ki->inst << "\n";
-    StateTranslator st(*mt);
-    if (mt->isSupportedInst(*state.prevPC->inst)) {
+    if (proofGenerator->moduleTranslator->isSupportedInst(*state.prevPC->inst)) {
       errs() << "supported " << *state.prevPC->inst << "\n";
-      ref<CoqExpr> c = st.translate(state);
-      errs() << c->dump() << "\n";
+      ref<CoqExpr> e = proofGenerator->translateState(state);
+      errs() << e->dump() << "\n";
     }
 
     executeInstruction(state, ki);

@@ -35,6 +35,7 @@ namespace klee {
   extern llvm::cl::OptionCategory StatsCat;
   extern llvm::cl::OptionCategory TerminationCat;
   extern llvm::cl::OptionCategory TestGenCat;
+  extern llvm::cl::OptionCategory ProofGenerationCat;
 }
 
 #endif /* KLEE_OPTIONCATEGORIES_H */
