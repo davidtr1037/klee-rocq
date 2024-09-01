@@ -151,3 +151,13 @@ string CoqDefinition::dump(int indent) const {
   os << body->dump(indent + 1) << ".\n";
   return os.str();
 }
+
+static klee::ref<CoqExpr> coqNone = nullptr;
+
+/* TODO: use where needed */
+klee::ref<CoqExpr> klee::createNone() {
+  if (coqNone.isNull()) {
+    coqNone = new CoqVariable("None");
+  }
+  return coqNone;
+}

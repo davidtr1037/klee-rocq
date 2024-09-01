@@ -139,6 +139,8 @@ public:
 
 };
 
+ref<CoqExpr> createNone();
+
 }
 
 #endif

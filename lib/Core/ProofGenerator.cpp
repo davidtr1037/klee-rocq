@@ -33,6 +33,7 @@ void ProofGenerator::generate() {
 void ProofGenerator::generateGlobalDefs() {
   vector<ref<CoqExpr>> requiredDefs;
 
+  /* TODO: add a general mechanism for aliasing */
   string globalStoreAlias = "gs";
   ref<CoqExpr> coqGlobalStoreDef = new CoqDefinition(
     globalStoreAlias,
@@ -85,6 +86,7 @@ void ProofGenerator::generateModule() {
 }
 
 void ProofGenerator::generateState(ExecutionState &es) {
+  /* TODO: add a state id to ExecutionState */
   static uint64_t sid = 0;
   ref<CoqExpr> coqState = translateState(es);
   ref<CoqExpr> coqStateDef = new CoqDefinition(
@@ -182,7 +184,22 @@ klee::ref<CoqExpr> ProofGenerator::translateRegisterUpdates(list<RegisterUpdate>
 
 /* TODO: ... */
 klee::ref<CoqExpr> ProofGenerator::createStack(ExecutionState &es) {
-  return new CoqList({});
+  vector<ref<CoqExpr>> frames;
+
+  for (unsigned i = 0; i < es.stack.size() - 1; i++) {
+    StackFrame &sf = es.stack[i];
+    ref<CoqExpr> e = new CoqApplication(
+      new CoqVariable("Sym_Frame"),
+      {
+        translateRegisterUpdates(sf.updates),
+        createInstCounter(es), /* TODO: fix */
+        createNone(), /* TODO: fix */
+        createNone(), /* TODO: fix */
+      }
+    );
+    frames.push_back(e);
+  }
+  return new CoqList(frames);
 }
 
 klee::ref<CoqExpr> ProofGenerator::createGlobalStore(ExecutionState &es) {
