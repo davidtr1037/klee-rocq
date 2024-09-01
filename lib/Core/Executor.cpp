@@ -2100,6 +2100,7 @@ void Executor::transferToBasicBlock(BasicBlock *dst, BasicBlock *src,
   if (state.pc->inst->getOpcode() == Instruction::PHI) {
     PHINode *first = static_cast<PHINode*>(state.pc->inst);
     state.incomingBBIndex = first->getBasicBlockIndex(src);
+    state.stack.back().incomingBB = src;
   }
 }
 

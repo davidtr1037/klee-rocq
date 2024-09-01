@@ -23,6 +23,8 @@
 #include "klee/Solver/Solver.h"
 #include "klee/System/Time.h"
 
+#include "llvm/IR/Module.h"
+
 #include <list>
 #include <map>
 #include <memory>
@@ -73,6 +75,8 @@ struct StackFrame {
   MemoryObject *varargs;
 
   std::list<RegisterUpdate> updates;
+
+  llvm::BasicBlock *incomingBB;
 
   StackFrame(KInstIterator caller, KFunction *kf);
   StackFrame(const StackFrame &s);

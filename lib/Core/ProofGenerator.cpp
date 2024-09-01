@@ -156,7 +156,12 @@ klee::ref<CoqExpr> ProofGenerator::createTrailingCommands(ExecutionState &es) {
 }
 
 klee::ref<CoqExpr> ProofGenerator::createPrevBID(ExecutionState &es) {
-  return new CoqVariable("None");
+  StackFrame &sf = es.stack.back();
+  if (sf.incomingBB) {
+    return createSome(moduleTranslator->createName(sf.incomingBB->getName().str()));
+  } else {
+    return createNone();
+  }
 }
 
 klee::ref<CoqExpr> ProofGenerator::createLocalStore(ExecutionState &es) {

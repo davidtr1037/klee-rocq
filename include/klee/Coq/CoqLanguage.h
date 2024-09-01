@@ -157,6 +157,8 @@ public:
 
 ref<CoqExpr> createNone();
 
+ref<CoqExpr> createSome(ref<CoqExpr> e);
+
 }
 
 #endif

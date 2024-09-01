@@ -214,3 +214,13 @@ klee::ref<CoqExpr> klee::createNone() {
   }
   return coqNone;
 }
+
+static klee::ref<CoqExpr> coqSomeConstructor = nullptr;
+
+/* TODO: use where needed */
+klee::ref<CoqExpr> klee::createSome(ref<CoqExpr> e) {
+  if (coqSomeConstructor.isNull()) {
+    coqSomeConstructor = new CoqVariable("Some");
+  }
+  return new CoqApplication(coqSomeConstructor, {e});
+}

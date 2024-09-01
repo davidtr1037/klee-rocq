@@ -54,6 +54,7 @@ StackFrame::StackFrame(KInstIterator _caller, KFunction *_kf)
   : caller(_caller), kf(_kf), callPathNode(0), 
     minDistToUncoveredOnReturn(0), varargs(0) {
   locals = new Cell[kf->numRegisters];
+  incomingBB = nullptr;
 }
 
 StackFrame::StackFrame(const StackFrame &s) 
@@ -63,7 +64,8 @@ StackFrame::StackFrame(const StackFrame &s)
     allocas(s.allocas),
     minDistToUncoveredOnReturn(s.minDistToUncoveredOnReturn),
     varargs(s.varargs),
-    updates(s.updates) {
+    updates(s.updates),
+    incomingBB(s.incomingBB) {
   locals = new Cell[s.kf->numRegisters];
   for (unsigned i=0; i<s.kf->numRegisters; i++)
     locals[i] = s.locals[i];
