@@ -402,6 +402,7 @@ void ExecutionState::addCexPreference(const ref<Expr> &cond) {
 
 void ExecutionState::addArgument(const std::string &name, const ref<Expr> &value) {
   std::list<RegisterUpdate> &updates = stack.back().updates;
+  /* TODO: this can be avoided by modifying the proof */
   updates.push_front(RegisterUpdate(name, value));
 }
 
