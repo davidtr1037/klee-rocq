@@ -13,7 +13,6 @@ ExprTranslator::ExprTranslator() {
 
 }
 
-/* TODO: return nullptr instead of assertions */
 ref<CoqExpr> ExprTranslator::translate(ref<Expr> e,
                                        ArrayTranslation *m) {
   if (isa<ConstantExpr>(e)) {
@@ -40,7 +39,6 @@ ref<CoqExpr> ExprTranslator::translate(ref<Expr> e,
     return translateConcatExpr(dyn_cast<ConcatExpr>(e), m);
   }
 
-  assert(false);
   return nullptr;
 }
 
@@ -165,8 +163,8 @@ ref<CoqExpr> ExprTranslator::translateCmpExpr(ref<CmpExpr> e,
 ref<CoqExpr> ExprTranslator::translateConcatExpr(ref<ConcatExpr> e,
                                                  ArrayTranslation *m) {
   if (!m) {
-    /* TODO: must provide an array translation map */
-    assert(false);
+    /* must provide an array translation map */
+    return nullptr;
   }
 
   if (isa<ReadExpr>(e->getLeft())) {
@@ -174,15 +172,13 @@ ref<CoqExpr> ExprTranslator::translateConcatExpr(ref<ConcatExpr> e,
     const Array *array = re->updates.root;
     if (array && array->isSymbolicArray()) {
       auto i = m->find(array);
-      if (i == m->end()) {
-        assert(false);
-      } else {
+      if (i != m->end()) {
         return i->second;
       }
     }
   }
 
-  assert(false);
+  return nullptr;
 }
 
 ref<CoqExpr> ExprTranslator::createSMTVar(unsigned width,
