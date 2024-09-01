@@ -59,7 +59,8 @@ public:
 
   ref<CoqExpr> createLocalStore(ExecutionState &es);
 
-  ref<CoqExpr> translateRegisterUpdates(std::list<RegisterUpdate> &updates);
+  ref<CoqExpr> translateRegisterUpdates(ExecutionState &es,
+                                        std::list<RegisterUpdate> &updates);
 
   ref<CoqExpr> createStack(ExecutionState &es);
 

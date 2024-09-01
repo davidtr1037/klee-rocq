@@ -13,13 +13,15 @@ ExprTranslator::ExprTranslator() {
 
 }
 
-ref<CoqExpr> ExprTranslator::translate(ref<Expr> e) {
+/* TODO: return nullptr instead of assertions */
+ref<CoqExpr> ExprTranslator::translate(ref<Expr> e,
+                                       ArrayTranslation *m) {
   if (isa<ConstantExpr>(e)) {
     return translateConstantExpr(dyn_cast<ConstantExpr>(e));
   }
 
   if (isa<CmpExpr>(e)) {
-    return translateCmpExpr(dyn_cast<CmpExpr>(e));
+    return translateCmpExpr(dyn_cast<CmpExpr>(e), m);
   }
 
   if (isa<BinaryExpr>(e)) {
@@ -27,13 +29,18 @@ ref<CoqExpr> ExprTranslator::translate(ref<Expr> e) {
     ref<Expr> left = be->left;
     ref<Expr> right = be->right;
     if (isa<AddExpr>(e)) {
-      return createSMTBinOp("SMT_Add", left, right);
+      return createSMTBinOp("SMT_Add", left, right, m);
     }
     if (isa<AndExpr>(e)) {
-      return createSMTBinOp("SMT_And", left, right);
+      return createSMTBinOp("SMT_And", left, right, m);
     }
   }
 
+  if (isa<ConcatExpr>(e)) {
+    return translateConcatExpr(dyn_cast<ConcatExpr>(e), m);
+  }
+
+  assert(false);
   return nullptr;
 }
 
@@ -84,18 +91,20 @@ ref<CoqExpr> ExprTranslator::translateConstantExpr(ref<ConstantExpr> e) {
 
 ref<CoqExpr> ExprTranslator::createSMTBinOp(std::string op,
                                             ref<Expr> left,
-                                            ref<Expr> right) {
+                                            ref<Expr> right,
+                                            ArrayTranslation *m) {
   return new CoqApplication(
     new CoqVariable("SMT_BinOp"),
     {
       new CoqVariable(op),
-      translate(left),
-      translate(right),
+      translate(left, m),
+      translate(right, m),
     }
   );
 }
 
-ref<CoqExpr> ExprTranslator::translateCmpExpr(ref<CmpExpr> e) {
+ref<CoqExpr> ExprTranslator::translateCmpExpr(ref<CmpExpr> e,
+                                              ArrayTranslation *m) {
   std::string op;
 
   switch (e->getKind()) {
@@ -147,9 +156,66 @@ ref<CoqExpr> ExprTranslator::translateCmpExpr(ref<CmpExpr> e) {
     new CoqVariable("SMT_CmpOp"),
     {
       new CoqVariable(op),
-      translate(e->left),
-      translate(e->right),
+      translate(e->left, m),
+      translate(e->right, m),
     }
+  );
+}
+
+ref<CoqExpr> ExprTranslator::translateConcatExpr(ref<ConcatExpr> e,
+                                                 ArrayTranslation *m) {
+  if (!m) {
+    /* TODO: must provide an array translation map */
+    assert(false);
+  }
+
+  if (isa<ReadExpr>(e->getLeft())) {
+    ReadExpr *re = dyn_cast<ReadExpr>(e->getLeft());
+    const Array *array = re->updates.root;
+    if (array && array->isSymbolicArray()) {
+      auto i = m->find(array);
+      if (i == m->end()) {
+        assert(false);
+      } else {
+        return i->second;
+      }
+    }
+  }
+
+  assert(false);
+}
+
+ref<CoqExpr> ExprTranslator::createSMTVar(unsigned width,
+                                          ref<CoqExpr> name) {
+  std::string constructor;
+  switch (width) {
+  case 1:
+    constructor = "SMT_Var_I1";
+    break;
+
+  case 8:
+    constructor = "SMT_Var_I8";
+    break;
+
+  case 16:
+    constructor = "SMT_Var_I16";
+    break;
+
+  case 32:
+    constructor = "SMT_Var_I32";
+    break;
+
+  case 64:
+    constructor = "SMT_Var_I64";
+    break;
+
+  default:
+    assert(false);
+  }
+
+  return new CoqApplication(
+    new CoqVariable(constructor),
+    {name}
   );
 }
 

@@ -175,6 +175,10 @@ void ExecutionState::addSymbolic(const MemoryObject *mo, const Array *array) {
   symbolics.emplace_back(ref<const MemoryObject>(mo), array);
 }
 
+void ExecutionState::addArrayTranslation(const Array *array, ref<CoqExpr> e) {
+  arrayTranslation.insert(std::make_pair(array, e));
+}
+
 /**/
 
 llvm::raw_ostream &klee::operator<<(llvm::raw_ostream &os, const MemoryMap &mm) {

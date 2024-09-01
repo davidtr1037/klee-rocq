@@ -171,10 +171,11 @@ klee::ref<CoqExpr> ProofGenerator::createPrevBID(StackFrame &sf) {
 }
 
 klee::ref<CoqExpr> ProofGenerator::createLocalStore(ExecutionState &es) {
-  return translateRegisterUpdates(es.stack.back().updates);
+  return translateRegisterUpdates(es, es.stack.back().updates);
 }
 
-klee::ref<CoqExpr> ProofGenerator::translateRegisterUpdates(list<RegisterUpdate> &updates) {
+klee::ref<CoqExpr> ProofGenerator::translateRegisterUpdates(ExecutionState &es,
+                                                            list<RegisterUpdate> &updates) {
   ostringstream output;
 
   output << "(";
@@ -185,7 +186,7 @@ klee::ref<CoqExpr> ProofGenerator::translateRegisterUpdates(list<RegisterUpdate>
     }
 
     ref<CoqExpr> coq_name = moduleTranslator->createName(ru.name);
-    ref<CoqExpr> coq_expr = exprTranslator->translate(ru.value);
+    ref<CoqExpr> coq_expr = exprTranslator->translate(ru.value, &es.arrayTranslation);
     output << coq_name->dump() << " !-> " << "Some (" << coq_expr->dump() << "); ";
   }
 
@@ -217,7 +218,7 @@ klee::ref<CoqExpr> ProofGenerator::createStack(ExecutionState &es) {
     ref<CoqExpr> e = new CoqApplication(
       new CoqVariable("Sym_Frame"),
       {
-        translateRegisterUpdates(sf.updates),
+        translateRegisterUpdates(es, sf.updates),
         createInstCounter(next),
         createPrevBID(sf),
         v,
@@ -271,7 +272,7 @@ klee::ref<CoqExpr> ProofGenerator::createPC(ExecutionState &es) {
   for (ref<Expr> e : es.constraints) {
     pc = AndExpr::create(pc, e);
   }
-  return exprTranslator->translate(pc);
+  return exprTranslator->translate(pc, &es.arrayTranslation);
 }
 
 klee::ref<CoqExpr> ProofGenerator::createModule() {

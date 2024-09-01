@@ -4644,8 +4644,16 @@ void Executor::executeMakeSymbolic(ExecutionState &state,
     }
     const Array *array = arrayCache.CreateArray(uniqueName, mo->size);
     bindObjectInState(state, mo, false, array);
+
+    /* TODO: must happen before calling addSymbolic */
+    unsigned index = state.symbolics.size();
+    ref<CoqExpr> coqName = proofGenerator->getSymbolicName(index);
+    ref<CoqExpr> coqSMTVar = \
+      proofGenerator->exprTranslator->createSMTVar(array->size * 8, coqName);
+    state.addArrayTranslation(array, coqSMTVar);
+
     state.addSymbolic(mo, array);
-    
+
     auto found = seedMap.find(&state);
     if (found != seedMap.end()) {
       // In seed mode we need to add this as binding

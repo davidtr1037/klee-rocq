@@ -22,6 +22,8 @@
 #include "klee/Module/KInstIterator.h"
 #include "klee/Solver/Solver.h"
 #include "klee/System/Time.h"
+#include "klee/Coq/CoqLanguage.h"
+#include "klee/Coq/ExprTranslation.h"
 
 #include "llvm/IR/Module.h"
 
@@ -232,6 +234,9 @@ public:
   // FIXME: Move to a shared list structure (not critical).
   std::vector<std::pair<ref<const MemoryObject>, const Array *>> symbolics;
 
+  /* TODO: add docs */
+  ArrayTranslation arrayTranslation;
+
   /// @brief A set of boolean expressions
   /// the user has requested be true of a counterexample.
   ImmutableSet<ref<Expr>> cexPreferences;
@@ -295,6 +300,8 @@ public:
   void deallocate(const MemoryObject *mo);
 
   void addSymbolic(const MemoryObject *mo, const Array *array);
+
+  void addArrayTranslation(const Array *array, ref<CoqExpr> e);
 
   void addConstraint(ref<Expr> e);
   void addCexPreference(const ref<Expr> &cond);
