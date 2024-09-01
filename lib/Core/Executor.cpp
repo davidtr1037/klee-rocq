@@ -1307,7 +1307,7 @@ void Executor::bindArgument(KFunction *kf, unsigned index,
   getArgumentCell(state, kf, index).value = value;
   /* TODO: test and add docs */
   Argument *arg = kf->function->getArg(index);
-  state.addRegisterUpdate(arg->getName().str(), value);
+  state.addArgument(arg->getName().str(), value);
 }
 
 ref<Expr> Executor::toUnique(const ExecutionState &state, 

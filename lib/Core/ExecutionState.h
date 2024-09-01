@@ -306,6 +306,8 @@ public:
   void setID() { id = nextID++; };
   static std::uint32_t getLastID() { return nextID - 1; };
 
+  void addArgument(const std::string &name, const ref<Expr> &value);
+
   void addRegisterUpdate(const std::string &name, const ref<Expr> &value);
 };
 
