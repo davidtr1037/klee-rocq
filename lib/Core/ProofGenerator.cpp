@@ -193,7 +193,6 @@ klee::ref<CoqExpr> ProofGenerator::translateRegisterUpdates(list<RegisterUpdate>
   return new CoqVariable(output.str());
 }
 
-/* TODO: ... */
 klee::ref<CoqExpr> ProofGenerator::createStack(ExecutionState &es) {
   vector<ref<CoqExpr>> frames;
 
@@ -233,9 +232,38 @@ klee::ref<CoqExpr> ProofGenerator::createGlobalStore(ExecutionState &es) {
   return coqGlobalStoreAlias;
 }
 
-/* TODO: ... */
 klee::ref<CoqExpr> ProofGenerator::createSymbolics(ExecutionState &es) {
-  return new CoqList({});
+  if (es.symbolics.empty()) {
+    return createEmptyList();
+  } else {
+    return getSymbolicNames(es.symbolics.size() - 1);
+  }
+}
+
+klee::ref<CoqExpr> ProofGenerator::getSymbolicName(unsigned index) {
+  ref<CoqExpr> arg;
+  if (index == 0) {
+    arg = createEmptyList();
+  } else {
+    arg = getSymbolicNames(index - 1);
+  }
+  return new CoqApplication(
+    new CoqVariable("fresh_name"),
+    {arg}
+  );
+}
+
+klee::ref<CoqExpr> ProofGenerator::getSymbolicNames(unsigned index) {
+  ref<CoqExpr> arg;
+  if (index == 0) {
+    arg = createEmptyList();
+  } else {
+    arg = getSymbolicNames(index - 1);
+  }
+  return new CoqApplication(
+    new CoqVariable("extend_names"),
+    {arg}
+  );
 }
 
 klee::ref<CoqExpr> ProofGenerator::createPC(ExecutionState &es) {

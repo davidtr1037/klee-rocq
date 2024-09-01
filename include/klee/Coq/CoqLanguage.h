@@ -155,6 +155,8 @@ public:
     std::string pretty_dump(int indent = 0) const;
 };
 
+ref<CoqExpr> createEmptyList();
+
 ref<CoqExpr> createNone();
 
 ref<CoqExpr> createSome(ref<CoqExpr> e);

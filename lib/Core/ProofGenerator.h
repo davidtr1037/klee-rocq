@@ -67,6 +67,10 @@ public:
 
   ref<CoqExpr> createSymbolics(ExecutionState &es);
 
+  ref<CoqExpr> getSymbolicName(unsigned index);
+
+  ref<CoqExpr> getSymbolicNames(unsigned index);
+
   ref<CoqExpr> createPC(ExecutionState &es);
 
   ref<CoqExpr> createModule();

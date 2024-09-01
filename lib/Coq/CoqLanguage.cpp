@@ -205,6 +205,16 @@ string CoqDefinition::pretty_dump(int indent) const {
   return os.str();
 }
 
+static klee::ref<CoqExpr> coqEmptyList = nullptr;
+
+/* TODO: use where needed */
+klee::ref<CoqExpr> klee::createEmptyList() {
+  if (coqEmptyList.isNull()) {
+    coqEmptyList = new CoqList({});
+  }
+  return coqEmptyList;
+}
+
 static klee::ref<CoqExpr> coqNone = nullptr;
 
 /* TODO: use where needed */
