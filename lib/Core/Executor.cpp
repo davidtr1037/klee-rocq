@@ -1286,11 +1286,16 @@ const Cell& Executor::eval(KInstruction *ki, unsigned index,
 void Executor::bindLocal(KInstruction *target, ExecutionState &state, 
                          ref<Expr> value) {
   getDestCell(state, target).value = value;
+  /* TODO: add docs */
+  state.addRegisterUpdate(target->inst->getName().str(), value);
 }
 
 void Executor::bindArgument(KFunction *kf, unsigned index, 
                             ExecutionState &state, ref<Expr> value) {
   getArgumentCell(state, kf, index).value = value;
+  /* TODO: test and add docs */
+  Argument *arg = kf->function->getArg(index);
+  state.addRegisterUpdate(arg->getName().str(), value);
 }
 
 ref<Expr> Executor::toUnique(const ExecutionState &state, 
@@ -3605,6 +3610,10 @@ void Executor::doDumpStates() {
 void Executor::run(ExecutionState &initialState) {
   bindModuleConstants();
 
+  /* TODO: remove from here */
+  mt = new ModuleTranslator(*kmodule->module);
+  mt->translateModule();
+
   // Delay init till now so that ticks don't accrue during optimization and such.
   timers.reset();
 
@@ -3684,6 +3693,14 @@ void Executor::run(ExecutionState &initialState) {
     ExecutionState &state = searcher->selectState();
     KInstruction *ki = state.pc;
     stepInstruction(state);
+
+    errs() << "executing " << *ki->inst << "\n";
+    StateTranslator st(*mt);
+    if (mt->isSupportedInst(*state.prevPC->inst)) {
+      errs() << "supported " << *state.prevPC->inst << "\n";
+      ref<CoqExpr> c = st.translate(state);
+      errs() << c->dump() << "\n";
+    }
 
     executeInstruction(state, ki);
     timers.invoke();

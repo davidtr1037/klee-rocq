@@ -21,6 +21,7 @@ add_library(kleeCore
   ImpliedValue.cpp
   Memory.cpp
   MemoryManager.cpp
+  ProofGenerator.cpp
   Searcher.cpp
   SeedInfo.cpp
   SpecialFunctionHandler.cpp

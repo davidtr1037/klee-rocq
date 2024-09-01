@@ -1,5 +1,5 @@
 #include "klee/Coq/CoqLanguage.h"
-#include "klee/Coq/Proof.h"
+#include "ProofGenerator.h"
 
 #include <string>
 #include <sstream>

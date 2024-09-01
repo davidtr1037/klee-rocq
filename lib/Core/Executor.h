@@ -28,6 +28,7 @@
 #include "klee/Module/KInstruction.h"
 #include "klee/Module/KModule.h"
 #include "klee/System/Time.h"
+#include "klee/Coq/Translation.h"
 
 #include "llvm/ADT/Twine.h"
 #include "llvm/Support/raw_ostream.h"
@@ -212,6 +213,9 @@ private:
   ref<ConstantExpr> getEhTypeidFor(ref<Expr> type_info);
 
   llvm::Function* getTargetFunction(llvm::Value *calledVal);
+
+  /* TODO: rename */
+  ModuleTranslator *mt;
   
   void executeInstruction(ExecutionState &state, KInstruction *ki);
 

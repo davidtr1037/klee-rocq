@@ -9,7 +9,6 @@
 add_library(kleeCoq
     CoqLanguage.cpp
     ExprTranslation.cpp
-    Proof.cpp
     Translation.cpp
 )
 

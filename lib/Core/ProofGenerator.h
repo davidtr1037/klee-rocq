@@ -1,5 +1,5 @@
-#ifndef KLEE_PROOF_H
-#define KLEE_PROOF_H
+#ifndef KLEE_PROOF_GENERATOR_H
+#define KLEE_PROOF_GENERATOR_H
 
 #include "llvm/IR/Module.h"
 
