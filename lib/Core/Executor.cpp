@@ -3714,8 +3714,7 @@ void Executor::run(ExecutionState &initialState) {
     errs() << "executing " << *ki->inst << "\n";
     if (proofGenerator->moduleTranslator->isSupportedInst(*state.prevPC->inst)) {
       errs() << "supported " << *state.prevPC->inst << "\n";
-      ref<CoqExpr> e = proofGenerator->translateState(state);
-      errs() << e->dump() << "\n";
+      proofGenerator->generateState(state);
     }
 
     executeInstruction(state, ki);

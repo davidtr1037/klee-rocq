@@ -44,7 +44,7 @@ ref<CoqExpr> ExprTranslator::translateConstantExpr(ref<ConstantExpr> e) {
   switch (e->getWidth()) {
   case Expr::Bool:
     smt_constructor = "SMT_Const_I1";
-    repr = "Int.repr";
+    repr = "Int1.repr";
     break;
 
   case Expr::Int8:

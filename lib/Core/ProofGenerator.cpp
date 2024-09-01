@@ -19,13 +19,32 @@ ProofGenerator::ProofGenerator(Module &m, raw_ostream &output) : m(m), output(ou
   exprTranslator = new ExprTranslator();
 
   /* TODO: add shared definitions (global store, etc.) */
-  coqGlobalStoreAlias = new CoqVariable("gs");
+  coqModuleAlias = nullptr;
+  coqGlobalStoreAlias = nullptr;
 }
 
 /* TODO: rename */
 void ProofGenerator::generate() {
   generateImports();
+  generateGlobalDefs();
   generateModule();
+}
+
+void ProofGenerator::generateGlobalDefs() {
+  vector<ref<CoqExpr>> requiredDefs;
+
+  string globalStoreAlias = "gs";
+  ref<CoqExpr> coqGlobalStoreDef = new CoqDefinition(
+    globalStoreAlias,
+    "smt_store",
+    {new CoqVariable("empty_smt_store")}
+  );
+  requiredDefs.push_back(coqGlobalStoreDef);
+  coqGlobalStoreAlias = new CoqVariable(globalStoreAlias);
+
+  for (ref<CoqExpr> def : requiredDefs) {
+    output << def->dump() << "\n";
+  }
 }
 
 void ProofGenerator::generateModule() {
@@ -63,6 +82,18 @@ void ProofGenerator::generateModule() {
 
   /* set aliases */
   coqModuleAlias = new CoqVariable(alias);
+}
+
+void ProofGenerator::generateState(ExecutionState &es) {
+  static uint64_t sid = 0;
+  ref<CoqExpr> coqState = translateState(es);
+  ref<CoqExpr> coqStateDef = new CoqDefinition(
+    "s_" + to_string(sid++),
+    "sym_state",
+    coqState
+  );
+
+  output << coqStateDef->dump() << "\n";
 }
 
 klee::ref<CoqExpr> ProofGenerator::translateState(ExecutionState &es) {
@@ -132,6 +163,8 @@ klee::ref<CoqExpr> ProofGenerator::createLocalStore(ExecutionState &es) {
 
 klee::ref<CoqExpr> ProofGenerator::translateRegisterUpdates(list<RegisterUpdate> &updates) {
   ostringstream output;
+
+  output << "(";
   for (auto i = updates.rbegin(); i != updates.rend(); i++) {
     RegisterUpdate &ru = *i;
     if (ru.value.isNull()) {
@@ -140,10 +173,10 @@ klee::ref<CoqExpr> ProofGenerator::translateRegisterUpdates(list<RegisterUpdate>
 
     ref<CoqExpr> coq_name = moduleTranslator->createName(ru.name);
     ref<CoqExpr> coq_expr = exprTranslator->translate(ru.value);
-    output << coq_name->dump() << " !-> " << "(" << coq_expr->dump() << "); ";
+    output << coq_name->dump() << " !-> " << "Some (" << coq_expr->dump() << "); ";
   }
 
-  output << "empty_smt_store";
+  output << "empty_smt_store)";
   return new CoqVariable(output.str());
 }
 

@@ -37,7 +37,11 @@ public:
 
   void generate();
 
+  void generateGlobalDefs();
+
   void generateModule();
+
+  void generateState(ExecutionState &es);
 
   ref<CoqExpr> translateState(ExecutionState &es);
 
