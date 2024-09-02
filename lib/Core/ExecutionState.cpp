@@ -109,6 +109,7 @@ ExecutionState::ExecutionState(const ExecutionState& state):
     symPathOS(state.symPathOS),
     coveredLines(state.coveredLines),
     symbolics(state.symbolics),
+    arrayTranslation(state.arrayTranslation),
     cexPreferences(state.cexPreferences),
     arrayNames(state.arrayNames),
     openMergeStack(state.openMergeStack),
