@@ -155,11 +155,74 @@ public:
     std::string pretty_dump(int indent = 0) const;
 };
 
+class CoqLemma : public CoqExpr {
+
+public:
+
+    std::string name;
+    ref<CoqExpr> body;
+    ref<CoqExpr> proof;
+    bool isAdmitted;
+
+    CoqLemma(const std::string &name,
+             const ref<CoqExpr> &body,
+             const ref<CoqExpr> &proof,
+             bool isAdmitted = false);
+
+    std::string dump() const;
+};
+
 ref<CoqExpr> createEmptyList();
 
 ref<CoqExpr> createNone();
 
 ref<CoqExpr> createSome(ref<CoqExpr> e);
+
+class CoqTactic : public CoqExpr {
+
+public:
+
+    std::string dump() const;
+
+    std::string pretty_dump(int indent = 0) const;
+};
+
+class BasicTactic : public CoqTactic {
+
+public:
+
+    std::string name;
+
+    std::vector<ref<CoqExpr>> args;
+
+    BasicTactic(const std::string &name, const std::vector<ref<CoqExpr>> &args);
+
+    std::string dump() const;
+};
+
+class Admit : public BasicTactic {
+
+public:
+
+  Admit() : BasicTactic("admit", {}) {}
+
+};
+
+class Apply : public CoqTactic {
+
+public:
+
+  std::string name;
+
+  std::vector<ref<CoqExpr>> args;
+
+  Apply(const std::string &name) : name(name) {}
+
+  Apply(const std::string &name, const std::vector<ref<CoqExpr>> &args) :
+    name(name), args(args) {}
+
+  std::string dump() const;
+};
 
 }
 

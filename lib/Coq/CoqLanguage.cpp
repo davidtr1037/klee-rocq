@@ -205,6 +205,27 @@ string CoqDefinition::pretty_dump(int indent) const {
   return os.str();
 }
 
+CoqLemma::CoqLemma(const std::string &name,
+                   const ref<CoqExpr> &body,
+                   const ref<CoqExpr> &proof,
+                   bool isAdmitted) :
+  name(name), body(body), proof(proof), isAdmitted(isAdmitted) {
+
+}
+
+string CoqLemma::dump() const {
+  std::ostringstream os;
+  os << "Lemma " << name << " : " << body->dump() << ".\n";
+  os << "Proof.\n";
+  if (isAdmitted) {
+    os << "Admitted.\n";
+  } else {
+    os << proof->dump() << "\n";
+    os << "Qed.\n";
+  }
+  return os.str();
+}
+
 static klee::ref<CoqExpr> coqEmptyList = nullptr;
 
 /* TODO: use where needed */
@@ -233,4 +254,43 @@ klee::ref<CoqExpr> klee::createSome(ref<CoqExpr> e) {
     coqSomeConstructor = new CoqVariable("Some");
   }
   return new CoqApplication(coqSomeConstructor, {e});
+}
+
+/* Tactics */
+
+string CoqTactic::dump() const {
+  assert(false);
+}
+
+string CoqTactic::pretty_dump(int indent) const {
+  return dump();
+}
+
+BasicTactic::BasicTactic(const string &name, const std::vector<ref<CoqExpr>> &args) :
+  name(name), args(args) {
+
+}
+
+string BasicTactic::dump() const {
+  std::ostringstream os;
+  os << name;
+  for (ref<CoqExpr> e : args) {
+    os << " " << e->dump();
+  }
+  os << ".";
+  return os.str();
+}
+
+string Apply::dump() const {
+  std::ostringstream os;
+  if (args.empty()) {
+    os << "apply " << name << ".";
+  } else {
+    os << "apply " << "(" << name;
+    for (ref<CoqExpr> e : args) {
+      os << " " << "(" << e->dump() << ")";
+    }
+    os << ").";
+  }
+  return os.str();
 }
