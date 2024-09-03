@@ -14,8 +14,6 @@ using namespace std;
 using namespace llvm;
 using namespace klee;
 
-/* TODO: remove std:: */
-
 ProofGenerator::ProofGenerator(Module &m, raw_ostream &output) : m(m), output(output) {
   moduleTranslator = new ModuleTranslator(m);
   exprTranslator = new ExprTranslator();
@@ -141,7 +139,7 @@ klee::ref<CoqExpr> ProofGenerator::createCommand(ExecutionState &es) {
 klee::ref<CoqExpr> ProofGenerator::createTrailingCommands(ExecutionState &es) {
   BasicBlock *bb = es.prevPC->inst->getParent();
 
-  std::vector<ref<CoqExpr>> coq_insts;
+  vector<ref<CoqExpr>> coq_insts;
 
   /* TODO: use the pc/prevPC iterators */
   bool found = false;
