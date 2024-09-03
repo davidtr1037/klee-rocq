@@ -421,7 +421,23 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForSat(StateInfo &si,
 
 klee::ref<CoqTactic> ProofGenerator::getEquivTactic(StateInfo &si,
                                                     ExecutionState &successor) {
-  return new Block({new Admit()});
+  if (isa<BinaryOperator>(si.inst)) {
+    return new Block(
+      {
+        new Apply("EquivSymState"),
+        new Block(
+          {
+            new Admit(),
+          }
+        ),
+        new Block({new Apply("equiv_sym_stack_refl")}),
+        new Block({new Apply("equiv_smt_store_refl")}),
+        new Block({new Apply("equiv_smt_expr_refl")}),
+      }
+    );
+  }
+
+  assert(false);
 }
 
 klee::ref<CoqTactic> ProofGenerator::getTacticForSubtree(ref<CoqTactic> safetyTactic,
