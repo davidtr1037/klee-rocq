@@ -269,15 +269,18 @@ public:
   /// @brief Disables forking for this state. Set by user code
   bool forkDisabled = false;
 
-  /* TODO: add docs */
-  uint64_t stepID;
-
   /// @brief Mapping symbolic address expressions to concrete base addresses
   using base_addrs_t = std::map<ref<Expr>, ref<ConstantExpr>>;
   base_addrs_t base_addrs;
   /// @brief Mapping MemoryObject addresses to refs used in the base_addrs map
   using base_mo_t = std::map<uint64_t, std::set<ref<Expr>>>;
   base_mo_t base_mos;
+
+  /* TODO: add docs */
+  uint64_t stepID;
+
+  /* TODO: add docs */
+  bool isTerminated;
 
 public:
 #ifdef KLEE_UNITTEST
@@ -321,6 +324,8 @@ public:
   void addRegisterUpdate(const std::string &name, const ref<Expr> &value);
 
   void setStepID(uint64_t id);
+
+  void markAsTerminated();
 };
 
 struct ExecutionStateIDCompare {

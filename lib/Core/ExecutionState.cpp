@@ -78,7 +78,7 @@ StackFrame::~StackFrame() {
 /***/
 
 ExecutionState::ExecutionState(KFunction *kf, MemoryManager *mm)
-    : pc(kf->instructions), prevPC(pc) {
+    : pc(kf->instructions), prevPC(pc), isTerminated(false) {
   pushFrame(nullptr, kf);
   setID();
   if (mm->stackFactory && mm->heapFactory) {
@@ -121,7 +121,8 @@ ExecutionState::ExecutionState(const ExecutionState& state):
     coveredNew(state.coveredNew),
     forkDisabled(state.forkDisabled),
     base_addrs(state.base_addrs),
-    base_mos(state.base_mos) {
+    base_mos(state.base_mos),
+    isTerminated(state.isTerminated) {
   for (const auto &cur_mergehandler: openMergeStack)
     cur_mergehandler->addOpenState(this);
 }
@@ -426,4 +427,8 @@ void ExecutionState::addRegisterUpdate(const std::string &name, const ref<Expr> 
 
 void ExecutionState::setStepID(uint64_t id) {
   stepID = id;
+}
+
+void ExecutionState::markAsTerminated() {
+  isTerminated = true;
 }
