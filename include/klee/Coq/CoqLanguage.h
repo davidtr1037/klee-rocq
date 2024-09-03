@@ -155,23 +155,6 @@ public:
     std::string pretty_dump(int indent = 0) const;
 };
 
-class CoqLemma : public CoqExpr {
-
-public:
-
-    std::string name;
-    ref<CoqExpr> body;
-    ref<CoqExpr> proof;
-    bool isAdmitted;
-
-    CoqLemma(const std::string &name,
-             const ref<CoqExpr> &body,
-             const ref<CoqExpr> &proof,
-             bool isAdmitted = false);
-
-    std::string dump() const;
-};
-
 ref<CoqExpr> createEmptyList();
 
 ref<CoqExpr> createNone();
@@ -182,9 +165,13 @@ class CoqTactic : public CoqExpr {
 
 public:
 
-    std::string dump() const;
+    CoqTactic() : CoqExpr() {}
 
-    std::string pretty_dump(int indent = 0) const;
+    virtual std::string dump() const;
+
+    virtual std::string dump(int indent) const;
+
+    virtual std::string pretty_dump(int indent = 0) const;
 };
 
 class BasicTactic : public CoqTactic {
@@ -197,7 +184,18 @@ public:
 
     BasicTactic(const std::string &name, const std::vector<ref<CoqExpr>> &args);
 
-    std::string dump() const;
+    std::string dump(int indent) const;
+};
+
+class Block : public CoqTactic {
+
+public:
+
+    std::vector<ref<CoqTactic>> tactics;
+
+    Block(const std::vector<ref<CoqTactic>> &tactics);
+
+    std::string dump(int indent) const;
 };
 
 class Admit : public BasicTactic {
@@ -220,6 +218,26 @@ public:
 
   Apply(const std::string &name, const std::vector<ref<CoqExpr>> &args) :
     name(name), args(args) {}
+
+  std::string dump(int indent) const;
+};
+
+class CoqLemma : public CoqExpr {
+
+public:
+
+  std::string name;
+
+  ref<CoqExpr> body;
+
+  ref<CoqTactic> proof;
+
+  bool isAdmitted;
+
+  CoqLemma(const std::string &name,
+           const ref<CoqExpr> &body,
+           const ref<CoqTactic> &proof,
+           bool isAdmitted = false);
 
   std::string dump() const;
 };

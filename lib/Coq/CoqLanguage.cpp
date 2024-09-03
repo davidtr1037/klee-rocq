@@ -205,27 +205,6 @@ string CoqDefinition::pretty_dump(int indent) const {
   return os.str();
 }
 
-CoqLemma::CoqLemma(const std::string &name,
-                   const ref<CoqExpr> &body,
-                   const ref<CoqExpr> &proof,
-                   bool isAdmitted) :
-  name(name), body(body), proof(proof), isAdmitted(isAdmitted) {
-
-}
-
-string CoqLemma::dump() const {
-  std::ostringstream os;
-  os << "Lemma " << name << " : " << body->dump() << ".\n";
-  os << "Proof.\n";
-  if (isAdmitted) {
-    os << "Admitted.\n";
-  } else {
-    os << proof->dump() << "\n";
-    os << "Qed.\n";
-  }
-  return os.str();
-}
-
 static klee::ref<CoqExpr> coqEmptyList = nullptr;
 
 /* TODO: use where needed */
@@ -262,8 +241,12 @@ string CoqTactic::dump() const {
   assert(false);
 }
 
+string CoqTactic::dump(int indent) const {
+  assert(false);
+}
+
 string CoqTactic::pretty_dump(int indent) const {
-  return dump();
+  return dump(indent);
 }
 
 BasicTactic::BasicTactic(const string &name, const std::vector<ref<CoqExpr>> &args) :
@@ -271,9 +254,9 @@ BasicTactic::BasicTactic(const string &name, const std::vector<ref<CoqExpr>> &ar
 
 }
 
-string BasicTactic::dump() const {
+string BasicTactic::dump(int indent) const {
   std::ostringstream os;
-  os << name;
+  os << space(indent) << name;
   for (ref<CoqExpr> e : args) {
     os << " " << e->dump();
   }
@@ -281,8 +264,24 @@ string BasicTactic::dump() const {
   return os.str();
 }
 
-string Apply::dump() const {
+Block::Block(const std::vector<ref<CoqTactic>> &tactics) :
+  tactics(tactics) {
+
+}
+
+string Block::dump(int indent) const {
   std::ostringstream os;
+  os << space(indent) << "{\n";
+  for (ref<CoqTactic> t : tactics) {
+    os << t->dump(indent + 1) << "\n";
+  }
+  os << space(indent) << "}";
+  return os.str();
+}
+
+string Apply::dump(int indent) const {
+  std::ostringstream os;
+  os << space(indent);
   if (args.empty()) {
     os << "apply " << name << ".";
   } else {
@@ -291,6 +290,27 @@ string Apply::dump() const {
       os << " " << "(" << e->dump() << ")";
     }
     os << ").";
+  }
+  return os.str();
+}
+
+CoqLemma::CoqLemma(const std::string &name,
+                   const ref<CoqExpr> &body,
+                   const ref<CoqTactic> &proof,
+                   bool isAdmitted) :
+  name(name), body(body), proof(proof), isAdmitted(isAdmitted) {
+
+}
+
+string CoqLemma::dump() const {
+  std::ostringstream os;
+  os << "Lemma " << name << " : " << body->dump() << ".\n";
+  os << "Proof.\n";
+  os << proof->dump(0) << "\n";
+  if (isAdmitted) {
+    os << "Admitted.\n";
+  } else {
+    os << "Qed.\n";
   }
   return os.str();
 }

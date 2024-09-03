@@ -325,27 +325,15 @@ void ProofGenerator::handleTerminatedState(ExecutionState &state) {
 
 klee::ref<CoqExpr> ProofGenerator::createLemmaForLeaf(ExecutionState &state) {
   ref<CoqTactic> tactic = getTacticForLeaf(state);
-  return createLemma(state, tactic);
+  return createLemma(state.stepID, tactic);
 }
 
 klee::ref<CoqTactic> ProofGenerator::getTacticForLeaf(ExecutionState &state) {
+  /* TODO: check the instruction type */
   return new Apply("Safe_Leaf_Ret");
 }
 
-klee::ref<CoqExpr> ProofGenerator::createLemma(ExecutionState &state, ref<CoqTactic> tactic) {
-  return new CoqLemma(
-    "L_" + to_string(state.stepID),
-    new CoqApplication(
-      new CoqVariable("safe_et_opt"),
-      {new CoqVariable("t_" + to_string(state.stepID))}
-    ),
-    tactic,
-    false
-  );
-  return nullptr;
-}
-
-void ProofGenerator::handleStep(const StateInfo &si, ExecutionState &successor) {
+void ProofGenerator::handleStep(StateInfo &si, ExecutionState &successor) {
   ref<CoqExpr> def = new CoqDefinition(
     "t_" + to_string(si.stepID),
     "execution_tree",
@@ -360,6 +348,55 @@ void ProofGenerator::handleStep(const StateInfo &si, ExecutionState &successor) 
     )
   );
   treeDefs.push_front(def);
+
+  ref<CoqExpr> lemma = createLemmaForSubtree(si, successor);
+  lemmaDefs.push_front(lemma);
+}
+
+klee::ref<CoqExpr> ProofGenerator::createLemmaForSubtree(StateInfo &si,
+                                                         ExecutionState &successor) {
+  ref<CoqTactic> tactic = getTacticSingle(si, successor);
+  return createLemma(si.stepID, tactic);
+}
+
+klee::ref<CoqTactic> ProofGenerator::getTacticSingle(StateInfo &si,
+                                                     ExecutionState &successor) {
+  ref<CoqTactic> safetyTactic = getTacticForSafety(si);
+  ref<CoqTactic> stepTactic = getTacticForStep(si, successor);
+  return getTacticForSubtree(safetyTactic, stepTactic);
+}
+
+klee::ref<CoqTactic> ProofGenerator::getTacticForSafety(StateInfo &si) {
+  return new Admit();
+}
+
+klee::ref<CoqTactic> ProofGenerator::getTacticForStep(StateInfo &si,
+                                                      ExecutionState &successor) {
+  return new Admit();
+}
+
+klee::ref<CoqTactic> ProofGenerator::getTacticForSubtree(ref<CoqTactic> safetyTactic,
+                                                         ref<CoqTactic> stepTactic) {
+  return new Block(
+    {
+      new Apply("Safe_Subtree"),
+      safetyTactic,
+      stepTactic,
+    }
+  );
+}
+
+klee::ref<CoqExpr> ProofGenerator::createLemma(uint64_t stepID, ref<CoqTactic> tactic) {
+  return new CoqLemma(
+    "L_" + to_string(stepID),
+    new CoqApplication(
+      new CoqVariable("safe_et_opt"),
+      {new CoqVariable("t_" + to_string(stepID))}
+    ),
+    tactic,
+    false
+  );
+  return nullptr;
 }
 
 void ProofGenerator::generateTreeDefs() {

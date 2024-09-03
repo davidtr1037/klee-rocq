@@ -95,15 +95,29 @@ public:
 
   std::vector<ref<CoqExpr>> getImports();
 
-  void handleStep(const StateInfo &si, ExecutionState &successor);
-
   void handleTerminatedState(ExecutionState &state);
 
   ref<CoqExpr> createLemmaForLeaf(ExecutionState &state);
 
   ref<CoqTactic> getTacticForLeaf(ExecutionState &state);
 
-  ref<CoqExpr> createLemma(ExecutionState &state, ref<CoqTactic> tactic);
+  void handleStep(StateInfo &si, ExecutionState &successor);
+
+  ref<CoqExpr> createLemmaForSubtree(StateInfo &si,
+                                     ExecutionState &successor);
+
+  ref<CoqTactic> getTacticSingle(StateInfo &si,
+                                 ExecutionState &successor);
+
+  ref<CoqTactic> getTacticForSafety(StateInfo &si);
+
+  ref<CoqTactic> getTacticForStep(StateInfo &si,
+                                  ExecutionState &successor);
+
+  ref<CoqTactic> getTacticForSubtree(ref<CoqTactic> safetyTactic,
+                                     ref<CoqTactic> stepTactic);
+
+  ref<CoqExpr> createLemma(uint64_t stepID, ref<CoqTactic> tactic);
 
   void generateTreeDefs();
 
