@@ -308,6 +308,37 @@ vector<klee::ref<CoqExpr>> ProofGenerator::getImports() {
   };
 }
 
-void ProofGenerator::handleStep(StateInfo &si, ExecutionState &successor) {
+void ProofGenerator::handleTerminatedState(ExecutionState &state) {
+  ref<CoqExpr> def = new CoqDefinition(
+    "t_" + to_string(state.stepID),
+    "execution_tree",
+    new CoqApplication(
+      new CoqVariable("t_leaf"),
+      {new CoqVariable("s_" + to_string(state.stepID))}
+    )
+  );
+  treeDefs.push_front(def);
+}
 
+void ProofGenerator::handleStep(const StateInfo &si, ExecutionState &successor) {
+  ref<CoqExpr> def = new CoqDefinition(
+    "t_" + to_string(si.stepID),
+    "execution_tree",
+    new CoqApplication(
+      new CoqVariable("t_subtree"),
+      {
+        new CoqVariable("s_" + to_string(si.stepID)),
+        new CoqList(
+          {new CoqVariable("t_" + to_string(successor.stepID))}
+        )
+      }
+    )
+  );
+  treeDefs.push_front(def);
+}
+
+void ProofGenerator::generateTreeDefs() {
+  for (ref<CoqExpr> def : treeDefs) {
+    output << def->dump() << "\n";
+  }
 }

@@ -16,10 +16,14 @@
 namespace klee {
 
 struct StateInfo {
+  uint64_t stepID;
   llvm::Instruction *inst;
 
-  StateInfo(llvm::Instruction *inst) :
-    inst(inst) {}
+  StateInfo() :
+    stepID(0), inst(nullptr) {}
+
+  StateInfo(uint64_t stepID, llvm::Instruction *inst)
+      : stepID(stepID), inst(inst) {}
 };
 
 class ProofGenerator {
@@ -39,6 +43,8 @@ public:
   ModuleTranslator *moduleTranslator;
 
   ExprTranslator *exprTranslator;
+
+  std::list<ref<CoqExpr>> treeDefs;
 
   ProofGenerator(llvm::Module &m, llvm::raw_ostream &output);
 
@@ -87,7 +93,11 @@ public:
 
   std::vector<ref<CoqExpr>> getImports();
 
-  void handleStep(StateInfo &si, ExecutionState &successor);
+  void handleStep(const StateInfo &si, ExecutionState &successor);
+
+  void handleTerminatedState(ExecutionState &state);
+
+  void generateTreeDefs();
 
 };
 
