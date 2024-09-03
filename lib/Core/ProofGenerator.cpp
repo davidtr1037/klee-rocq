@@ -469,7 +469,31 @@ void ProofGenerator::generateTheorem() {
 klee::ref<CoqExpr> ProofGenerator::getTheorem() {
   ref<CoqTactic> tactic = new Block(
     {
-      new Admit(),
+      new Destruct("t_0", {{"r"}, {"r", "l"}}, "E"),
+      new Block({new Discriminate("E")}),
+      new Block(
+        {
+          new Apply(
+            "completeness_via_et",
+            {
+              coqModuleAlias,
+              moduleTranslator->createName("main"),
+              new CoqVariable("s_0"),
+              new CoqVariable("l"),
+            }
+          ),
+          new Block({new Admit()}),
+          new Block({new Reflexivity()}),
+          new Block(
+            {
+              new Inversion("E"),
+              new Subst(),
+              new Rewrite("E", false),
+              new Apply("L_0"),
+            }
+          ),
+        }
+      ),
     }
   );
 
