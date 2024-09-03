@@ -182,6 +182,8 @@ public:
 
     std::vector<ref<CoqExpr>> args;
 
+    BasicTactic(const std::string &name);
+
     BasicTactic(const std::string &name, const std::vector<ref<CoqExpr>> &args);
 
     std::string dump(int indent) const;
@@ -202,7 +204,7 @@ class Admit : public BasicTactic {
 
 public:
 
-  Admit() : BasicTactic("admit", {}) {}
+  Admit() : BasicTactic("admit") {}
 
 };
 
@@ -224,6 +226,7 @@ public:
 
 };
 
+/* TODO: inherit from some base class */
 class Discriminate : public CoqTactic {
 
 public:
@@ -248,6 +251,7 @@ public:
 
 };
 
+/* TODO: inherit from some base class */
 class Intros : public CoqTactic {
 
 public:
@@ -260,6 +264,7 @@ public:
 
 };
 
+/* TODO: inherit from some base class */
 class Inversion : public CoqTactic {
 
 public:
@@ -276,7 +281,7 @@ class Left : public BasicTactic {
 
 public:
 
-  Left() : BasicTactic("left", {}) {}
+  Left() : BasicTactic("left") {}
 
 };
 
@@ -284,7 +289,7 @@ class Simpl : public BasicTactic {
 
 public:
 
-  Simpl() : BasicTactic("simpl", {}) {}
+  Simpl() : BasicTactic("simpl") {}
 
 };
 
@@ -304,7 +309,7 @@ class Subst : public BasicTactic {
 
 public:
 
-  Subst() : BasicTactic("subst", {}) {}
+  Subst() : BasicTactic("subst") {}
 
 };
 
@@ -312,10 +317,11 @@ class Reflexivity : public BasicTactic {
 
 public:
 
-  Reflexivity() : BasicTactic("reflexivity", {}) {}
+  Reflexivity() : BasicTactic("reflexivity") {}
 
 };
 
+/* TODO: inherit from some base class */
 class Rewrite : public CoqTactic {
 
 public:

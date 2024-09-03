@@ -249,6 +249,10 @@ string CoqTactic::pretty_dump(int indent) const {
   return dump(indent);
 }
 
+BasicTactic::BasicTactic(const string &name) : name(name) {
+
+}
+
 BasicTactic::BasicTactic(const string &name, const std::vector<ref<CoqExpr>> &args) :
   name(name), args(args) {
 
