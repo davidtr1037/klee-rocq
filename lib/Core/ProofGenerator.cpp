@@ -14,6 +14,8 @@ using namespace std;
 using namespace llvm;
 using namespace klee;
 
+/* TODO: remove std:: */
+
 ProofGenerator::ProofGenerator(Module &m, raw_ostream &output) : m(m), output(output) {
   moduleTranslator = new ModuleTranslator(m);
   exprTranslator = new ExprTranslator();
@@ -369,7 +371,7 @@ klee::ref<CoqTactic> ProofGenerator::getTacticSingle(StateInfo &si,
 klee::ref<CoqTactic> ProofGenerator::getTacticForSafety(StateInfo &si) {
   if (isa<BinaryOperator>(si.inst)) {
     return new Block(
-      {Apply("LAUX_not_error_instr_op")}
+      {new Apply("LAUX_not_error_instr_op")}
     );
   }
 
@@ -378,7 +380,48 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForSafety(StateInfo &si) {
 
 klee::ref<CoqTactic> ProofGenerator::getTacticForStep(StateInfo &si,
                                                       ExecutionState &successor) {
-  return new Admit();
+  ref<CoqTactic> tactic = getTacticForSat(si, successor);
+  return new Block(
+    {
+      new Intros({"s", "Hstep"}),
+      new Inversion("Hstep"),
+      new Subst(),
+      tactic,
+    }
+  );
+}
+
+klee::ref<CoqTactic> ProofGenerator::getTacticForSat(StateInfo &si,
+                                                     ExecutionState &successor) {
+  ref<CoqTactic> eqTactic = getEquivTactic(si, successor);
+  return new Block(
+    {
+      new Left(),
+      new Exists(new CoqVariable("t_" + to_string(successor.stepID))),
+      new Split(
+        new Block(
+          {
+            new Simpl(),
+            new Left(),
+            new Reflexivity(),
+          }
+        ),
+        new Block(
+          {
+            new Split(
+              new Block({new Apply("L_" + to_string(successor.stepID))}),
+              eqTactic
+            )
+          }
+        )
+      ),
+    }
+  );
+}
+
+klee::ref<CoqTactic> ProofGenerator::getEquivTactic(StateInfo &si,
+                                                    ExecutionState &successor) {
+  return new Block({new Admit()});
 }
 
 klee::ref<CoqTactic> ProofGenerator::getTacticForSubtree(ref<CoqTactic> safetyTactic,

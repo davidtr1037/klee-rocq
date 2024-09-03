@@ -114,6 +114,12 @@ public:
   ref<CoqTactic> getTacticForStep(StateInfo &si,
                                   ExecutionState &successor);
 
+  ref<CoqTactic> getTacticForSat(StateInfo &si,
+                                 ExecutionState &successor);
+
+  ref<CoqTactic> getEquivTactic(StateInfo &si,
+                                ExecutionState &successor);
+
   ref<CoqTactic> getTacticForSubtree(ref<CoqTactic> safetyTactic,
                                      ref<CoqTactic> stepTactic);
 
