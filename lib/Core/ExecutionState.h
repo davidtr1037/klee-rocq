@@ -269,6 +269,9 @@ public:
   /// @brief Disables forking for this state. Set by user code
   bool forkDisabled = false;
 
+  /* TODO: add docs */
+  uint64_t stepID;
+
   /// @brief Mapping symbolic address expressions to concrete base addresses
   using base_addrs_t = std::map<ref<Expr>, ref<ConstantExpr>>;
   base_addrs_t base_addrs;
@@ -316,6 +319,8 @@ public:
   void addArgument(const std::string &name, const ref<Expr> &value);
 
   void addRegisterUpdate(const std::string &name, const ref<Expr> &value);
+
+  void setStepID(uint64_t id);
 };
 
 struct ExecutionStateIDCompare {

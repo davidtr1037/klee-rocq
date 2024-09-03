@@ -423,3 +423,7 @@ void ExecutionState::addRegisterUpdate(const std::string &name, const ref<Expr> 
 
   updates.push_back(RegisterUpdate(name, value));
 }
+
+void ExecutionState::setStepID(uint64_t id) {
+  stepID = id;
+}
