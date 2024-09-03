@@ -318,6 +318,31 @@ void ProofGenerator::handleTerminatedState(ExecutionState &state) {
     )
   );
   treeDefs.push_front(def);
+
+  ref<CoqExpr> lemma = createLemmaForLeaf(state);
+  lemmaDefs.push_front(lemma);
+}
+
+klee::ref<CoqExpr> ProofGenerator::createLemmaForLeaf(ExecutionState &state) {
+  ref<CoqTactic> tactic = getTacticForLeaf(state);
+  return createLemma(state, tactic);
+}
+
+klee::ref<CoqTactic> ProofGenerator::getTacticForLeaf(ExecutionState &state) {
+  return new Apply("Safe_Leaf_Ret");
+}
+
+klee::ref<CoqExpr> ProofGenerator::createLemma(ExecutionState &state, ref<CoqTactic> tactic) {
+  return new CoqLemma(
+    "L_" + to_string(state.stepID),
+    new CoqApplication(
+      new CoqVariable("safe_et_opt"),
+      {new CoqVariable("t_" + to_string(state.stepID))}
+    ),
+    tactic,
+    false
+  );
+  return nullptr;
 }
 
 void ProofGenerator::handleStep(const StateInfo &si, ExecutionState &successor) {
@@ -339,6 +364,12 @@ void ProofGenerator::handleStep(const StateInfo &si, ExecutionState &successor) 
 
 void ProofGenerator::generateTreeDefs() {
   for (ref<CoqExpr> def : treeDefs) {
+    output << def->dump() << "\n";
+  }
+}
+
+void ProofGenerator::generateLemmaDefs() {
+  for (ref<CoqExpr> def : lemmaDefs) {
     output << def->dump() << "\n";
   }
 }

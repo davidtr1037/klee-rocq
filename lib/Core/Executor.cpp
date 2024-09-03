@@ -3762,6 +3762,7 @@ void Executor::run(ExecutionState &initialState) {
 
   if (isInProofMode()) {
     proofGenerator->generateTreeDefs();
+    proofGenerator->generateLemmaDefs();
   }
 
   delete searcher;

@@ -46,6 +46,8 @@ public:
 
   std::list<ref<CoqExpr>> treeDefs;
 
+  std::list<ref<CoqExpr>> lemmaDefs;
+
   ProofGenerator(llvm::Module &m, llvm::raw_ostream &output);
 
   void generate();
@@ -97,8 +99,15 @@ public:
 
   void handleTerminatedState(ExecutionState &state);
 
+  ref<CoqExpr> createLemmaForLeaf(ExecutionState &state);
+
+  ref<CoqTactic> getTacticForLeaf(ExecutionState &state);
+
+  ref<CoqExpr> createLemma(ExecutionState &state, ref<CoqTactic> tactic);
+
   void generateTreeDefs();
 
+  void generateLemmaDefs();
 };
 
 }
