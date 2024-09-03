@@ -237,10 +237,7 @@ Proof.
           apply EquivSymState.
           {
             simpl in H13.
-            apply LAUX_1 with
-              (se1 := (SMT_BinOp SMT_Add (SMT_Const_I32 (Int32.repr 3)) (SMT_Const_I32 (Int32.repr 7))))
-              (se2 := se).
-            { assumption. }
+            apply (LAUX_1 _ _ _ _ _ H13).
             { admit. } (* simplify lemma *)
           }
           { apply equiv_sym_stack_refl. }
