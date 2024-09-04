@@ -338,6 +338,14 @@ public:
 
 };
 
+class Right : public BasicTactic {
+
+public:
+
+  Right() : BasicTactic("right") {}
+
+};
+
 class Apply : public CoqTactic {
 
 public:
