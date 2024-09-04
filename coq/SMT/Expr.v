@@ -76,6 +76,23 @@ Inductive smt_sort : Type :=
   | Sort_Array
 .
 
+(*
+Definition f (s : smt_sort) :=
+  match s with
+  | Sort_BV1 => int1
+  | Sort_BV8 => int8
+  | Sort_BV16 => int16
+  | Sort_BV32 => int32
+  | Sort_BV64 => int64
+  end
+.
+
+Inductive smt_ast : smt_sort -> Type :=
+  | SMT2_Const : forall (s : smt_sort) (t : (f s)), smt_ast s
+  | SMT2_Add : forall (s : smt_sort) (e1 e2 : smt_ast s), smt_ast s
+.
+*)
+
 Definition make_smt_const (bits : positive) (n : Z) : option smt_expr :=
   match bits with
   | 1%positive => Some (SMT_Const_I1 (Int1.repr n))
