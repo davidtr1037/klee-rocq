@@ -14,6 +14,8 @@ using namespace std;
 using namespace llvm;
 using namespace klee;
 
+/* TODO: decide how to handle assertions */
+
 ProofGenerator::ProofGenerator(Module &m, raw_ostream &output) : m(m), output(output) {
   moduleTranslator = new ModuleTranslator(m);
   exprTranslator = new ExprTranslator();
@@ -183,9 +185,10 @@ klee::ref<CoqExpr> ProofGenerator::translateRegisterUpdates(ExecutionState &es,
       continue;
     }
 
-    ref<CoqExpr> coq_name = moduleTranslator->createName(ru.name);
-    ref<CoqExpr> coq_expr = exprTranslator->translate(ru.value, &es.arrayTranslation);
-    output << coq_name->dump() << " !-> " << "Some (" << coq_expr->dump() << "); ";
+    ref<CoqExpr> coqName = moduleTranslator->createName(ru.name);
+    ref<CoqExpr> coqExpr = exprTranslator->translate(ru.value, &es.arrayTranslation);
+    assert(coqName && coqExpr);
+    output << coqName->dump() << " !-> " << "Some (" << coqExpr->dump() << "); ";
   }
 
   output << "empty_smt_store)";
@@ -359,6 +362,7 @@ klee::ref<CoqExpr> ProofGenerator::createLemmaForSubtree(StateInfo &si,
   return createLemma(si.stepID, tactic);
 }
 
+/* TODO: remove? */
 klee::ref<CoqTactic> ProofGenerator::getTacticSingle(StateInfo &si,
                                                      ExecutionState &successor) {
   ref<CoqTactic> safetyTactic = getTacticForSafety(si);
