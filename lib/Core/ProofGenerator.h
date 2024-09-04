@@ -122,6 +122,10 @@ public:
   ref<CoqTactic> getEquivTactic(StateInfo &si,
                                 ExecutionState &successor);
 
+  void handleStep(StateInfo &si,
+                  ExecutionState *successor1,
+                  ExecutionState *successor2);
+
   ref<CoqExpr> createLemmaForSubtree(StateInfo &si,
                                      ExecutionState *successor1,
                                      ExecutionState *successor2);

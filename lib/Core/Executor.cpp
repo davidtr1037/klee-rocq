@@ -2244,6 +2244,12 @@ void Executor::executeInstruction(ExecutionState &state, KInstruction *ki) {
     if (bi->isUnconditional()) {
       transferToBasicBlock(bi->getSuccessor(0), bi->getParent(), state);
     } else {
+      /* TODO: avoid duplication */
+      StateInfo si;
+      si.stepID = state.stepID;
+      si.inst = ki->inst;
+      si.wasRegisterUpdated = state.hasRegisterUpdate(ki->getDestName());
+
       // FIXME: Find a way that we don't have this hidden dependency.
       assert(bi->getCondition() == bi->getOperand(0) &&
              "Wrong operand index!");
@@ -2263,6 +2269,16 @@ void Executor::executeInstruction(ExecutionState &state, KInstruction *ki) {
         transferToBasicBlock(bi->getSuccessor(0), bi->getParent(), *branches.first);
       if (branches.second)
         transferToBasicBlock(bi->getSuccessor(1), bi->getParent(), *branches.second);
+
+      if (isInProofMode()) {
+        if (branches.first) {
+          branches.first->setStepID(allocateStepID());
+        }
+        if (branches.second) {
+          branches.second->setStepID(allocateStepID());
+        }
+        proofGenerator->handleStep(si, branches.first, branches.second);
+      }
     }
     break;
   }
@@ -3743,8 +3759,12 @@ void Executor::run(ExecutionState &initialState) {
         /* no step was executed */
         proofGenerator->handleTerminatedState(state);
       } else {
-        state.setStepID(allocateStepID());
-        proofGenerator->handleStep(si, state);
+        /* TODO: define a predicate */
+        BranchInst *bi = dyn_cast<BranchInst>(state.prevPC->inst);
+        if (!(bi && bi->isConditional())) {
+          state.setStepID(allocateStepID());
+          proofGenerator->handleStep(si, state);
+        }
       }
     }
 

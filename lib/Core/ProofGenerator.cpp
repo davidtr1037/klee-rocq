@@ -370,6 +370,7 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForSafety(StateInfo &si) {
       {new Apply("LAUX_not_error_instr_op")}
     );
   }
+
   if (isa<BranchInst>(si.inst)) {
     BranchInst *bi = cast<BranchInst>(si.inst);
     if (bi->isConditional()) {
@@ -381,6 +382,12 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForSafety(StateInfo &si) {
         {new Apply("LAUX_not_error_unconditional_br")}
       );
     }
+  }
+
+  if (isa<PHINode>(si.inst)) {
+    return new Block(
+      {new Apply("LAUX_not_error_phi")}
+    );
   }
 
   si.inst->dump();
@@ -445,6 +452,7 @@ klee::ref<CoqTactic> ProofGenerator::getEquivTactic(StateInfo &si,
               createPlaceHolder(),
               createPlaceHolder(),
               createPlaceHolder(),
+              /* TODO: avoid */
               new CoqVariable("H13"),
             }
           ),
@@ -463,7 +471,70 @@ klee::ref<CoqTactic> ProofGenerator::getEquivTactic(StateInfo &si,
     );
   }
 
+  if (isa<PHINode>(si.inst)) {
+    ref<CoqTactic> t;
+    if (si.wasRegisterUpdated) {
+      t = new Admit();
+    } else {
+      t = new Block(
+        {
+          /* TODO: avoid */
+          new Inversion("H14"),
+          new Subst(),
+          new Apply("equiv_smt_store_refl"),
+        }
+      );
+    }
+    return new Block(
+      {
+        new Apply("EquivSymState"),
+        t,
+        new Block({new Apply("equiv_sym_stack_refl")}),
+        new Block({new Apply("equiv_smt_store_refl")}),
+        new Block({new Apply("equiv_smt_expr_refl")}),
+      }
+    );
+  }
+
+  if (isa<BranchInst>(si.inst)) {
+    BranchInst *bi = cast<BranchInst>(si.inst);
+    if (bi->isConditional()) {
+      return new Block({new Admit()});
+    } else {
+      return new Block({new Admit()});
+    }
+  }
+
+  si.inst->dump();
   assert(false);
+}
+
+void ProofGenerator::handleStep(StateInfo &si,
+                                ExecutionState *successor1,
+                                ExecutionState *successor2) {
+  vector<ref<CoqExpr>> satSuccessors;
+  if (successor1) {
+    satSuccessors.push_back(new CoqVariable("t_" + to_string(successor1->stepID)));
+  }
+  if (successor2) {
+    satSuccessors.push_back(new CoqVariable("t_" + to_string(successor2->stepID)));
+  }
+
+  ref<CoqExpr> def = new CoqDefinition(
+    "t_" + to_string(si.stepID),
+    "execution_tree",
+    new CoqApplication(
+      new CoqVariable("t_subtree"),
+      {
+        new CoqVariable("s_" + to_string(si.stepID)),
+        new CoqList(satSuccessors),
+      }
+    )
+  );
+  treeDefs.push_front(def);
+
+  ref<CoqExpr> lemma = createLemmaForSubtree(si, successor1, successor2);
+  lemmaDefs.push_front(lemma);
 }
 
 klee::ref<CoqExpr> ProofGenerator::createLemmaForSubtree(StateInfo &si,
