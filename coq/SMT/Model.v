@@ -467,11 +467,11 @@ Proof.
   }
 Qed.
 
+(*
 Definition subst_var (e : smt_expr) (x y : string) : smt_expr :=
   e
 .
 
-(*
 Inductive iso_smt_expr : smt_expr -> smt_expr -> Prop :=
   | Iso_Eq : forall e,
       iso_smt_expr e e
@@ -482,3 +482,28 @@ Inductive iso_smt_expr : smt_expr -> smt_expr -> Prop :=
       iso_smt_expr e1 e3
 .
 *)
+
+Fixpoint simplify (e : smt_expr) : smt_expr :=
+  match e with
+  | SMT_BinOp op e1 e2 =>
+    match op with
+    | SMT_Add =>
+      match (simplify e1), (simplify e2) with
+      | SMT_Const_I1 n1, SMT_Const_I1 n2 => SMT_Const_I1 (add n1 n2)
+      | SMT_Const_I8 n1, SMT_Const_I8 n2 => SMT_Const_I8 (add n1 n2)
+      | SMT_Const_I16 n1, SMT_Const_I16 n2 => SMT_Const_I16 (add n1 n2)
+      | SMT_Const_I32 n1, SMT_Const_I32 n2 => SMT_Const_I32 (add n1 n2)
+      | SMT_Const_I64 n1, SMT_Const_I64 n2 => SMT_Const_I64 (add n1 n2)
+      | _, _ => e
+      end
+    | _ => e
+    end
+  | _ => e
+  end
+.
+
+Lemma equiv_smt_expr_simplify : forall e,
+  equiv_smt_expr e (simplify e)
+.
+Proof.
+Admitted.
