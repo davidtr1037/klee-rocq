@@ -1305,7 +1305,7 @@ void Executor::bindLocal(KInstruction *target, ExecutionState &state,
                          ref<Expr> value) {
   getDestCell(state, target).value = value;
   /* TODO: add docs */
-  state.addRegisterUpdate(target->inst->getName().str(), value);
+  state.addRegisterUpdate(target->getDestName(), value);
 }
 
 void Executor::bindArgument(KFunction *kf, unsigned index, 
@@ -3724,6 +3724,7 @@ void Executor::run(ExecutionState &initialState) {
     StateInfo si;
     si.stepID = state.stepID;
     si.inst = ki->inst;
+    si.wasRegisterUpdated = state.hasRegisterUpdate(ki->getDestName());
 
     stepInstruction(state);
 

@@ -18,12 +18,17 @@ namespace klee {
 struct StateInfo {
   uint64_t stepID;
   llvm::Instruction *inst;
+  bool wasRegisterUpdated;
 
   StateInfo() :
-    stepID(0), inst(nullptr) {}
+    stepID(0), inst(nullptr), wasRegisterUpdated(false) {}
 
-  StateInfo(uint64_t stepID, llvm::Instruction *inst)
-      : stepID(stepID), inst(inst) {}
+  StateInfo(uint64_t stepID,
+            llvm::Instruction *inst,
+            bool wasRegisterUpdated) :
+    stepID(stepID),
+    inst(inst),
+    wasRegisterUpdated(wasRegisterUpdated) {}
 };
 
 class ProofGenerator {
