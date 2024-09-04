@@ -16,6 +16,7 @@
 namespace klee {
 
 struct StateInfo {
+
   uint64_t stepID;
   llvm::Instruction *inst;
   bool wasRegisterUpdated;
@@ -29,6 +30,20 @@ struct StateInfo {
     stepID(stepID),
     inst(inst),
     wasRegisterUpdated(wasRegisterUpdated) {}
+};
+
+struct SuccessorInfo {
+
+  bool isSat;
+  ExecutionState *state;
+  ref<Expr> unsatPC;
+
+  SuccessorInfo(ExecutionState *state) :
+    isSat(true), state(state), unsatPC(nullptr) {}
+
+  SuccessorInfo(ref<Expr> unsatPC) :
+    isSat(false), state(nullptr), unsatPC(unsatPC) {}
+
 };
 
 class ProofGenerator {
@@ -50,6 +65,8 @@ public:
   ExprTranslator *exprTranslator;
 
   std::list<ref<CoqExpr>> treeDefs;
+
+  std::list<ref<CoqExpr>> unsatAxioms;
 
   std::list<ref<CoqExpr>> lemmaDefs;
 
@@ -122,24 +139,32 @@ public:
   ref<CoqTactic> getEquivTactic(StateInfo &si,
                                 ExecutionState &successor);
 
-  void handleStep(StateInfo &si,
-                  ExecutionState *successor1,
-                  ExecutionState *successor2);
+  void handleStep(StateInfo &stateInfo,
+                  SuccessorInfo &successor1,
+                  SuccessorInfo &successor2);
 
-  ref<CoqExpr> createLemmaForSubtree(StateInfo &si,
-                                     ExecutionState *successor1,
-                                     ExecutionState *successor2);
+  ref<CoqExpr> createLemmaForSubtree(StateInfo &stateInfo,
+                                     SuccessorInfo &successor1,
+                                     SuccessorInfo &successor2);
 
-  ref<CoqTactic> getTacticForStep(StateInfo &si,
-                                  ExecutionState *successor1,
-                                  ExecutionState *successor2);
+  ref<CoqTactic> getTacticForStep(StateInfo &stateInfo,
+                                  SuccessorInfo &successor1,
+                                  SuccessorInfo &successor2);
+
+  ref<CoqTactic> getTacticForUnsat(ref<CoqExpr> pc);
+
+  ref<CoqExpr> getUnsatAxiom(ref<CoqExpr> pc, uint64_t axiomID);
 
   ref<CoqTactic> getTacticForSubtree(ref<CoqTactic> safetyTactic,
                                      ref<CoqTactic> stepTactic);
 
   ref<CoqExpr> createLemma(uint64_t stepID, ref<CoqTactic> tactic, bool isAdmitted = false);
 
+  uint64_t allocateAxiomID();
+
   void generateTreeDefs();
+
+  void generateUnsatAxioms();
 
   void generateLemmaDefs();
 

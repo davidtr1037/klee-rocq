@@ -2246,10 +2246,10 @@ void Executor::executeInstruction(ExecutionState &state, KInstruction *ki) {
       transferToBasicBlock(bi->getSuccessor(0), bi->getParent(), state);
     } else {
       /* TODO: avoid duplication */
-      StateInfo si;
-      si.stepID = state.stepID;
-      si.inst = ki->inst;
-      si.wasRegisterUpdated = state.hasRegisterUpdate(ki->getDestName());
+      StateInfo stateInfo;
+      stateInfo.stepID = state.stepID;
+      stateInfo.inst = ki->inst;
+      stateInfo.wasRegisterUpdated = state.hasRegisterUpdate(ki->getDestName());
 
       // FIXME: Find a way that we don't have this hidden dependency.
       assert(bi->getCondition() == bi->getOperand(0) &&
@@ -2257,6 +2257,13 @@ void Executor::executeInstruction(ExecutionState &state, KInstruction *ki) {
       ref<Expr> cond = eval(ki, 0, state).value;
 
       cond = optimizer.optimizeExpr(cond, false);
+
+      /* backup the path constraints before the fork */
+      ref<Expr> pc = ConstantExpr::create(1, Expr::Bool);
+      for (ref<Expr> e : state.constraints) {
+        pc = AndExpr::create(pc, e);
+      }
+
       Executor::StatePair branches = fork(state, cond, false, BranchType::Conditional);
 
       // NOTE: There is a hidden dependency here, markBranchVisited
@@ -2278,7 +2285,12 @@ void Executor::executeInstruction(ExecutionState &state, KInstruction *ki) {
         if (branches.second) {
           branches.second->setStepID(allocateStepID());
         }
-        proofGenerator->handleStep(si, branches.first, branches.second);
+
+        ref<Expr> pc1 = AndExpr::create(pc, cond);
+        SuccessorInfo si1 = branches.first ? SuccessorInfo(branches.first) : SuccessorInfo(pc1);
+        ref<Expr> pc2 = AndExpr::create(pc, Expr::createIsZero(cond));
+        SuccessorInfo si2 = branches.second ? SuccessorInfo(branches.second) : SuccessorInfo(pc2);
+        proofGenerator->handleStep(stateInfo, si1, si2);
       }
     }
     break;
@@ -3784,6 +3796,7 @@ void Executor::run(ExecutionState &initialState) {
 
   if (isInProofMode()) {
     proofGenerator->generateTreeDefs();
+    proofGenerator->generateUnsatAxioms();
     proofGenerator->generateLemmaDefs();
     proofGenerator->generateTheorem();
   }

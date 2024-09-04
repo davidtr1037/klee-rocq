@@ -15,6 +15,7 @@ using namespace llvm;
 using namespace klee;
 
 /* TODO: decide how to handle assertions */
+/* TODO: add a function for generating names of axioms and lemmas (L_, UNSAT_, etc.) */
 
 ProofGenerator::ProofGenerator(Module &m, raw_ostream &output) : m(m), output(output) {
   moduleTranslator = new ModuleTranslator(m);
@@ -542,57 +543,61 @@ klee::ref<CoqTactic> ProofGenerator::getEquivTactic(StateInfo &si,
   assert(false);
 }
 
-void ProofGenerator::handleStep(StateInfo &si,
-                                ExecutionState *successor1,
-                                ExecutionState *successor2) {
+void ProofGenerator::handleStep(StateInfo &stateInfo,
+                                SuccessorInfo &si1,
+                                SuccessorInfo &si2) {
   vector<ref<CoqExpr>> satSuccessors;
-  if (successor1) {
-    satSuccessors.push_back(new CoqVariable("t_" + to_string(successor1->stepID)));
+  if (si1.isSat) {
+    satSuccessors.push_back(new CoqVariable("t_" + to_string(si1.state->stepID)));
   }
-  if (successor2) {
-    satSuccessors.push_back(new CoqVariable("t_" + to_string(successor2->stepID)));
+  if (si2.isSat) {
+    satSuccessors.push_back(new CoqVariable("t_" + to_string(si2.state->stepID)));
   }
 
   ref<CoqExpr> def = new CoqDefinition(
-    "t_" + to_string(si.stepID),
+    "t_" + to_string(stateInfo.stepID),
     "execution_tree",
     new CoqApplication(
       new CoqVariable("t_subtree"),
       {
-        new CoqVariable("s_" + to_string(si.stepID)),
+        new CoqVariable("s_" + to_string(stateInfo.stepID)),
         new CoqList(satSuccessors),
       }
     )
   );
   treeDefs.push_front(def);
 
-  ref<CoqExpr> lemma = createLemmaForSubtree(si, successor1, successor2);
+  ref<CoqExpr> lemma = createLemmaForSubtree(stateInfo, si1, si2);
   lemmaDefs.push_front(lemma);
 }
 
-klee::ref<CoqExpr> ProofGenerator::createLemmaForSubtree(StateInfo &si,
-                                                         ExecutionState *successor1,
-                                                         ExecutionState *successor2) {
-  ref<CoqTactic> safetyTactic = getTacticForSafety(si);
-  ref<CoqTactic> stepTactic = getTacticForStep(si, successor1, successor2);
+klee::ref<CoqExpr> ProofGenerator::createLemmaForSubtree(StateInfo &stateInfo,
+                                                         SuccessorInfo &si1,
+                                                         SuccessorInfo &si2) {
+  ref<CoqTactic> safetyTactic = getTacticForSafety(stateInfo);
+  ref<CoqTactic> stepTactic = getTacticForStep(stateInfo, si1, si2);
   ref<CoqTactic> tactic = getTacticForSubtree(safetyTactic, stepTactic);
-  return createLemma(si.stepID, tactic);
+  return createLemma(stateInfo.stepID, tactic);
 }
 
-klee::ref<CoqTactic> ProofGenerator::getTacticForStep(StateInfo &si,
-                                                      ExecutionState *successor1,
-                                                      ExecutionState *successor2) {
+klee::ref<CoqTactic> ProofGenerator::getTacticForStep(StateInfo &stateInfo,
+                                                      SuccessorInfo &si1,
+                                                      SuccessorInfo &si2) {
   ref<CoqTactic> tactic1, tactic2;
-  if (successor1) {
-    tactic1 = getTacticForSat(si, *successor1);
+  if (si1.isSat) {
+    tactic1 = getTacticForSat(stateInfo, *si1.state);
   } else {
-    tactic1 = new Block({new Admit()});
+    assert(si2.isSat);
+    ref<CoqExpr> e = exprTranslator->translate(si1.unsatPC, &si2.state->arrayTranslation);
+    tactic1 = getTacticForUnsat(e);
   }
 
-  if (successor2) {
-    tactic2 = getTacticForSat(si, *successor2);
+  if (si2.isSat) {
+    tactic2 = getTacticForSat(stateInfo, *si2.state);
   } else {
-    tactic2 = new Block({new Admit()});
+    assert(si1.isSat);
+    ref<CoqExpr> e = exprTranslator->translate(si2.unsatPC, &si1.state->arrayTranslation);
+    tactic2 = getTacticForUnsat(e);
   }
 
   return new Block(
@@ -603,6 +608,50 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForStep(StateInfo &si,
       tactic1,
       tactic2,
     }
+  );
+}
+
+klee::ref<CoqTactic> ProofGenerator::getTacticForUnsat(ref<CoqExpr> pc) {
+  uint64_t axiomID = allocateAxiomID();
+  ref<CoqExpr> lemma = getUnsatAxiom(pc, axiomID);
+  unsatAxioms.push_front(lemma);
+
+  return new Block(
+    {
+      new Right(),
+      new Apply("Unsat_State"),
+      new Inversion("H12"),
+      new Apply(
+        "equiv_smt_expr_unsat",
+        {
+          pc,
+          createPlaceHolder(),
+        }
+      ),
+      new Block(
+        {
+          new Apply("equiv_smt_expr_symmetry"),
+          new Apply("equiv_smt_expr_simplify"),
+        }
+      ),
+      new Block(
+        {
+          new Apply("UNSAT_" + to_string(axiomID)),
+        }
+      ),
+    }
+  );
+}
+
+klee::ref<CoqExpr> ProofGenerator::getUnsatAxiom(ref<CoqExpr> pc, uint64_t axiomID) {
+  return new CoqLemma(
+    "UNSAT_" + to_string(axiomID),
+    new CoqApplication(
+      new CoqVariable("unsat"),
+      {pc}
+    ),
+    nullptr,
+    true
   );
 }
 
@@ -632,9 +681,20 @@ klee::ref<CoqExpr> ProofGenerator::createLemma(uint64_t stepID,
   return nullptr;
 }
 
+uint64_t ProofGenerator::allocateAxiomID() {
+  static uint64_t globalAxiomID = 0;
+  return globalAxiomID++;
+}
+
 void ProofGenerator::generateTreeDefs() {
   for (ref<CoqExpr> def : treeDefs) {
     output << def->dump() << "\n";
+  }
+}
+
+void ProofGenerator::generateUnsatAxioms() {
+  for (ref<CoqExpr> axiom : unsatAxioms) {
+    output << axiom->dump() << "\n";
   }
 }
 
