@@ -411,7 +411,9 @@ string CoqLemma::dump() const {
   ostringstream os;
   os << "Lemma " << name << " : " << body->dump() << ".\n";
   os << "Proof.\n";
-  os << proof->dump(0) << "\n";
+  if (!proof.isNull()) {
+    os << proof->dump(0) << "\n";
+  }
   if (isAdmitted) {
     os << "Admitted.\n";
   } else {
