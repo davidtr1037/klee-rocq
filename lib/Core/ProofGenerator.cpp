@@ -466,6 +466,42 @@ klee::ref<CoqTactic> ProofGenerator::getEquivTactic(StateInfo &si,
   assert(false);
 }
 
+klee::ref<CoqExpr> ProofGenerator::createLemmaForSubtree(StateInfo &si,
+                                                         ExecutionState *successor1,
+                                                         ExecutionState *successor2) {
+  ref<CoqTactic> safetyTactic = getTacticForSafety(si);
+  ref<CoqTactic> stepTactic = getTacticForStep(si, successor1, successor2);
+  ref<CoqTactic> tactic = getTacticForSubtree(safetyTactic, stepTactic);
+  return createLemma(si.stepID, tactic);
+}
+
+klee::ref<CoqTactic> ProofGenerator::getTacticForStep(StateInfo &si,
+                                                      ExecutionState *successor1,
+                                                      ExecutionState *successor2) {
+  ref<CoqTactic> tactic1, tactic2;
+  if (successor1) {
+    tactic1 = getTacticForSat(si, *successor1);
+  } else {
+    tactic1 = new Admit();
+  }
+
+  if (successor2) {
+    tactic2 = getTacticForSat(si, *successor2);
+  } else {
+    tactic2 = new Admit();
+  }
+
+  return new Block(
+    {
+      new Intros({"s", "Hstep"}),
+      new Inversion("Hstep"),
+      new Subst(),
+      tactic1,
+      tactic2,
+    }
+  );
+}
+
 klee::ref<CoqTactic> ProofGenerator::getTacticForSubtree(ref<CoqTactic> safetyTactic,
                                                          ref<CoqTactic> stepTactic) {
   return new Block(
