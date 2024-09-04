@@ -391,6 +391,12 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForSafety(StateInfo &si) {
     );
   }
 
+  if (isa<CallInst>(si.inst)) {
+    return new Block(
+      {new Apply("LAUX_not_error_call")}
+    );
+  }
+
   si.inst->dump();
   assert(false);
 }
