@@ -40,3 +40,4 @@ autom4te.cache/
 *.swo
 *.v#
 .lia.cache
+*.bc
