@@ -600,7 +600,7 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForEquivPHI(StateInfo &si,
         ),
         new Inversion("H14"),
         new Subst(),
-        new Apply("LAUX_normalize_simplify"),
+        new Apply("equiv_smt_expr_refl"),
       }
     );
   } else {
