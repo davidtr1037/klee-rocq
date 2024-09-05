@@ -101,7 +101,7 @@ CoqPair::CoqPair(const ref<CoqExpr> &left, const ref<CoqExpr> &right) :
 
 string CoqPair::dump() const {
   ostringstream os;
-  os << "(\n" << left->dump() << ", " << right->dump() << ")";
+  os << "(" << left->dump() << ", " << right->dump() << ")";
   return os.str();
 }
 
