@@ -2249,7 +2249,8 @@ void Executor::executeInstruction(ExecutionState &state, KInstruction *ki) {
       StateInfo stateInfo;
       stateInfo.stepID = state.stepID;
       stateInfo.inst = ki->inst;
-      stateInfo.wasRegisterUpdated = state.hasRegisterUpdate(ki->getDestName());
+      /* TODO: is it needed in a branch instruction? */
+      stateInfo.wasRegisterUpdated = false;
 
       // FIXME: Find a way that we don't have this hidden dependency.
       assert(bi->getCondition() == bi->getOperand(0) &&
@@ -3753,7 +3754,7 @@ void Executor::run(ExecutionState &initialState) {
     StateInfo si;
     si.stepID = state.stepID;
     si.inst = ki->inst;
-    si.wasRegisterUpdated = state.hasRegisterUpdate(ki->getDestName());
+    si.wasRegisterUpdated = state.hasRegisterUpdate(ki->getDestName(), si.suffix);
 
     stepInstruction(state);
 

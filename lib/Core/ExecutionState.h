@@ -323,7 +323,7 @@ public:
 
   void addRegisterUpdate(const std::string &name, const ref<Expr> &value);
 
-  bool hasRegisterUpdate(const std::string &name);
+  bool hasRegisterUpdate(const std::string &name, std::list<RegisterUpdate> &suffix);
 
   void setStepID(uint64_t id);
 

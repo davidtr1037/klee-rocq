@@ -494,7 +494,32 @@ klee::ref<CoqTactic> ProofGenerator::getEquivTactic(StateInfo &si,
   if (isa<BinaryOperator>(si.inst) || isa<CmpInst>(si.inst)) {
     ref<CoqTactic> t;
     if (si.wasRegisterUpdated) {
-      t = new Admit();
+      vector<ref<CoqExpr>> pairs;
+      for (RegisterUpdate &ru : si.suffix) {
+        ref<CoqExpr> pair = new CoqPair(
+          moduleTranslator->createName(ru.name),
+          createPlaceHolder()
+        );
+        pairs.push_back(pair);
+      }
+      t = new Block(
+        {
+          new Apply(
+            "LAUX_2",
+            {
+              createPlaceHolder(),
+              createPlaceHolder(),
+              createPlaceHolder(),
+              createPlaceHolder(),
+              createPlaceHolder(),
+              new CoqList(pairs),
+            }
+          ),
+          new Inversion("H13"),
+          new Subst(),
+          new Apply("LAUX_normalize_simplify"),
+        }
+      );
     } else {
       t = new Block(
         {
@@ -510,7 +535,7 @@ klee::ref<CoqTactic> ProofGenerator::getEquivTactic(StateInfo &si,
               new CoqVariable("H13"),
             }
           ),
-          new Apply("equiv_smt_expr_simplify"),
+          new Apply("LAUX_normalize_simplify"),
         }
       );
     }
@@ -530,7 +555,32 @@ klee::ref<CoqTactic> ProofGenerator::getEquivTactic(StateInfo &si,
   if (isa<PHINode>(si.inst)) {
     ref<CoqTactic> t;
     if (si.wasRegisterUpdated) {
-      t = new Admit();
+      vector<ref<CoqExpr>> pairs;
+      for (RegisterUpdate &ru : si.suffix) {
+        ref<CoqExpr> pair = new CoqPair(
+          moduleTranslator->createName(ru.name),
+          createPlaceHolder()
+        );
+        pairs.push_back(pair);
+      }
+      t = new Block(
+        {
+          new Apply(
+            "LAUX_2",
+            {
+              createPlaceHolder(),
+              createPlaceHolder(),
+              createPlaceHolder(),
+              createPlaceHolder(),
+              createPlaceHolder(),
+              new CoqList(pairs),
+            }
+          ),
+          new Inversion("H14"),
+          new Subst(),
+          new Apply("LAUX_normalize_simplify"),
+        }
+      );
     } else {
       t = new Block(
         {
@@ -572,7 +622,7 @@ klee::ref<CoqTactic> ProofGenerator::getEquivTactic(StateInfo &si,
           new Block(
             {
               new Inversion("H12"),
-              new Apply("equiv_smt_expr_simplify"),
+              new Apply("LAUX_normalize_simplify"),
             }
           ),
         }
@@ -618,7 +668,7 @@ klee::ref<CoqTactic> ProofGenerator::getEquivTactic(StateInfo &si,
           new Block({new Apply("equiv_smt_store_refl")}),
           new Block({new Apply("equiv_sym_stack_refl")}),
           new Block({new Apply("equiv_smt_store_refl")}),
-          new Block({new Apply("equiv_smt_expr_simplify")}),
+          new Block({new Apply("LAUX_normalize_simplify")}),
         }
       );
     } else {
@@ -805,7 +855,7 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForUnsat(ref<CoqExpr> pc) {
       new Block(
         {
           new Apply("equiv_smt_expr_symmetry"),
-          new Apply("equiv_smt_expr_simplify"),
+          new Apply("LAUX_normalize_simplify"),
         }
       ),
       new Block(

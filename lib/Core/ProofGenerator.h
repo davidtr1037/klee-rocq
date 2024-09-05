@@ -20,16 +20,11 @@ struct StateInfo {
   uint64_t stepID;
   llvm::Instruction *inst;
   bool wasRegisterUpdated;
+  std::list<RegisterUpdate> suffix;
 
   StateInfo() :
     stepID(0), inst(nullptr), wasRegisterUpdated(false) {}
 
-  StateInfo(uint64_t stepID,
-            llvm::Instruction *inst,
-            bool wasRegisterUpdated) :
-    stepID(stepID),
-    inst(inst),
-    wasRegisterUpdated(wasRegisterUpdated) {}
 };
 
 struct SuccessorInfo {
