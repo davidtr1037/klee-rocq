@@ -132,8 +132,23 @@ public:
                                  ExecutionState &successor,
                                  unsigned index);
 
-  ref<CoqTactic> getEquivTactic(StateInfo &si,
-                                ExecutionState &successor);
+  ref<CoqTactic> getTacticForEquiv(StateInfo &si,
+                                   ExecutionState &successor);
+
+  ref<CoqTactic> getTacticForEquivAssignment(StateInfo &si,
+                                             ExecutionState &successor);
+
+  ref<CoqTactic> getTacticForEquivPHI(StateInfo &si,
+                                      ExecutionState &successor);
+
+  ref<CoqTactic> getTacticForEquivBranch(StateInfo &si,
+                                         ExecutionState &successor);
+
+  ref<CoqTactic> getTacticForEquivCall(StateInfo &si,
+                                       ExecutionState &successor);
+
+  ref<CoqTactic> getTacticForEquivReturn(StateInfo &si,
+                                         ExecutionState &successor);
 
   void handleStep(StateInfo &stateInfo,
                   SuccessorInfo &successor1,

@@ -467,7 +467,7 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForStep(StateInfo &si,
 klee::ref<CoqTactic> ProofGenerator::getTacticForSat(StateInfo &si,
                                                      ExecutionState &successor,
                                                      unsigned index) {
-  ref<CoqTactic> eqTactic = getEquivTactic(si, successor);
+  ref<CoqTactic> eqTactic = getTacticForEquiv(si, successor);
   return new Block(
     {
       new Left(),
@@ -487,254 +487,253 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForSat(StateInfo &si,
   );
 }
 
-/* TODO: rename to getTacticForEquiv */
 /* TODO: split into methods */
-klee::ref<CoqTactic> ProofGenerator::getEquivTactic(StateInfo &si,
-                                                    ExecutionState &successor) {
+klee::ref<CoqTactic> ProofGenerator::getTacticForEquiv(StateInfo &si,
+                                                       ExecutionState &successor) {
   if (isa<BinaryOperator>(si.inst) || isa<CmpInst>(si.inst)) {
-    ref<CoqTactic> t;
-    if (si.wasRegisterUpdated) {
-      vector<ref<CoqExpr>> pairs;
-      for (RegisterUpdate &ru : si.suffix) {
-        ref<CoqExpr> pair = new CoqPair(
-          moduleTranslator->createName(ru.name),
-          createPlaceHolder()
-        );
-        pairs.push_back(pair);
-      }
-      t = new Block(
-        {
-          new Apply(
-            "LAUX_2",
-            {
-              createPlaceHolder(),
-              createPlaceHolder(),
-              createPlaceHolder(),
-              createPlaceHolder(),
-              createPlaceHolder(),
-              new CoqList(pairs),
-            }
-          ),
-          new Inversion("H13"),
-          new Subst(),
-          new Apply("LAUX_normalize_simplify"),
-        }
-      );
-    } else {
-      t = new Block(
-        {
-          new Apply(
-            "LAUX_1",
-            {
-              createPlaceHolder(),
-              createPlaceHolder(),
-              createPlaceHolder(),
-              createPlaceHolder(),
-              createPlaceHolder(),
-              /* TODO: avoid */
-              new CoqVariable("H13"),
-            }
-          ),
-          new Apply("LAUX_normalize_simplify"),
-        }
-      );
-    }
-    return new Block(
-      {
-        new Inversion("Hstep"),
-        new Subst(),
-        new Apply("EquivSymState"),
-        t,
-        new Block({new Apply("equiv_sym_stack_refl")}),
-        new Block({new Apply("equiv_smt_store_refl")}),
-        new Block({new Apply("equiv_smt_expr_refl")}),
-      }
-    );
+    return getTacticForEquivAssignment(si, successor);
   }
 
   if (isa<PHINode>(si.inst)) {
-    ref<CoqTactic> t;
-    if (si.wasRegisterUpdated) {
-      vector<ref<CoqExpr>> pairs;
-      for (RegisterUpdate &ru : si.suffix) {
-        ref<CoqExpr> pair = new CoqPair(
-          moduleTranslator->createName(ru.name),
-          createPlaceHolder()
-        );
-        pairs.push_back(pair);
-      }
-      t = new Block(
-        {
-          new Apply(
-            "LAUX_2",
-            {
-              createPlaceHolder(),
-              createPlaceHolder(),
-              createPlaceHolder(),
-              createPlaceHolder(),
-              createPlaceHolder(),
-              new CoqList(pairs),
-            }
-          ),
-          new Inversion("H14"),
-          new Subst(),
-          new Apply("LAUX_normalize_simplify"),
-        }
+    return getTacticForEquivPHI(si, successor);
+  }
+
+  if (isa<BranchInst>(si.inst)) {
+    return getTacticForEquivBranch(si, successor);
+  }
+
+  if (isa<CallInst>(si.inst)) {
+    return getTacticForEquivCall(si, successor);
+  }
+
+  if (isa<ReturnInst>(si.inst)) {
+    return getTacticForEquivReturn(si, successor);
+  }
+
+  assert(false);
+}
+
+klee::ref<CoqTactic> ProofGenerator::getTacticForEquivAssignment(StateInfo &si,
+                                                                 ExecutionState &successor) {
+  ref<CoqTactic> t;
+  if (si.wasRegisterUpdated) {
+    vector<ref<CoqExpr>> pairs;
+    for (RegisterUpdate &ru : si.suffix) {
+      ref<CoqExpr> pair = new CoqPair(
+        moduleTranslator->createName(ru.name),
+        createPlaceHolder()
       );
-    } else {
-      t = new Block(
-        {
-          /* TODO: avoid */
-          new Inversion("H14"),
-          new Subst(),
-          new Apply("equiv_smt_store_refl"),
-        }
-      );
+      pairs.push_back(pair);
     }
+    t = new Block(
+      {
+        new Apply(
+          "LAUX_2",
+          {
+            createPlaceHolder(),
+            createPlaceHolder(),
+            createPlaceHolder(),
+            createPlaceHolder(),
+            createPlaceHolder(),
+            new CoqList(pairs),
+          }
+        ),
+        new Inversion("H13"),
+        new Subst(),
+        new Apply("LAUX_normalize_simplify"),
+      }
+    );
+  } else {
+    t = new Block(
+      {
+        new Apply(
+          "LAUX_1",
+          {
+            createPlaceHolder(),
+            createPlaceHolder(),
+            createPlaceHolder(),
+            createPlaceHolder(),
+            createPlaceHolder(),
+            /* TODO: avoid */
+            new CoqVariable("H13"),
+          }
+        ),
+        new Apply("LAUX_normalize_simplify"),
+      }
+    );
+  }
+  return new Block(
+    {
+      new Inversion("Hstep"),
+      new Subst(),
+      new Apply("EquivSymState"),
+      t,
+      new Block({new Apply("equiv_sym_stack_refl")}),
+      new Block({new Apply("equiv_smt_store_refl")}),
+      new Block({new Apply("equiv_smt_expr_refl")}),
+    }
+  );
+}
+
+klee::ref<CoqTactic> ProofGenerator::getTacticForEquivPHI(StateInfo &si,
+                                                          ExecutionState &successor) {
+  ref<CoqTactic> t;
+  if (si.wasRegisterUpdated) {
+    vector<ref<CoqExpr>> pairs;
+    for (RegisterUpdate &ru : si.suffix) {
+      ref<CoqExpr> pair = new CoqPair(
+        moduleTranslator->createName(ru.name),
+        createPlaceHolder()
+      );
+      pairs.push_back(pair);
+    }
+    t = new Block(
+      {
+        new Apply(
+          "LAUX_2",
+          {
+            createPlaceHolder(),
+            createPlaceHolder(),
+            createPlaceHolder(),
+            createPlaceHolder(),
+            createPlaceHolder(),
+            new CoqList(pairs),
+          }
+        ),
+        new Inversion("H14"),
+        new Subst(),
+        new Apply("LAUX_normalize_simplify"),
+      }
+    );
+  } else {
+    t = new Block(
+      {
+        /* TODO: avoid */
+        new Inversion("H14"),
+        new Subst(),
+        new Apply("equiv_smt_store_refl"),
+      }
+    );
+  }
+  return new Block(
+    {
+      new Inversion("Hstep"),
+      new Subst(),
+      new Apply("EquivSymState"),
+      t,
+      new Block({new Apply("equiv_sym_stack_refl")}),
+      new Block({new Apply("equiv_smt_store_refl")}),
+      new Block({new Apply("equiv_smt_expr_refl")}),
+    }
+  );
+}
+
+klee::ref<CoqTactic> ProofGenerator::getTacticForEquivBranch(StateInfo &si,
+                                                             ExecutionState &successor) {
+  BranchInst *bi = cast<BranchInst>(si.inst);
+  if (bi->isConditional()) {
+    return new Block(
+      {
+        new Inversion("H13"),
+        new Subst(),
+        new Inversion("H14"),
+        new Subst(),
+        new Inversion("H15"),
+        new Subst(),
+        new Apply("EquivSymState"),
+        new Block({new Apply("equiv_smt_store_refl")}),
+        new Block({new Apply("equiv_sym_stack_refl")}),
+        new Block({new Apply("equiv_smt_store_refl")}),
+        new Block(
+          {
+            new Inversion("H12"),
+            new Apply("LAUX_normalize_simplify"),
+          }
+        ),
+      }
+    );
+  } else {
     return new Block(
       {
         new Inversion("Hstep"),
         new Subst(),
+        new Inversion("H10"),
+        new Subst(),
+        new Inversion("H11"),
+        new Subst(),
+        new Inversion("H12"),
+        new Subst(),
         new Apply("EquivSymState"),
-        t,
+        new Block({new Apply("equiv_smt_store_refl")}),
         new Block({new Apply("equiv_sym_stack_refl")}),
         new Block({new Apply("equiv_smt_store_refl")}),
         new Block({new Apply("equiv_smt_expr_refl")}),
       }
     );
   }
+}
 
-  if (isa<BranchInst>(si.inst)) {
-    BranchInst *bi = cast<BranchInst>(si.inst);
-    if (bi->isConditional()) {
+klee::ref<CoqTactic> ProofGenerator::getTacticForEquivCall(StateInfo &si,
+                                                           ExecutionState &successor) {
+  if (isMakeSymbolicInt32(si.inst)) {
+    return new Block(
+      {
+        new Apply("EquivSymState"),
+        new Block({new Apply("equiv_smt_store_refl")}),
+        new Block({new Apply("equiv_sym_stack_refl")}),
+        new Block({new Apply("equiv_smt_store_refl")}),
+        new Block({new Apply("equiv_smt_expr_refl")}),
+      }
+    );
+  } else if (isAssumeBool(si.inst)) {
+    return new Block(
+      {
+        new Inversion("H16"),
+        new Subst(),
+        new Apply("EquivSymState"),
+        new Block({new Apply("equiv_smt_store_refl")}),
+        new Block({new Apply("equiv_sym_stack_refl")}),
+        new Block({new Apply("equiv_smt_store_refl")}),
+        new Block({new Apply("LAUX_normalize_simplify")}),
+      }
+    );
+  } else {
+    CallInst *callInst = dyn_cast<CallInst>(si.inst);
+    if (callInst->getFunctionType()->getReturnType()->isVoidTy()) {
       return new Block(
         {
-          new Inversion("H13"),
+          new Inversion("Hstep"),
           new Subst(),
           new Inversion("H14"),
-          new Subst(),
-          new Inversion("H15"),
-          new Subst(),
-          new Apply("EquivSymState"),
-          new Block({new Apply("equiv_smt_store_refl")}),
-          new Block({new Apply("equiv_sym_stack_refl")}),
-          new Block({new Apply("equiv_smt_store_refl")}),
-          new Block(
-            {
-              new Inversion("H12"),
-              new Apply("LAUX_normalize_simplify"),
-            }
-          ),
-        }
-      );
-    } else {
-      return new Block(
-        {
-          new Inversion("Hstep"),
-          new Subst(),
-          new Inversion("H10"),
-          new Subst(),
-          new Inversion("H11"),
-          new Subst(),
-          new Inversion("H12"),
-          new Subst(),
-          new Apply("EquivSymState"),
-          new Block({new Apply("equiv_smt_store_refl")}),
-          new Block({new Apply("equiv_sym_stack_refl")}),
-          new Block({new Apply("equiv_smt_store_refl")}),
-          new Block({new Apply("equiv_smt_expr_refl")}),
-        }
-      );
-    }
-  }
-
-  if (isa<CallInst>(si.inst)) {
-    if (isMakeSymbolicInt32(si.inst)) {
-      return new Block(
-        {
-          new Apply("EquivSymState"),
-          new Block({new Apply("equiv_smt_store_refl")}),
-          new Block({new Apply("equiv_sym_stack_refl")}),
-          new Block({new Apply("equiv_smt_store_refl")}),
-          new Block({new Apply("equiv_smt_expr_refl")}),
-        }
-      );
-    } else if (isAssumeBool(si.inst)) {
-      return new Block(
-        {
-          new Inversion("H16"),
-          new Subst(),
-          new Apply("EquivSymState"),
-          new Block({new Apply("equiv_smt_store_refl")}),
-          new Block({new Apply("equiv_sym_stack_refl")}),
-          new Block({new Apply("equiv_smt_store_refl")}),
-          new Block({new Apply("LAUX_normalize_simplify")}),
-        }
-      );
-    } else {
-      CallInst *callInst = dyn_cast<CallInst>(si.inst);
-      if (callInst->getFunctionType()->getReturnType()->isVoidTy()) {
-        return new Block(
-          {
-            new Inversion("Hstep"),
-            new Subst(),
-            new Inversion("H14"),
-            new Subst(),
-            new Inversion("H16"),
-            new Subst(),
-            new Inversion("H17"),
-            new Subst(),
-            new Inversion("H18"),
-            new Subst(),
-            new Apply("EquivSymState"),
-            new Block({new Apply("equiv_smt_store_refl")}),
-            new Block({new Apply("equiv_sym_stack_refl")}),
-            new Block({new Apply("equiv_smt_store_refl")}),
-            new Block({new Apply("equiv_smt_expr_refl")}),
-          }
-        );
-      } else {
-        return new Block(
-          {
-            new Inversion("Hstep"),
-            new Subst(),
-            new Inversion("H16"),
-            new Subst(),
-            new Inversion("H18"),
-            new Subst(),
-            new Inversion("H19"),
-            new Subst(),
-            new Apply("EquivSymState"),
-            new Block(
-              {
-                new Inversion("H20"),
-                new Apply("equiv_smt_store_refl"),
-              }
-            ),
-            new Block({new Apply("equiv_sym_stack_refl")}),
-            new Block({new Apply("equiv_smt_store_refl")}),
-            new Block({new Apply("equiv_smt_expr_refl")}),
-          }
-        );
-      }
-    }
-  }
-
-  if (isa<ReturnInst>(si.inst)) {
-    ReturnInst *returnInst = dyn_cast<ReturnInst>(si.inst);
-    if (returnInst->getReturnValue()) {
-      return new Block(
-        {
-          new Inversion("Hstep"),
           new Subst(),
           new Inversion("H16"),
           new Subst(),
           new Inversion("H17"),
           new Subst(),
+          new Inversion("H18"),
+          new Subst(),
+          new Apply("EquivSymState"),
+          new Block({new Apply("equiv_smt_store_refl")}),
+          new Block({new Apply("equiv_sym_stack_refl")}),
+          new Block({new Apply("equiv_smt_store_refl")}),
+          new Block({new Apply("equiv_smt_expr_refl")}),
+        }
+      );
+    } else {
+      return new Block(
+        {
+          new Inversion("Hstep"),
+          new Subst(),
+          new Inversion("H16"),
+          new Subst(),
+          new Inversion("H18"),
+          new Subst(),
+          new Inversion("H19"),
+          new Subst(),
           new Apply("EquivSymState"),
           new Block(
             {
-              new Inversion("H15"),
+              new Inversion("H20"),
               new Apply("equiv_smt_store_refl"),
             }
           ),
@@ -743,27 +742,51 @@ klee::ref<CoqTactic> ProofGenerator::getEquivTactic(StateInfo &si,
           new Block({new Apply("equiv_smt_expr_refl")}),
         }
       );
-    } else {
-      return new Block(
-        {
-          new Inversion("Hstep"),
-          new Subst(),
-          new Inversion("H12"),
-          new Subst(),
-          new Inversion("H13"),
-          new Subst(),
-          new Apply("EquivSymState"),
-          new Block({new Apply("equiv_smt_store_refl")}),
-          new Block({new Apply("equiv_sym_stack_refl")}),
-          new Block({new Apply("equiv_smt_store_refl")}),
-          new Block({new Apply("equiv_smt_expr_refl")}),
-        }
-      );
     }
   }
+}
 
-  si.inst->dump();
-  assert(false);
+klee::ref<CoqTactic> ProofGenerator::getTacticForEquivReturn(StateInfo &si,
+                                                             ExecutionState &successor) {
+  ReturnInst *returnInst = dyn_cast<ReturnInst>(si.inst);
+  if (returnInst->getReturnValue()) {
+    return new Block(
+      {
+        new Inversion("Hstep"),
+        new Subst(),
+        new Inversion("H16"),
+        new Subst(),
+        new Inversion("H17"),
+        new Subst(),
+        new Apply("EquivSymState"),
+        new Block(
+          {
+            new Inversion("H15"),
+            new Apply("equiv_smt_store_refl"),
+          }
+        ),
+        new Block({new Apply("equiv_sym_stack_refl")}),
+        new Block({new Apply("equiv_smt_store_refl")}),
+        new Block({new Apply("equiv_smt_expr_refl")}),
+      }
+    );
+  } else {
+    return new Block(
+      {
+        new Inversion("Hstep"),
+        new Subst(),
+        new Inversion("H12"),
+        new Subst(),
+        new Inversion("H13"),
+        new Subst(),
+        new Apply("EquivSymState"),
+        new Block({new Apply("equiv_smt_store_refl")}),
+        new Block({new Apply("equiv_sym_stack_refl")}),
+        new Block({new Apply("equiv_smt_store_refl")}),
+        new Block({new Apply("equiv_smt_expr_refl")}),
+      }
+    );
+  }
 }
 
 void ProofGenerator::handleStep(StateInfo &stateInfo,
