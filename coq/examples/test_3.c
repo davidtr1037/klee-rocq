@@ -8,6 +8,6 @@ int foo(int x, int y) {
 
 int main() {
     int a = 1;
-    int b = a++;
-    return foo(a, b);
+    int b = a + 1;
+    return foo(a + 1, b);
 }
