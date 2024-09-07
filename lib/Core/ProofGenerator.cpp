@@ -827,22 +827,28 @@ klee::ref<CoqExpr> ProofGenerator::createLemmaForSubtree(StateInfo &stateInfo,
 klee::ref<CoqTactic> ProofGenerator::getTacticForStep(StateInfo &stateInfo,
                                                       SuccessorInfo &si1,
                                                       SuccessorInfo &si2) {
+  assert(si1.isSat || si2.isSat);
   ref<CoqTactic> tactic1, tactic2;
-  if (si1.isSat) {
-    tactic1 = getTacticForSat(stateInfo, *si1.state, 0);
-  } else {
-    assert(si2.isSat);
-    ref<CoqExpr> e = exprTranslator->translate(si1.unsatPC, &si2.state->arrayTranslation);
-    tactic1 = getTacticForUnsat(e);
-  }
 
-  if (si2.isSat) {
-    unsigned index = si1.isSat ? 1 : 0;
-    tactic2 = getTacticForSat(stateInfo, *si2.state, index);
+  if (!si1.isSat || !si2.isSat) {
+    uint64_t axiomID = allocateAxiomID();
+    if (!si1.isSat) {
+      ref<CoqExpr> e = exprTranslator->translate(si1.unsatPC, &si2.state->arrayTranslation);
+      ref<CoqExpr> lemma = getUnsatAxiom(e, axiomID);
+      unsatAxioms.push_front(lemma);
+      tactic1 = getTacticForUnsat(e, axiomID);
+      tactic2 = getTacticForSat(stateInfo, *si2.state, 0);
+    }
+    if (!si2.isSat) {
+      ref<CoqExpr> e = exprTranslator->translate(si2.unsatPC, &si1.state->arrayTranslation);
+      ref<CoqExpr> lemma = getUnsatAxiom(e, axiomID);
+      unsatAxioms.push_front(lemma);
+      tactic1 = getTacticForSat(stateInfo, *si1.state, 0);
+      tactic2 = getTacticForUnsat(e, axiomID);
+    }
   } else {
-    assert(si1.isSat);
-    ref<CoqExpr> e = exprTranslator->translate(si2.unsatPC, &si1.state->arrayTranslation);
-    tactic2 = getTacticForUnsat(e);
+    tactic1 = getTacticForSat(stateInfo, *si1.state, 0);
+    tactic2 = getTacticForSat(stateInfo, *si2.state, 1);
   }
 
   return new Block(
@@ -856,11 +862,7 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForStep(StateInfo &stateInfo,
   );
 }
 
-klee::ref<CoqTactic> ProofGenerator::getTacticForUnsat(ref<CoqExpr> pc) {
-  uint64_t axiomID = allocateAxiomID();
-  ref<CoqExpr> lemma = getUnsatAxiom(pc, axiomID);
-  unsatAxioms.push_front(lemma);
-
+klee::ref<CoqTactic> ProofGenerator::getTacticForUnsat(ref<CoqExpr> pc, uint64_t axiomID) {
   return new Block(
     {
       new Right(),
