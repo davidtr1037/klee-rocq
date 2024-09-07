@@ -8,7 +8,7 @@ function run_klee {
     bc_file=$1
     echo "testing ${bc_file}"
     $KLEE -search=dfs -generate-proof -proof-output-path=${output} $1 &> /dev/null
-    time coqc -Q ${ROOT}/coq SE ${output}
+    coqc -Q ${ROOT}/coq SE ${output}
 }
 
 run_klee test_1.bc &&
