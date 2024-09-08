@@ -56,14 +56,6 @@ Inductive smt_expr : Type :=
   | SMT_Extract (e : smt_expr) (i : N) (w : positive)
 .
 
-(*
-  | SMT_Select (a : smt_array) (e : smt_expr)
-  with smt_array : Type :=
-    | SMT_Array (x : string)
-    | SMT_Store (a : smt_array) (i e : smt_expr)
-.
-*)
-
 Definition SMT_True := SMT_Const_I1 one.
 Definition SMT_False := SMT_Const_I1 zero.
 
