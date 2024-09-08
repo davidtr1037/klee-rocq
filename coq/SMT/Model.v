@@ -81,7 +81,6 @@ Definition smt_eval_cmpop (op : smt_cmpop) (v1 v2 : dynamic_int) : option dynami
   end
 .
 
-(* TODO: implement *)
 (* TODO: use a single constructor SMT_Const (with dynamic_int)? *)
 Fixpoint smt_eval (m : smt_model) (e : smt_expr) : option dynamic_int :=
   match e with
