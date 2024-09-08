@@ -1,3 +1,4 @@
+From Coq Require Import Logic.Eqdep.
 From Coq Require Import Strings.String.
 From Coq Require Import ZArith.
 
@@ -106,16 +107,16 @@ Definition make_smt_bool (b : bool) : typed_smt_expr :=
 
 Inductive subexpr : typed_smt_expr -> typed_smt_expr -> Prop :=
   | SubExpr_Refl : forall e, subexpr e e
-  | SubExpr_BinOp_L : forall e sort (a1 a2 : (typed_smt_ast sort)) op,
+  | SubExpr_BinOp_L : forall e op sort (a1 a2 : (typed_smt_ast sort)),
       subexpr e (TypedSMTExpr sort a1) ->
       subexpr e (TypedSMTExpr sort (TypedSMT_BinOp sort op a1 a2))
-  | SubExpr_BinOp_R : forall e sort (a1 a2 : (typed_smt_ast sort)) op,
+  | SubExpr_BinOp_R : forall e op sort (a1 a2 : (typed_smt_ast sort)),
       subexpr e (TypedSMTExpr sort a2) ->
       subexpr e (TypedSMTExpr sort (TypedSMT_BinOp sort op a1 a2))
-  | SubExpr_CmpOp_L : forall e sort (a1 a2 : (typed_smt_ast sort)) op,
+  | SubExpr_CmpOp_L : forall e op sort (a1 a2 : (typed_smt_ast sort)),
       subexpr e (TypedSMTExpr sort a1) ->
       subexpr e (TypedSMTExpr sort (TypedSMT_CmpOp sort op a1 a2))
-  | SubExpr_CmpOp_R : forall e sort (a1 a2 : (typed_smt_ast sort)) op,
+  | SubExpr_CmpOp_R : forall e op sort (a1 a2 : (typed_smt_ast sort)),
       subexpr e (TypedSMTExpr sort a2) ->
       subexpr e (TypedSMTExpr sort (TypedSMT_CmpOp sort op a1 a2))
   | SubExpr_Not : forall e sort (a : (typed_smt_ast sort)),
@@ -127,3 +128,26 @@ Inductive contains_var : typed_smt_expr -> string -> Prop :=
   | ContainsVar : forall sort x e,
       subexpr (TypedSMTExpr sort (TypedSMT_Var sort x)) e -> contains_var e x
 .
+
+Lemma contains_var_binop : forall x sort op (a1 a2 : typed_smt_ast sort),
+  contains_var (TypedSMTExpr sort (TypedSMT_BinOp sort op a1 a2)) x ->
+  contains_var (TypedSMTExpr sort a1) x \/ contains_var (TypedSMTExpr sort a2) x.
+Proof.
+  intros x sort op a1 a2 Hc.
+  inversion Hc; subst.
+  inversion H; subst.
+  {
+    apply inj_pair2 in H5; subst.
+    left.
+    apply ContainsVar with (sort := sort0).
+    assumption.
+  }
+  {
+    apply inj_pair2 in H6; subst.
+    right.
+    apply ContainsVar with (sort := sort0).
+    assumption.
+  }
+Qed.
+
+(* TODO: add the other lemmas *)
