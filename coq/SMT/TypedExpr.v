@@ -69,6 +69,8 @@ Inductive typed_smt_ast : smt_sort -> Type :=
 
 (* TODO: rename to smt_ast_bool? *)
 Definition smt_ast_i1 := typed_smt_ast Sort_BV1.
+Definition smt_ast_true := TypedSMT_Const Sort_BV1 one.
+Definition smt_ast_false := TypedSMT_Const Sort_BV1 zero.
 
 (* TODO: use sigT? *)
 Inductive typed_smt_expr : Type :=
