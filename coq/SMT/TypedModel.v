@@ -20,6 +20,16 @@ Record typed_smt_model := mk_smt_model {
 
 Definition default_model := mk_smt_model (empty_map 0%Z).
 
+Definition create_int_by_sort (s : smt_sort) (n : Z) : (smt_sort_to_int_type s) :=
+  match s with
+  | Sort_BV1 => Int1.repr n
+  | Sort_BV8 => Int8.repr n
+  | Sort_BV16 => Int16.repr n
+  | Sort_BV32 => Int32.repr n
+  | Sort_BV64 => Int64.repr n
+  end
+.
+
 Definition smt_eval_binop_generic {Int} `{VInt Int} (op : smt_binop) (x y : Int) : Int :=
   match op with
   | SMT_Add => (add x y)
@@ -70,9 +80,7 @@ Definition smt_eval_cmpop_generic {Int} `{VInt Int} (op : smt_cmpop) (x y : Int)
 .
 
 Definition cmpop_predicate (s : smt_sort) :=
-  match s with
-  | _ => smt_cmpop -> (smt_sort_to_int_type s) -> (smt_sort_to_int_type s) -> bool
-  end
+  smt_cmpop -> (smt_sort_to_int_type s) -> (smt_sort_to_int_type s) -> bool
 .
 
 Definition smt_eval_cmpop_by_sort op s (x y : (smt_sort_to_int_type s)) : int1 :=
@@ -87,14 +95,18 @@ Definition smt_eval_cmpop_by_sort op s (x y : (smt_sort_to_int_type s)) : int1 :
   if (f op x y) then one else zero
 .
 
-Definition create_int_by_sort (s : smt_sort) (n : Z) : (smt_sort_to_int_type s) :=
+Definition create_mone_by_sort (s : smt_sort) : (smt_sort_to_int_type s) :=
   match s with
-  | Sort_BV1 => Int1.repr n
-  | Sort_BV8 => Int8.repr n
-  | Sort_BV16 => Int16.repr n
-  | Sort_BV32 => Int32.repr n
-  | Sort_BV64 => Int64.repr n
+  | Sort_BV1 => Int1.mone
+  | Sort_BV8 => Int8.mone
+  | Sort_BV16 => Int16.mone
+  | Sort_BV32 => Int32.mone
+  | Sort_BV64 => Int64.mone
   end
+.
+
+Definition smt_eval_not_by_sort s (x : (smt_sort_to_int_type s)) : (smt_sort_to_int_type s) :=
+  smt_eval_binop_by_sort SMT_Xor s x (create_mone_by_sort s)
 .
 
 Fixpoint smt_eval_internal (m : typed_smt_model) (s : smt_sort) (ast : typed_smt_ast s) : (smt_sort_to_int_type s) :=
@@ -113,7 +125,6 @@ Fixpoint smt_eval_internal (m : typed_smt_model) (s : smt_sort) (ast : typed_smt
         arg_sort
         (smt_eval_internal m arg_sort ast1)
         (smt_eval_internal m arg_sort ast2)
-  (* TODO: replace create_int_by_sort *)
-  | TypedSMT_Not sort e => create_int_by_sort sort 0%Z
+  | TypedSMT_Not arg_sort ast => smt_eval_not_by_sort arg_sort (smt_eval_internal m arg_sort ast)
   end
 .
