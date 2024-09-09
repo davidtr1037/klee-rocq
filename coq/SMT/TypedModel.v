@@ -109,7 +109,7 @@ Definition smt_eval_not_by_sort s (x : (smt_sort_to_int_type s)) : (smt_sort_to_
   smt_eval_binop_by_sort SMT_Xor s x (create_mone_by_sort s)
 .
 
-Fixpoint smt_eval_internal (m : typed_smt_model) (s : smt_sort) (ast : typed_smt_ast s) : (smt_sort_to_int_type s) :=
+Fixpoint smt_eval_ast (m : typed_smt_model) (s : smt_sort) (ast : typed_smt_ast s) : (smt_sort_to_int_type s) :=
   match ast with
   | TypedSMT_Const arg_sort n => n
   | TypedSMT_Var arg_sort x => create_int_by_sort arg_sort ((bv_model m) x)
@@ -117,27 +117,27 @@ Fixpoint smt_eval_internal (m : typed_smt_model) (s : smt_sort) (ast : typed_smt
       smt_eval_binop_by_sort
         op
         arg_sort
-        (smt_eval_internal m arg_sort ast1)
-        (smt_eval_internal m arg_sort ast2)
+        (smt_eval_ast m arg_sort ast1)
+        (smt_eval_ast m arg_sort ast2)
   | TypedSMT_CmpOp arg_sort op ast1 ast2 =>
       smt_eval_cmpop_by_sort
         op
         arg_sort
-        (smt_eval_internal m arg_sort ast1)
-        (smt_eval_internal m arg_sort ast2)
+        (smt_eval_ast m arg_sort ast1)
+        (smt_eval_ast m arg_sort ast2)
   | TypedSMT_Not arg_sort ast =>
-      smt_eval_not_by_sort arg_sort (smt_eval_internal m arg_sort ast)
+      smt_eval_not_by_sort arg_sort (smt_eval_ast m arg_sort ast)
   end
 .
 
 Fixpoint smt_eval (m : typed_smt_model) (e : typed_smt_expr) : (smt_sort_to_int_type (get_sort e)) :=
   match e with
-  | TypedSMTExpr sort ast => smt_eval_internal m sort ast
+  | TypedSMTExpr sort ast => smt_eval_ast m sort ast
   end
 .
 
 Definition sat_via (ast : smt_ast_i1) (m : typed_smt_model) :=
-  smt_eval_internal m Sort_BV1 ast = one
+  smt_eval_ast m Sort_BV1 ast = one
 .
 
 Definition sat (ast : smt_ast_i1) :=
@@ -159,7 +159,7 @@ Admitted.
 
 Inductive equiv_typed_smt_expr : typed_smt_expr -> typed_smt_expr -> Prop :=
   | EquivTypedSMTExpr : forall s (ast1 ast2 : typed_smt_ast s),
-      (forall m, smt_eval_internal m s ast1 = smt_eval_internal m s ast2) ->
+      (forall m, smt_eval_ast m s ast1 = smt_eval_ast m s ast2) ->
       equiv_typed_smt_expr (TypedSMTExpr s ast1) (TypedSMTExpr s ast2)
 .
 
