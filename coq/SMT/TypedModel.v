@@ -128,3 +128,86 @@ Fixpoint smt_eval_internal (m : typed_smt_model) (s : smt_sort) (ast : typed_smt
   | TypedSMT_Not arg_sort ast => smt_eval_not_by_sort arg_sort (smt_eval_internal m arg_sort ast)
   end
 .
+
+Fixpoint smt_eval (m : typed_smt_model) (e : typed_smt_expr) : (smt_sort_to_int_type (get_sort e)) :=
+  match e with
+  | TypedSMTExpr sort ast => smt_eval_internal m sort ast
+  end
+.
+
+Definition sat_via (ast : smt_ast_i1) (m : typed_smt_model) :=
+  smt_eval_internal m Sort_BV1 ast = one
+.
+
+Definition sat (ast : smt_ast_i1) :=
+  exists (m : typed_smt_model), sat_via ast m
+.
+
+Definition unsat (ast : smt_ast_i1) := ~ sat ast.
+
+Lemma unsat_and : forall (e1 e2 : smt_ast_i1),
+  unsat e1 ->
+  unsat (TypedSMT_BinOp Sort_BV1 SMT_And e1 e2).
+Proof.
+Admitted.
+
+Lemma subexpr_non_interference : forall e x m n,
+  (~ contains_var e x ) -> smt_eval m e = smt_eval (mk_smt_model (x !-> n; bv_model m)) e.
+Proof.
+Admitted.
+
+Inductive equiv_typed_smt_expr : typed_smt_expr -> typed_smt_expr -> Prop :=
+  | EquivTypedSMTExpr : forall sort (ast1 ast2 : typed_smt_ast sort),
+      (forall m, smt_eval_internal m sort ast1 = smt_eval_internal m sort ast2) ->
+      equiv_typed_smt_expr (TypedSMTExpr sort ast1) (TypedSMTExpr sort ast2)
+.
+
+Lemma equiv_typed_smt_expr_refl : forall e, equiv_typed_smt_expr e e.
+Proof.
+Admitted.
+
+Lemma equiv_typed_smt_expr_symmetry : forall e1 e2,
+  equiv_typed_smt_expr e1 e2 -> equiv_typed_smt_expr e2 e1.
+Proof.
+Admitted.
+
+Lemma equiv_typed_smt_expr_transitivity : forall e1 e2 e3,
+  equiv_typed_smt_expr e1 e2 -> equiv_typed_smt_expr e2 e3 -> equiv_typed_smt_expr e1 e3.
+Proof.
+Admitted.
+
+Lemma equiv_typed_smt_expr_unsat : forall (ast1 ast2 : smt_ast_i1),
+  equiv_typed_smt_expr (TypedSMTExpr Sort_BV1 ast1) (TypedSMTExpr Sort_BV1 ast2) ->
+  unsat ast1 ->
+  unsat ast2.
+Proof.
+Admitted.
+
+Lemma equiv_typed_smt_expr_binop : forall sort op (ast1 ast2 ast3 ast4 : typed_smt_ast sort),
+  equiv_typed_smt_expr (TypedSMTExpr sort ast1) (TypedSMTExpr sort ast2) ->
+  equiv_typed_smt_expr (TypedSMTExpr sort ast3) (TypedSMTExpr sort ast4) ->
+  equiv_typed_smt_expr
+    (TypedSMTExpr sort (TypedSMT_BinOp sort op ast1 ast3))
+    (TypedSMTExpr sort (TypedSMT_BinOp sort op ast2 ast4)).
+Proof.
+Admitted.
+
+(* TODO: define lemmas for cmpop and not *)
+
+Definition smt_cmpop_to_comparison (op : smt_cmpop) : comparison :=
+  match op with
+  | SMT_Eq => Ceq
+  | SMT_Ne => Cne
+  | SMT_Ult => Clt
+  | SMT_Ule => Cle
+  | SMT_Ugt => Cgt
+  | SMT_Uge => Cge
+  | SMT_Slt => Clt
+  | SMT_Sle => Cle
+  | SMT_Sgt => Cgt
+  | SMT_Sge => Cge
+  end
+.
+
+(* TODO: define normalize *)
+(* TODO: define simplify *)

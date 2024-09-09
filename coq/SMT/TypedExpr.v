@@ -67,6 +67,9 @@ Inductive typed_smt_ast : smt_sort -> Type :=
       forall (s : smt_sort) (e : typed_smt_ast s), typed_smt_ast s
 .
 
+(* TODO: rename to smt_ast_bool? *)
+Definition smt_ast_i1 := typed_smt_ast Sort_BV1.
+
 (* TODO: use sigT? *)
 Inductive typed_smt_expr : Type :=
   | TypedSMTExpr (s : smt_sort) (ast : typed_smt_ast s)
