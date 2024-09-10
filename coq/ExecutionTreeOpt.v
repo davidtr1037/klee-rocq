@@ -641,24 +641,26 @@ Proof.
   {
     rename se into se1.
     apply equiv_sym_eval_exp with (ls2 := ls2) (gs2 := gs2) in H; try assumption.
-    destruct H as [se2 [H_1 H_2]].
-    exists (mk_sym_state
-      (next_inst_counter ic c)
-      c
-      cs
-      pbid
-      (v !-> Some se2; ls2)
-      stk2
-      gs2
-      syms
-      pc2
-      mdl
-    ).
-    split.
-    { apply Sym_Step_OP; assumption. }
     {
-      apply EquivSymState; try assumption.
-      apply equiv_smt_store_update; assumption.
+      destruct H as [se2 [H_1 H_2]].
+      exists (mk_sym_state
+        (next_inst_counter ic c)
+        c
+        cs
+        pbid
+        (v !-> Some se2; ls2)
+        stk2
+        gs2
+        syms
+        pc2
+        mdl
+      ).
+      split.
+      { apply Sym_Step_OP; assumption. }
+      {
+        apply EquivSymState; try assumption.
+        apply equiv_smt_store_update; assumption.
+      }
     }
     {
       inversion His; subst.
@@ -669,24 +671,26 @@ Proof.
   {
     rename se into se1.
     apply equiv_sym_eval_phi_args with (ls2 := ls2) (gs2 := gs2) in H; try assumption.
-    destruct H as [se2 [H_1 H_2]].
-    exists (mk_sym_state
-      (next_inst_counter ic c)
-      c
-      cs
-      (Some pbid)
-      (v !-> Some se2; ls2)
-      stk2
-      gs2
-      syms
-      pc2
-      mdl
-    ).
-    split.
-    { apply Sym_Step_Phi; assumption. }
     {
-      apply EquivSymState; try assumption.
-      apply equiv_smt_store_update; assumption.
+      destruct H as [se2 [H_1 H_2]].
+      exists (mk_sym_state
+        (next_inst_counter ic c)
+        c
+        cs
+        (Some pbid)
+        (v !-> Some se2; ls2)
+        stk2
+        gs2
+        syms
+        pc2
+        mdl
+      ).
+      split.
+      { apply Sym_Step_Phi; assumption. }
+      {
+        apply EquivSymState; try assumption.
+        apply equiv_smt_store_update; assumption.
+      }
     }
     {
       inversion His; subst.
@@ -875,24 +879,26 @@ Proof.
     inversion H6; subst.
     rename s2 into ls2'.
     apply equiv_sym_eval_exp with (ls2 := ls2) (gs2 := gs2) in H; try assumption.
-    destruct H as [se2 [H_1 H_2]].
-    exists (mk_sym_state
-      ic'
-      c'
-      cs'
-      pbid'
-      (v !-> Some se2; ls2')
-      stk2
-      gs2
-      syms
-      pc2
-      mdl
-    ).
-    split.
-    { apply Sym_Step_Ret with (d := d); assumption. }
     {
-      apply EquivSymState; try assumption.
-      apply equiv_smt_store_update; assumption.
+      destruct H as [se2 [H_1 H_2]].
+      exists (mk_sym_state
+        ic'
+        c'
+        cs'
+        pbid'
+        (v !-> Some se2; ls2')
+        stk2
+        gs2
+        syms
+        pc2
+        mdl
+      ).
+      split.
+      { apply Sym_Step_Ret with (d := d); assumption. }
+      {
+        apply EquivSymState; try assumption.
+        apply equiv_smt_store_update; assumption.
+      }
     }
     {
       inversion His; subst.
