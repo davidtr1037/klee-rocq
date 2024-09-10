@@ -41,16 +41,12 @@ Inductive well_defined_stack : list sym_frame -> list string -> Prop :=
       well_defined_stack ((Sym_Frame ls ic pbid v) :: stk) syms
 .
 
-(* TODO: use record getters? *)
-(* TODO: avoid conjunction *)
 Inductive well_defined : sym_state -> Prop :=
   | WD_State : forall ic c cs pbid ls stk gs syms pc mdl,
-      (
-        well_defined_smt_store ls syms /\
-        well_defined_smt_store gs syms /\
-        well_defined_stack stk syms /\
-        well_defined_smt_expr (TypedSMTExpr Sort_BV1 pc) syms
-      ) ->
+      well_defined_smt_store ls syms ->
+      well_defined_smt_store gs syms ->
+      well_defined_stack stk syms ->
+      well_defined_smt_expr (TypedSMTExpr Sort_BV1 pc) syms ->
       well_defined
         (mk_sym_state
           ic
@@ -130,26 +126,19 @@ Proof.
   destruct (blk_cmds s_b) as [ | s_cmd s_cmds ] eqn:Es_cs; try discriminate H.
   inversion H; subst.
   apply WD_State.
-  split.
   {
     unfold init_local_smt_store.
     apply well_defined_empty_smt_store.
   }
   {
-    split.
-    {
-      unfold init_local_smt_store.
-      apply well_defined_empty_smt_store.
-    }
-    {
-      split.
-      { apply WD_EmptyStack. }
-      {
-        apply WD_Expr.
-        intros n Hse.
-        inversion Hse; subst; inversion H0.
-      }
-    }
+    unfold init_local_smt_store.
+    apply well_defined_empty_smt_store.
+  }
+  { apply WD_EmptyStack. }
+  {
+    apply WD_Expr.
+    intros n Hse.
+    inversion Hse; subst; inversion H0.
   }
 Qed.
 
@@ -342,7 +331,6 @@ Proof.
     destruct (raw_id_eqb bid pbid) eqn:E in Heq.
     {
       inversion Hwd; subst.
-      destruct H as [H_1 [H_2 [H_3 H_4]]].
       apply (well_defined_sym_eval_exp
         ls
         gs
@@ -439,12 +427,10 @@ Proof.
   intros s s' Hwd Hstep.
   destruct s as [ic c cs pbid ls stk gs syms pc mdl].
   inversion Hwd; subst.
-  destruct H0 as [Hwd_ls [Hwd_gs [Hwd_stk Hwd_pc]]].
   (* TODO: this inversion renames state variables *)
   inversion Hstep; subst.
   {
-    apply WD_State.
-    split.
+    apply WD_State; try assumption.
     {
       apply well_defined_smt_store_update.
       { assumption. }
@@ -459,15 +445,9 @@ Proof.
         ); assumption.
       }
     }
-    {
-      split.
-      { assumption. }
-      { split; assumption. }
-    }
   }
   {
-    apply WD_State.
-    split.
+    apply WD_State; try assumption.
     {
       apply WD_SMTStore.
       intros x se' Heq.
@@ -498,7 +478,7 @@ Proof.
         ); assumption.
       }
       {
-        inversion Hwd_ls; subst.
+        inversion H3; subst.
         rewrite raw_id_eqb_neq in E.
         rewrite update_map_neq in Heq.
         apply (H x se'); assumption.
@@ -506,143 +486,88 @@ Proof.
         assumption.
       }
     }
-    {
-      split.
-      { assumption. }
-      { split; assumption. }
-    }
   }
+  { apply WD_State; assumption. }
   {
-    apply WD_State.
-    split.
-    { assumption. }
+    apply WD_State; try assumption.
     {
-      split.
-      { assumption. }
-      { split; assumption. }
-    }
-  }
-  {
-    apply WD_State.
-    split.
-    { assumption. }
-    {
-      split.
-      { assumption. }
+      apply WD_Expr.
+      intros n Hse.
+      apply contains_var_binop in Hse.
+      destruct Hse as [Hse | Hse].
       {
-        split.
-        { assumption. }
-        apply WD_Expr.
-        intros n Hse.
-        apply contains_var_binop in Hse.
-        destruct Hse as [Hse | Hse].
+        inversion H12; subst.
+        apply H.
+        assumption.
+      }
+      {
+        assert(L : well_defined_smt_expr (TypedSMTExpr Sort_BV1 cond) syms).
         {
-          inversion Hwd_pc; subst.
-          apply H.
-          assumption.
+          apply (well_defined_sym_eval_exp
+            ls
+            gs
+            (Some (TYPE_I 1))
+            e
+            (TypedSMTExpr Sort_BV1 cond)
+            syms
+          ); assumption.
         }
-        {
-          assert(L : well_defined_smt_expr (TypedSMTExpr Sort_BV1 cond) syms).
-          {
-            apply (well_defined_sym_eval_exp
-              ls
-              gs
-              (Some (TYPE_I 1))
-              e
-              (TypedSMTExpr Sort_BV1 cond)
-              syms
-            ); assumption.
-          }
-          inversion L; subst.
-          apply H.
-          assumption.
-        }
+        inversion L; subst.
+        apply H.
+        assumption.
       }
     }
   }
   {
-    apply WD_State.
-    split.
-    { assumption. }
+    apply WD_State; try assumption.
     {
-      split.
-      { assumption. }
+      apply WD_Expr.
+      intros n Hse.
+      apply contains_var_binop in Hse.
+      destruct Hse as [Hse | Hse].
       {
-        split.
-        { assumption. }
-        apply WD_Expr.
-        intros n Hse.
-        apply contains_var_binop in Hse.
-        destruct Hse as [Hse | Hse].
+        inversion H12; subst.
+        apply H.
+        assumption.
+      }
+      {
+        assert(L : well_defined_smt_expr (TypedSMTExpr Sort_BV1 cond) syms).
         {
-          inversion Hwd_pc; subst.
-          apply H.
-          assumption.
+          apply (well_defined_sym_eval_exp
+            ls
+            gs
+            (Some (TYPE_I 1))
+            e
+            (TypedSMTExpr Sort_BV1 cond)
+            syms
+          ); assumption.
         }
-        {
-          assert(L : well_defined_smt_expr (TypedSMTExpr Sort_BV1 cond) syms).
-          {
-            apply (well_defined_sym_eval_exp
-              ls
-              gs
-              (Some (TYPE_I 1))
-              e
-              (TypedSMTExpr Sort_BV1 cond)
-              syms
-            ); assumption.
-          }
-          inversion L; subst.
-          apply H.
-          apply contains_var_not in Hse.
-          assumption.
-        }
+        inversion L; subst.
+        apply H.
+        apply contains_var_not in Hse.
+        assumption.
       }
     }
   }
   {
-    apply WD_State.
-    split.
+    apply WD_State; try assumption.
     { apply (well_defined_create_local_smt_store d ls gs args); assumption. }
-    {
-      split.
-      { assumption. }
-      {
-        split.
-        { apply WD_Frame; assumption. }
-        { assumption. }
-      }
-    }
+    { apply WD_Frame; assumption. }
   }
   {
-    apply WD_State.
-    split.
+    apply WD_State; try assumption.
     { apply (well_defined_create_local_smt_store d ls gs args); assumption. }
-    {
-      split.
-      { assumption. }
-      {
-        split.
-        { apply WD_Frame; assumption. }
-        { assumption. }
-      }
-    }
+    { apply WD_Frame; assumption. }
   }
   {
-    apply WD_State.
-    inversion Hwd_stk; subst.
-    split.
-    { assumption.  }
-    {
-      split.
-      { assumption. }
-      { split; assumption. }
-    }
+    apply WD_State; try assumption; (
+      inversion H11; subst; assumption
+    ).
   }
   {
-    apply WD_State.
-    inversion Hwd_stk; subst.
-    split.
+    apply WD_State; try assumption.
     {
+      inversion H11; subst.
       apply well_defined_smt_store_update.
       { assumption. }
       {
@@ -657,54 +582,44 @@ Proof.
       }
     }
     {
-      split.
-      { assumption. }
-      { split; assumption. }
+      inversion H11; subst.
+      assumption.
     }
   }
   {
-    apply WD_State.
-    split.
-    { assumption. }
+    apply WD_State; try assumption.
     {
-      split.
-      { assumption. }
+      apply WD_Expr.
+      intros n Hse.
+      apply contains_var_binop in Hse.
+      destruct Hse as [Hse | Hse].
       {
-        split.
-        { assumption. }
-        apply WD_Expr.
-        intros n Hse.
-        apply contains_var_binop in Hse.
-        destruct Hse as [Hse | Hse].
+        inversion H12; subst.
+        apply H.
+        assumption.
+      }
+      {
+        assert(L : well_defined_smt_expr (TypedSMTExpr Sort_BV1 cond) syms).
         {
-          inversion Hwd_pc; subst.
-          apply H.
-          assumption.
+          apply (well_defined_sym_eval_exp
+            ls
+            gs
+            (Some (TYPE_I 1))
+            e
+            (TypedSMTExpr Sort_BV1 cond)
+            syms
+          ); assumption.
         }
-        {
-          assert(L : well_defined_smt_expr (TypedSMTExpr Sort_BV1 cond) syms).
-          {
-            apply (well_defined_sym_eval_exp
-              ls
-              gs
-              (Some (TYPE_I 1))
-              e
-              (TypedSMTExpr Sort_BV1 cond)
-              syms
-            ); assumption.
-          }
-          inversion L; subst.
-          apply H.
-          assumption.
-        }
+        inversion L; subst.
+        apply H.
+        assumption.
       }
     }
   }
   {
     apply WD_State.
-    split.
     {
-      inversion Hwd_ls; subst.
+      inversion H3; subst.
       apply WD_SMTStore.
       intros x se' Heq.
       destruct (raw_id_eqb x v) eqn:E.
@@ -731,22 +646,16 @@ Proof.
       }
     }
     {
-      split.
-      {
-        apply well_defined_smt_store_extended_syms.
-        assumption.
-      }
-      {
-        split.
-        {
-          apply well_defined_stack_extended_syms.
-          assumption.
-        }
-        {
-          apply well_defined_smt_expr_extended_syms.
-          assumption.
-        }
-      }
+      apply well_defined_smt_store_extended_syms.
+      assumption.
+    }
+    {
+      apply well_defined_stack_extended_syms.
+      assumption.
+    }
+    {
+      apply well_defined_smt_expr_extended_syms.
+      assumption.
     }
   }
 Qed.

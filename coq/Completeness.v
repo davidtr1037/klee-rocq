@@ -801,7 +801,6 @@ Proof.
     destruct H as [m H].
     inversion H; subst.
     inversion Hwd; subst.
-    destruct H1 as [H1_1 [H1_2 [H1_3 H1_4]]].
     exists (mk_sym_state
       (next_inst_counter c_ic c)
       c
@@ -852,7 +851,7 @@ Proof.
         rewrite <- H25.
         symmetry.
         apply subexpr_non_interference.
-        inversion H1_4; subst.
+        inversion H16; subst.
         specialize (H0 (fresh_name s_syms)).
         intros Hse.
         apply H0 in Hse.
