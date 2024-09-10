@@ -39,7 +39,7 @@ Record sym_state : Type := mk_sym_state {
   sym_stack : list sym_frame;
   sym_globals : smt_store;
   sym_symbolics : list string;
-  sym_pc : smt_ast_i1;
+  sym_pc : smt_ast_bool;
   sym_module : llvm_module;
 }.
 

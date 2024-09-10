@@ -67,8 +67,7 @@ Inductive typed_smt_ast : smt_sort -> Type :=
       forall (s : smt_sort) (e : typed_smt_ast s), typed_smt_ast s
 .
 
-(* TODO: rename to smt_ast_bool? *)
-Definition smt_ast_i1 := typed_smt_ast Sort_BV1.
+Definition smt_ast_bool := typed_smt_ast Sort_BV1.
 Definition smt_ast_true := TypedAST_Const Sort_BV1 one.
 Definition smt_ast_false := TypedAST_Const Sort_BV1 zero.
 

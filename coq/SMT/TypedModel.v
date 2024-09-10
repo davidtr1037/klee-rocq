@@ -139,17 +139,17 @@ Definition smt_eval (m : typed_smt_model) (e : typed_smt_expr) : (smt_sort_to_in
   end
 .
 
-Definition sat_via (ast : smt_ast_i1) (m : typed_smt_model) :=
+Definition sat_via (ast : smt_ast_bool) (m : typed_smt_model) :=
   smt_eval_ast m Sort_BV1 ast = one
 .
 
-Definition sat (ast : smt_ast_i1) :=
+Definition sat (ast : smt_ast_bool) :=
   exists (m : typed_smt_model), sat_via ast m
 .
 
-Definition unsat (ast : smt_ast_i1) := ~ sat ast.
+Definition unsat (ast : smt_ast_bool) := ~ sat ast.
 
-Lemma unsat_and : forall (e1 e2 : smt_ast_i1),
+Lemma unsat_and : forall (e1 e2 : smt_ast_bool),
   unsat e1 ->
   unsat (TypedAST_BinOp Sort_BV1 SMT_And e1 e2).
 Proof.
@@ -181,7 +181,7 @@ Lemma equiv_typed_smt_expr_transitivity : forall e1 e2 e3,
 Proof.
 Admitted.
 
-Lemma equiv_typed_smt_expr_unsat : forall (ast1 ast2 : smt_ast_i1),
+Lemma equiv_typed_smt_expr_unsat : forall (ast1 ast2 : smt_ast_bool),
   equiv_typed_smt_expr (TypedSMTExpr Sort_BV1 ast1) (TypedSMTExpr Sort_BV1 ast2) ->
   unsat ast1 ->
   unsat ast2.
