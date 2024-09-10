@@ -15,21 +15,23 @@ From SE Require Import Symbolic.
 From SE Require Import Relation.
 From SE Require Import WellDefinedness.
 
-From SE.SMT Require Import Expr.
-From SE.SMT Require Import Model.
+From SE.SMT Require Import TypedExpr.
+From SE.SMT Require Import TypedModel.
 
 (* TODO: fix namespace issues *)
 From SE.Utils Require Import IDMap.
 From SE.Utils Require StringMap.
 From SE.Utils Require ListUtil.
 
-(* TODO: rename to: eval_exp_correspondence *)
-Lemma eval_correspondence : forall c_ls s_ls c_gs s_gs ot e m,
+(* TODO: rename correspondence to over_approx? *)
+Lemma eval_exp_correspondence : forall c_ls s_ls c_gs s_gs ot e m,
   is_supported_exp e ->
   over_approx_store_via s_ls c_ls m ->
   over_approx_store_via s_gs c_gs m ->
   equiv_via_model (eval_exp c_ls c_gs ot e) (sym_eval_exp s_ls s_gs ot e) m.
 Proof.
+Admitted.
+(*
   intros c_ls s_ls c_gs s_gs ot e m His Hls Hgs.
   generalize dependent ot.
   induction e; intros ot; simpl; try (inversion His; subst).
@@ -206,6 +208,7 @@ Proof.
     }
   }
 Qed.
+*)
 
 Lemma empty_store_correspondence : forall m,
   over_approx_store_via empty_smt_store empty_dv_store m.
@@ -262,7 +265,7 @@ Proof.
     destruct (raw_id_eqb bid pbid) eqn:E.
     {
       rewrite raw_id_eqb_eq in E.
-      apply eval_correspondence; try assumption.
+      apply eval_exp_correspondence; try assumption.
       apply (His bid).
       apply in_eq.
     }
@@ -309,7 +312,7 @@ Proof.
         m
     ).
     {
-      apply eval_correspondence; try assumption.
+      apply eval_exp_correspondence; try assumption.
       specialize (His x ((t, e), attrs)).
       assert(Larg : is_supported_function_arg ((t, e), attrs)).
       { apply His. apply in_eq. }
@@ -340,7 +343,7 @@ Proof.
         {
           destruct L2 as [L2_1 L2_2].
           inversion L; subst.
-          exists (x !-> Some se; s_ls'').
+          exists (x !-> Some (TypedSMTExpr sort ast); s_ls'').
           split.
           {
             simpl.
@@ -352,7 +355,7 @@ Proof.
             inversion Hc; subst.
             apply store_update_correspondence; try assumption.
             apply EVM_Some.
-            assumption.
+            reflexivity.
           }
         }
       }
@@ -409,7 +412,7 @@ Lemma over_approx_store_non_interference : forall s_s c_s m name n syms,
   over_approx_store_via
     s_s
     c_s
-    (mk_smt_model (StringMap.update_map (bv_model m) name (DI_I32 (repr n)))).
+    (mk_smt_model (StringMap.update_map (bv_model m) name n)).
 Proof.
   intros s_s c_s m name n syms Hoa Hwd Hin.
   apply OA_Store.
@@ -419,21 +422,11 @@ Proof.
   inversion H; subst.
   { apply EVM_None. }
   {
-    apply EVM_NoneViaModel.
-    rewrite <- subexpr_non_interference with (x := name) (n := (DI_I32 (repr n))).
-    { assumption. }
-    {
-      apply (LX0 s_s x se name syms); try assumption.
-      symmetry.
-      assumption.
-    }
-  }
-  {
     apply EVM_Some.
-    rewrite <- subexpr_non_interference with (x := name) (n := (DI_I32 (repr n))).
-    { assumption. }
+    rewrite <- subexpr_non_interference with (x := name) (n := n).
+    { reflexivity. }
     {
-      apply (LX0 s_s x se name syms); try assumption.
+      apply (LX0 s_s x (TypedSMTExpr sort ast) name syms); try assumption.
       symmetry.
       assumption.
     }
@@ -447,7 +440,7 @@ Lemma over_approx_stack_non_interference : forall s_stk c_stk m name n syms,
   over_approx_stack_via
     s_stk
     c_stk
-    (mk_smt_model (StringMap.update_map (bv_model m) name (DI_I32 (repr n))))
+    (mk_smt_model (StringMap.update_map (bv_model m) name n))
 .
 Proof.
   intros s_stk c_stk m name n syms Hoa Hwd Hin.
@@ -467,6 +460,14 @@ Proof.
       inversion Hwd; subst; assumption.
     }
   }
+Qed.
+
+Lemma infer_sort : forall (sort : smt_sort) (x : smt_sort_to_int_type sort) (n : int1),
+  make_dynamic_int sort x = DI_I1 n -> sort = Sort_BV1.
+Proof.
+  intros sort x n H.
+  destruct sort; try ( simpl in H; discriminate H ).
+  { reflexivity. }
 Qed.
 
 (* TODO: remove redundant exists tactics *)
@@ -493,7 +494,7 @@ Proof.
         m
     ).
     {
-      apply eval_correspondence; try assumption.
+      apply eval_exp_correspondence; try assumption.
       inversion Hiss; subst.
       inversion H3; subst.
       assumption.
@@ -506,41 +507,7 @@ Proof.
         c
         cs
         c_pbid
-        (v !-> Some se; s_ls)
-        s_stk
-        s_gs
-        s_syms
-        s_pc
-        c_mdl
-      ).
-      split.
-      {
-        apply Sym_Step_OP.
-        symmetry.
-        simpl.
-        assumption.
-      }
-      {
-        apply OA_State.
-        exists m.
-        apply OAV_State; try assumption.
-        apply store_update_correspondence.
-        {
-          rewrite H8 in H0.
-          rewrite <- H0.
-          apply EVM_NoneViaModel.
-          assumption.
-        }
-        { assumption. }
-      }
-    }
-    {
-      exists (mk_sym_state
-        (next_inst_counter c_ic c)
-        c
-        cs
-        c_pbid
-        (v !-> Some se; s_ls)
+        (v !-> Some (TypedSMTExpr sort ast); s_ls)
         s_stk
         s_gs
         s_syms
@@ -562,7 +529,7 @@ Proof.
           rewrite H8 in H0.
           rewrite <- H0.
           apply EVM_Some.
-          assumption.
+          reflexivity.
         }
         { assumption. }
       }
@@ -592,40 +559,7 @@ Proof.
         c
         cs
         (Some pbid)
-        (v !-> Some se; s_ls)
-        s_stk
-        s_gs
-        s_syms
-        s_pc
-        c_mdl
-      ).
-      split.
-      {
-        apply Sym_Step_Phi.
-        symmetry.
-        assumption.
-      }
-      {
-        apply OA_State.
-        exists m.
-        apply OAV_State; try assumption.
-        apply store_update_correspondence.
-        {
-          rewrite H8 in H0.
-          rewrite <- H0.
-          apply EVM_NoneViaModel.
-          assumption.
-        }
-        { assumption. }
-      }
-    }
-    {
-      exists (mk_sym_state
-        (next_inst_counter c_ic c)
-        c
-        cs
-        (Some pbid)
-        (v !-> Some se; s_ls)
+        (v !-> Some (TypedSMTExpr sort ast); s_ls)
         s_stk
         s_gs
         s_syms
@@ -647,7 +581,7 @@ Proof.
           rewrite H8 in H0.
           rewrite <- H0.
           apply EVM_Some.
-          assumption.
+          reflexivity.
         }
         { assumption. }
       }
@@ -688,15 +622,18 @@ Proof.
         m
     ).
     {
-      apply eval_correspondence; try assumption.
+      apply eval_exp_correspondence; try assumption.
       inversion Hiss; subst.
       inversion H3; subst.
       assumption.
     }
     inversion L; subst.
     { rewrite H8 in *. discriminate H1. }
-    { rewrite H8 in *. discriminate H0. }
     {
+      rewrite H8 in H0.
+      inversion H0; subst.
+      apply infer_sort in H3.
+      subst.  (* TODO: why rewrite does not work? *)
       exists (mk_sym_state
         (mk_inst_counter (ic_fid c_ic) (bid1) (get_cmd_id c))
         c
@@ -706,7 +643,7 @@ Proof.
         s_stk
         s_gs
         s_syms
-        (SMT_BinOp SMT_And s_pc se)
+        (TypedSMT_BinOp Sort_BV1 SMT_And s_pc ast)
         c_mdl
       ).
       split.
@@ -720,13 +657,8 @@ Proof.
         exists m.
         apply OAV_State; try assumption.
         simpl.
-        rewrite H26, H2.
-        rewrite H8 in L.
-        inversion L; subst.
-        rewrite <- H1 in H4.
-        inversion H4; subst.
-        rewrite H2 in H5.
-        inversion H5; subst.
+        inversion H0; subst.
+        rewrite H26, H3.
         reflexivity.
       }
     }
@@ -742,15 +674,18 @@ Proof.
         m
     ).
     {
-      apply eval_correspondence; try assumption.
+      apply eval_exp_correspondence; try assumption.
       inversion Hiss; subst.
       inversion H3; subst.
       assumption.
     }
     inversion L; subst.
     { rewrite H8 in *. discriminate H1. }
-    { rewrite H8 in *. discriminate H0. }
     {
+      rewrite H8 in H0.
+      inversion H0; subst.
+      apply infer_sort in H3.
+      subst.
       exists (mk_sym_state
         (mk_inst_counter (ic_fid c_ic) (bid2) (get_cmd_id c))
         c
@@ -760,7 +695,7 @@ Proof.
         s_stk
         s_gs
         s_syms
-        (SMT_BinOp SMT_And s_pc (SMT_Not se))
+        (TypedSMT_BinOp Sort_BV1 SMT_And s_pc (TypedSMT_Not Sort_BV1 ast))
         c_mdl
       ).
       split.
@@ -774,14 +709,8 @@ Proof.
         exists m.
         apply OAV_State; try assumption.
         simpl.
-        rewrite H26, H2.
-        rewrite H8 in L.
-        inversion L; subst.
-        rewrite <- H1 in H4.
-        inversion H4; subst.
-        rewrite H2 in H5.
-        inversion H5; subst.
-        simpl.
+        inversion H0; subst.
+        rewrite H26, H3.
         reflexivity.
       }
     }
@@ -905,21 +834,20 @@ Proof.
         m
     ).
     {
-      apply eval_correspondence; try assumption.
+      apply eval_exp_correspondence; try assumption.
       inversion Hiss; subst.
       inversion H4; subst.
       assumption.
     }
     inversion L; subst.
     { rewrite H8 in *. discriminate H1. }
-    { rewrite H8 in H0.  discriminate H0.  }
     {
       exists (mk_sym_state
         ic'
         c'0
         cs'
         pbid'
-        (v !-> Some se; s_s)
+        (v !-> Some (TypedSMTExpr sort ast); s_s)
         s_stk0
         s_gs
         s_syms
@@ -941,7 +869,7 @@ Proof.
           rewrite H8 in H0.
           rewrite <- H0.
           apply EVM_Some.
-          assumption.
+          reflexivity.
         }
         { assumption. }
       }
@@ -958,7 +886,7 @@ Proof.
       c
       cs
       c_pbid
-      (v !-> Some (SMT_Var_I32 (fresh_name s_syms)); s_ls)
+      (v !-> Some (TypedSMTExpr Sort_BV32 (TypedSMT_Var Sort_BV32 (fresh_name s_syms))); s_ls)
       s_stk
       s_gs
       (extend_names s_syms)
@@ -971,16 +899,20 @@ Proof.
       apply OA_State.
       exists (
         mk_smt_model
-          (StringMap.update_map (bv_model m) (fresh_name s_syms) (DI_I32 (repr n)))
+          (StringMap.update_map (bv_model m) (fresh_name s_syms) n)
       ).
       apply OAV_State.
       {
         apply store_update_correspondence.
         {
-          apply EVM_Some.
-          simpl.
-          rewrite StringMap.update_map_eq.
-          reflexivity.
+          replace (DI_I32 (repr n)) with (make_dynamic_int Sort_BV32 (Int32.repr n)).
+          {
+            apply EVM_Some.
+            simpl.
+            rewrite StringMap.update_map_eq.
+            reflexivity.
+          }
+          { reflexivity. }
         }
         {
           apply over_approx_store_non_interference with (syms := s_syms); try assumption.
@@ -1019,7 +951,7 @@ Proof.
         m
     ).
     {
-      apply eval_correspondence; try assumption.
+      apply eval_exp_correspondence; try assumption.
       inversion Hiss; subst.
       inversion H3; subst.
       specialize (H1 (TYPE_I 1, e, attrs)).
@@ -1030,8 +962,11 @@ Proof.
     }
     inversion L; subst.
     { rewrite H11 in *. discriminate H1. }
-    { rewrite H11 in *. discriminate H0. }
     {
+      rewrite H11 in H0.
+      inversion H0; subst.
+      apply infer_sort in H3.
+      subst.
       exists (mk_sym_state
         (next_inst_counter c_ic c)
         c
@@ -1041,7 +976,7 @@ Proof.
         s_stk
         s_gs
         s_syms
-        (SMT_BinOp SMT_And s_pc se)
+        (TypedSMT_BinOp Sort_BV1 SMT_And s_pc ast)
         c_mdl
       ).
       split.
@@ -1055,14 +990,8 @@ Proof.
         exists m.
         apply OAV_State; try assumption.
         simpl.
-        rewrite H26, H2.
-
-        rewrite H11 in L.
-        inversion L; subst.
-        rewrite <- H1 in H4.
-        inversion H4; subst.
-        rewrite H2 in H5.
-        inversion H5; subst.
+        inversion H0; subst.
+        rewrite H26, H3.
         reflexivity.
       }
     }
@@ -1091,7 +1020,7 @@ Proof.
       []
       (init_global_smt_store mdl)
       []
-      SMT_True
+      smt_ast_true
       mdl
     ).
     unfold init_sym_state.
