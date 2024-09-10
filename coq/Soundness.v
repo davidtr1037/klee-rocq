@@ -6,8 +6,8 @@ From SE Require Import LLVMAst.
 From SE Require Import Symbolic.
 From SE Require Import Relation.
 
-From SE.SMT Require Import Expr.
-From SE.SMT Require Import Model.
+From SE.SMT Require Import TypedExpr.
+From SE.SMT Require Import TypedModel.
 
 From SE.Utils Require Import IDMap.
 
@@ -21,7 +21,7 @@ Proof.
 Admitted.
 
 Lemma soundness :
-  forall (mdl : llvm_module) (fid : function_id) (s : sym_state) (m : smt_model),
+  forall (mdl : llvm_module) (fid : function_id) (s : sym_state) (m : typed_smt_model),
     exists init_s,
       (init_sym_state mdl fid) = Some init_s ->
       multi_sym_step init_s s ->
