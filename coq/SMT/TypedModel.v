@@ -64,19 +64,22 @@ Definition smt_eval_binop_by_sort op s (x y : (smt_sort_to_int_type s)) : (smt_s
   f op x y
 .
 
-Definition smt_eval_cmpop_generic {Int} `{VInt Int} (op : smt_cmpop) (x y : Int) : bool :=
+Definition smt_cmpop_to_comparison (op : smt_cmpop) : comparison :=
   match op with
-   | SMT_Eq => cmp Ceq x y
-   | SMT_Ne => cmp Cne x y
-   | SMT_Ugt => cmpu Cgt x y
-   | SMT_Uge => cmpu Cge x y
-   | SMT_Ult => cmpu Clt x y
-   | SMT_Ule => cmpu Cle x y
-   | SMT_Sgt => cmp Cgt x y
-   | SMT_Sge => cmp Cge x y
-   | SMT_Slt => cmp Clt x y
-   | SMT_Sle => cmp Cle x y
-   end
+  | SMT_Eq => Ceq
+  | SMT_Ne => Cne
+  | SMT_Ugt => Cgt
+  | SMT_Uge => Cge
+  | SMT_Ult => Clt
+  | SMT_Ule => Cle
+  | SMT_Sgt => Cgt
+  | SMT_Sge => Cge
+  | SMT_Slt => Clt
+  | SMT_Sle => Cle
+  end
+.
+Definition smt_eval_cmpop_generic {Int} `{VInt Int} (op : smt_cmpop) (x y : Int) : bool :=
+  cmp (smt_cmpop_to_comparison op) x y
 .
 
 Definition cmpop_predicate (s : smt_sort) :=
@@ -195,21 +198,6 @@ Proof.
 Admitted.
 
 (* TODO: define lemmas for cmpop and not *)
-
-Definition smt_cmpop_to_comparison (op : smt_cmpop) : comparison :=
-  match op with
-  | SMT_Eq => Ceq
-  | SMT_Ne => Cne
-  | SMT_Ult => Clt
-  | SMT_Ule => Cle
-  | SMT_Ugt => Cgt
-  | SMT_Uge => Cge
-  | SMT_Slt => Clt
-  | SMT_Sle => Cle
-  | SMT_Sgt => Cgt
-  | SMT_Sge => Cge
-  end
-.
 
 (* TODO: define normalize *)
 (* TODO: define simplify *)
