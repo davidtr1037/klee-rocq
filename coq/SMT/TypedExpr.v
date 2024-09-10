@@ -112,18 +112,18 @@ Definition make_smt_bool (b : bool) : typed_smt_expr :=
 
 Inductive subexpr : typed_smt_expr -> typed_smt_expr -> Prop :=
   | SubExpr_Refl : forall e, subexpr e e
-  | SubExpr_BinOp_L : forall e op sort (a1 a2 : (typed_smt_ast sort)),
-      subexpr e (TypedSMTExpr sort a1) ->
-      subexpr e (TypedSMTExpr sort (TypedSMT_BinOp sort op a1 a2))
-  | SubExpr_BinOp_R : forall e op sort (a1 a2 : (typed_smt_ast sort)),
-      subexpr e (TypedSMTExpr sort a2) ->
-      subexpr e (TypedSMTExpr sort (TypedSMT_BinOp sort op a1 a2))
-  | SubExpr_CmpOp_L : forall e op sort (a1 a2 : (typed_smt_ast sort)),
-      subexpr e (TypedSMTExpr sort a1) ->
-      subexpr e (TypedSMTExpr Sort_BV1 (TypedSMT_CmpOp sort op a1 a2))
-  | SubExpr_CmpOp_R : forall e op sort (a1 a2 : (typed_smt_ast sort)),
-      subexpr e (TypedSMTExpr sort a2) ->
-      subexpr e (TypedSMTExpr Sort_BV1 (TypedSMT_CmpOp sort op a1 a2))
+  | SubExpr_BinOp_L : forall e op sort (ast1 ast2 : (typed_smt_ast sort)),
+      subexpr e (TypedSMTExpr sort ast1) ->
+      subexpr e (TypedSMTExpr sort (TypedSMT_BinOp sort op ast1 ast2))
+  | SubExpr_BinOp_R : forall e op sort (ast1 ast2 : (typed_smt_ast sort)),
+      subexpr e (TypedSMTExpr sort ast2) ->
+      subexpr e (TypedSMTExpr sort (TypedSMT_BinOp sort op ast1 ast2))
+  | SubExpr_CmpOp_L : forall e op sort (ast1 ast2 : (typed_smt_ast sort)),
+      subexpr e (TypedSMTExpr sort ast1) ->
+      subexpr e (TypedSMTExpr Sort_BV1 (TypedSMT_CmpOp sort op ast1 ast2))
+  | SubExpr_CmpOp_R : forall e op sort (ast1 ast2 : (typed_smt_ast sort)),
+      subexpr e (TypedSMTExpr sort ast2) ->
+      subexpr e (TypedSMTExpr Sort_BV1 (TypedSMT_CmpOp sort op ast1 ast2))
   | SubExpr_Not : forall e sort (a : (typed_smt_ast sort)),
       subexpr e (TypedSMTExpr sort a) ->
       subexpr e (TypedSMTExpr sort (TypedSMT_Not sort a))
@@ -134,11 +134,11 @@ Inductive contains_var : typed_smt_expr -> string -> Prop :=
       subexpr (TypedSMTExpr sort (TypedSMT_Var sort x)) e -> contains_var e x
 .
 
-Lemma contains_var_binop : forall x sort op (a1 a2 : typed_smt_ast sort),
-  contains_var (TypedSMTExpr sort (TypedSMT_BinOp sort op a1 a2)) x ->
-  contains_var (TypedSMTExpr sort a1) x \/ contains_var (TypedSMTExpr sort a2) x.
+Lemma contains_var_binop : forall x sort op (ast1 ast2 : typed_smt_ast sort),
+  contains_var (TypedSMTExpr sort (TypedSMT_BinOp sort op ast1 ast2)) x ->
+  contains_var (TypedSMTExpr sort ast1) x \/ contains_var (TypedSMTExpr sort ast2) x.
 Proof.
-  intros x sort op a1 a2 Hc.
+  intros x sort op ast1 ast2 Hc.
   inversion Hc; subst.
   inversion H; subst.
   {
@@ -154,5 +154,11 @@ Proof.
     assumption.
   }
 Qed.
+
+Lemma contains_var_not : forall x sort (ast : typed_smt_ast sort),
+  contains_var (TypedSMTExpr sort (TypedSMT_Not sort ast)) x ->
+  contains_var (TypedSMTExpr sort ast) x.
+Proof.
+Admitted.
 
 (* TODO: add the other lemmas *)
