@@ -121,15 +121,15 @@ Definition ibinop_to_smt_binop (op : ibinop) : smt_binop :=
 Definition sym_eval_ibinop (op : ibinop) (e1 e2 : typed_smt_expr) : option typed_smt_expr :=
   match e1, e2 with
   | (TypedSMTExpr Sort_BV1 ast1), (TypedSMTExpr Sort_BV1 ast2) =>
-      Some (TypedSMTExpr Sort_BV1 (TypedSMT_BinOp Sort_BV1 (ibinop_to_smt_binop op) ast1 ast2))
+      Some (TypedSMTExpr Sort_BV1 (TypedAST_BinOp Sort_BV1 (ibinop_to_smt_binop op) ast1 ast2))
   | (TypedSMTExpr Sort_BV8 ast1), (TypedSMTExpr Sort_BV8 ast2) =>
-      Some (TypedSMTExpr Sort_BV8 (TypedSMT_BinOp Sort_BV8 (ibinop_to_smt_binop op) ast1 ast2))
+      Some (TypedSMTExpr Sort_BV8 (TypedAST_BinOp Sort_BV8 (ibinop_to_smt_binop op) ast1 ast2))
   | (TypedSMTExpr Sort_BV16 ast1), (TypedSMTExpr Sort_BV16 ast2) =>
-      Some (TypedSMTExpr Sort_BV16 (TypedSMT_BinOp Sort_BV16 (ibinop_to_smt_binop op) ast1 ast2))
+      Some (TypedSMTExpr Sort_BV16 (TypedAST_BinOp Sort_BV16 (ibinop_to_smt_binop op) ast1 ast2))
   | (TypedSMTExpr Sort_BV32 ast1), (TypedSMTExpr Sort_BV32 ast2) =>
-      Some (TypedSMTExpr Sort_BV32 (TypedSMT_BinOp Sort_BV32 (ibinop_to_smt_binop op) ast1 ast2))
+      Some (TypedSMTExpr Sort_BV32 (TypedAST_BinOp Sort_BV32 (ibinop_to_smt_binop op) ast1 ast2))
   | (TypedSMTExpr Sort_BV64 ast1), (TypedSMTExpr Sort_BV64 ast2) =>
-      Some (TypedSMTExpr Sort_BV64 (TypedSMT_BinOp Sort_BV64 (ibinop_to_smt_binop op) ast1 ast2))
+      Some (TypedSMTExpr Sort_BV64 (TypedAST_BinOp Sort_BV64 (ibinop_to_smt_binop op) ast1 ast2))
   | _, _ => None
   end
 .
@@ -152,15 +152,15 @@ Definition icmp_to_smt_cmpop (op : icmp) : smt_cmpop :=
 Definition sym_eval_icmp (op : icmp) (e1 e2 : typed_smt_expr) : option typed_smt_expr :=
   match e1, e2 with
   | (TypedSMTExpr Sort_BV1 ast1), (TypedSMTExpr Sort_BV1 ast2) =>
-      Some (TypedSMTExpr Sort_BV1 (TypedSMT_CmpOp Sort_BV1 (icmp_to_smt_cmpop op) ast1 ast2))
+      Some (TypedSMTExpr Sort_BV1 (TypedAST_CmpOp Sort_BV1 (icmp_to_smt_cmpop op) ast1 ast2))
   | (TypedSMTExpr Sort_BV8 ast1), (TypedSMTExpr Sort_BV8 ast2) =>
-      Some (TypedSMTExpr Sort_BV1 (TypedSMT_CmpOp Sort_BV8 (icmp_to_smt_cmpop op) ast1 ast2))
+      Some (TypedSMTExpr Sort_BV1 (TypedAST_CmpOp Sort_BV8 (icmp_to_smt_cmpop op) ast1 ast2))
   | (TypedSMTExpr Sort_BV16 ast1), (TypedSMTExpr Sort_BV16 ast2) =>
-      Some (TypedSMTExpr Sort_BV1 (TypedSMT_CmpOp Sort_BV16 (icmp_to_smt_cmpop op) ast1 ast2))
+      Some (TypedSMTExpr Sort_BV1 (TypedAST_CmpOp Sort_BV16 (icmp_to_smt_cmpop op) ast1 ast2))
   | (TypedSMTExpr Sort_BV32 ast1), (TypedSMTExpr Sort_BV32 ast2) =>
-      Some (TypedSMTExpr Sort_BV1 (TypedSMT_CmpOp Sort_BV32 (icmp_to_smt_cmpop op) ast1 ast2))
+      Some (TypedSMTExpr Sort_BV1 (TypedAST_CmpOp Sort_BV32 (icmp_to_smt_cmpop op) ast1 ast2))
   | (TypedSMTExpr Sort_BV64 ast1), (TypedSMTExpr Sort_BV64 ast2) =>
-      Some (TypedSMTExpr Sort_BV1 (TypedSMT_CmpOp Sort_BV64 (icmp_to_smt_cmpop op) ast1 ast2))
+      Some (TypedSMTExpr Sort_BV1 (TypedAST_CmpOp Sort_BV64 (icmp_to_smt_cmpop op) ast1 ast2))
   | _, _ => None
   end
 .
@@ -342,7 +342,7 @@ Inductive sym_step : sym_state -> sym_state -> Prop :=
           stk
           gs
           syms
-          (TypedSMT_BinOp Sort_BV1 SMT_And pc cond)
+          (TypedAST_BinOp Sort_BV1 SMT_And pc cond)
           mdl
         )
   | Sym_Step_Br_False : forall ic cid e bid1 bid2 pbid ls stk gs syms pc mdl cond d b c cs,
@@ -372,7 +372,7 @@ Inductive sym_step : sym_state -> sym_state -> Prop :=
           stk
           gs
           syms
-          (TypedSMT_BinOp Sort_BV1 SMT_And pc (TypedSMT_Not Sort_BV1 cond))
+          (TypedAST_BinOp Sort_BV1 SMT_And pc (TypedAST_Not Sort_BV1 cond))
           mdl
         )
   | Sym_Step_VoidCall : forall ic cid f args anns c cs pbid ls stk gs syms pc mdl d b c' cs' ls',
@@ -523,7 +523,7 @@ Inductive sym_step : sym_state -> sym_state -> Prop :=
           stk
           gs
           syms
-          (TypedSMT_BinOp Sort_BV1 SMT_And pc cond)
+          (TypedAST_BinOp Sort_BV1 SMT_And pc cond)
           mdl
         )
   | Sym_Step_MakeSymbolicInt32 : forall ic cid v c cs pbid ls stk gs syms pc mdl d,
@@ -548,7 +548,7 @@ Inductive sym_step : sym_state -> sym_state -> Prop :=
           c
           cs
           pbid
-          (v !-> Some (TypedSMTExpr Sort_BV32 (TypedSMT_Var Sort_BV32 (fresh_name syms))); ls)
+          (v !-> Some (TypedSMTExpr Sort_BV32 (TypedAST_Var Sort_BV32 (fresh_name syms))); ls)
           stk
           gs
           (extend_names syms)

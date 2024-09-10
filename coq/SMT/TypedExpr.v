@@ -54,24 +54,23 @@ Definition smt_sort_to_int_type (s : smt_sort) :=
   end
 .
 
-(* TODO: rename to TypedAST_* *)
 Inductive typed_smt_ast : smt_sort -> Type :=
-  | TypedSMT_Const :
+  | TypedAST_Const :
       forall (s : smt_sort) (n : (smt_sort_to_int_type s)), typed_smt_ast s
-  | TypedSMT_Var :
+  | TypedAST_Var :
       forall (s : smt_sort) (x : string), typed_smt_ast s
-  | TypedSMT_BinOp :
+  | TypedAST_BinOp :
       forall (s : smt_sort) (op : smt_binop) (e1 e2 : typed_smt_ast s), typed_smt_ast s
-  | TypedSMT_CmpOp :
+  | TypedAST_CmpOp :
       forall (s : smt_sort) (op : smt_cmpop) (e1 e2 : typed_smt_ast s), typed_smt_ast Sort_BV1
-  | TypedSMT_Not :
+  | TypedAST_Not :
       forall (s : smt_sort) (e : typed_smt_ast s), typed_smt_ast s
 .
 
 (* TODO: rename to smt_ast_bool? *)
 Definition smt_ast_i1 := typed_smt_ast Sort_BV1.
-Definition smt_ast_true := TypedSMT_Const Sort_BV1 one.
-Definition smt_ast_false := TypedSMT_Const Sort_BV1 zero.
+Definition smt_ast_true := TypedAST_Const Sort_BV1 one.
+Definition smt_ast_false := TypedAST_Const Sort_BV1 zero.
 
 (* TODO: use sigT? *)
 Inductive typed_smt_expr : Type :=
@@ -95,11 +94,11 @@ Definition smt_expr_false := (TypedSMTExpr Sort_BV1 smt_ast_false).
 
 Definition make_smt_const (bits : positive) (n : Z) : option typed_smt_expr :=
   match bits with
-  | 1%positive => Some (TypedSMTExpr Sort_BV1 (TypedSMT_Const Sort_BV1 (Int1.repr n)))
-  | 8%positive => Some (TypedSMTExpr Sort_BV8 (TypedSMT_Const Sort_BV8 (Int8.repr n)))
-  | 16%positive => Some (TypedSMTExpr Sort_BV16 (TypedSMT_Const Sort_BV16 (Int16.repr n)))
-  | 32%positive => Some (TypedSMTExpr Sort_BV32 (TypedSMT_Const Sort_BV32 (Int32.repr n)))
-  | 64%positive => Some (TypedSMTExpr Sort_BV64 (TypedSMT_Const Sort_BV64 (Int64.repr n)))
+  | 1%positive => Some (TypedSMTExpr Sort_BV1 (TypedAST_Const Sort_BV1 (Int1.repr n)))
+  | 8%positive => Some (TypedSMTExpr Sort_BV8 (TypedAST_Const Sort_BV8 (Int8.repr n)))
+  | 16%positive => Some (TypedSMTExpr Sort_BV16 (TypedAST_Const Sort_BV16 (Int16.repr n)))
+  | 32%positive => Some (TypedSMTExpr Sort_BV32 (TypedAST_Const Sort_BV32 (Int32.repr n)))
+  | 64%positive => Some (TypedSMTExpr Sort_BV64 (TypedAST_Const Sort_BV64 (Int64.repr n)))
   | _ => None
   end
 .
@@ -115,28 +114,28 @@ Inductive subexpr : typed_smt_expr -> typed_smt_expr -> Prop :=
   | SubExpr_Refl : forall e, subexpr e e
   | SubExpr_BinOp_L : forall e op sort (ast1 ast2 : (typed_smt_ast sort)),
       subexpr e (TypedSMTExpr sort ast1) ->
-      subexpr e (TypedSMTExpr sort (TypedSMT_BinOp sort op ast1 ast2))
+      subexpr e (TypedSMTExpr sort (TypedAST_BinOp sort op ast1 ast2))
   | SubExpr_BinOp_R : forall e op sort (ast1 ast2 : (typed_smt_ast sort)),
       subexpr e (TypedSMTExpr sort ast2) ->
-      subexpr e (TypedSMTExpr sort (TypedSMT_BinOp sort op ast1 ast2))
+      subexpr e (TypedSMTExpr sort (TypedAST_BinOp sort op ast1 ast2))
   | SubExpr_CmpOp_L : forall e op sort (ast1 ast2 : (typed_smt_ast sort)),
       subexpr e (TypedSMTExpr sort ast1) ->
-      subexpr e (TypedSMTExpr Sort_BV1 (TypedSMT_CmpOp sort op ast1 ast2))
+      subexpr e (TypedSMTExpr Sort_BV1 (TypedAST_CmpOp sort op ast1 ast2))
   | SubExpr_CmpOp_R : forall e op sort (ast1 ast2 : (typed_smt_ast sort)),
       subexpr e (TypedSMTExpr sort ast2) ->
-      subexpr e (TypedSMTExpr Sort_BV1 (TypedSMT_CmpOp sort op ast1 ast2))
+      subexpr e (TypedSMTExpr Sort_BV1 (TypedAST_CmpOp sort op ast1 ast2))
   | SubExpr_Not : forall e sort (a : (typed_smt_ast sort)),
       subexpr e (TypedSMTExpr sort a) ->
-      subexpr e (TypedSMTExpr sort (TypedSMT_Not sort a))
+      subexpr e (TypedSMTExpr sort (TypedAST_Not sort a))
 .
 
 Inductive contains_var : typed_smt_expr -> string -> Prop :=
   | ContainsVar : forall sort x e,
-      subexpr (TypedSMTExpr sort (TypedSMT_Var sort x)) e -> contains_var e x
+      subexpr (TypedSMTExpr sort (TypedAST_Var sort x)) e -> contains_var e x
 .
 
 Lemma contains_var_binop : forall x sort op (ast1 ast2 : typed_smt_ast sort),
-  contains_var (TypedSMTExpr sort (TypedSMT_BinOp sort op ast1 ast2)) x ->
+  contains_var (TypedSMTExpr sort (TypedAST_BinOp sort op ast1 ast2)) x ->
   contains_var (TypedSMTExpr sort ast1) x \/ contains_var (TypedSMTExpr sort ast2) x.
 Proof.
   intros x sort op ast1 ast2 Hc.
@@ -157,13 +156,13 @@ Proof.
 Qed.
 
 Lemma contains_var_cmpop : forall x sort op (ast1 ast2 : typed_smt_ast sort),
-  contains_var (TypedSMTExpr Sort_BV1 (TypedSMT_CmpOp sort op ast1 ast2)) x ->
+  contains_var (TypedSMTExpr Sort_BV1 (TypedAST_CmpOp sort op ast1 ast2)) x ->
   contains_var (TypedSMTExpr sort ast1) x \/ contains_var (TypedSMTExpr sort ast2) x.
 Proof.
 Admitted.
 
 Lemma contains_var_not : forall x sort (ast : typed_smt_ast sort),
-  contains_var (TypedSMTExpr sort (TypedSMT_Not sort ast)) x ->
+  contains_var (TypedSMTExpr sort (TypedAST_Not sort ast)) x ->
   contains_var (TypedSMTExpr sort ast) x.
 Proof.
 Admitted.

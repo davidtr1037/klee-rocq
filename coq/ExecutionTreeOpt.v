@@ -731,7 +731,7 @@ Proof.
         stk2
         gs2
         syms
-        (TypedSMT_BinOp Sort_BV1 SMT_And pc2 ast2)
+        (TypedAST_BinOp Sort_BV1 SMT_And pc2 ast2)
         mdl
       ).
       split.
@@ -763,7 +763,7 @@ Proof.
         stk2
         gs2
         syms
-        (TypedSMT_BinOp Sort_BV1 SMT_And pc2 (TypedSMT_Not Sort_BV1 ast2))
+        (TypedAST_BinOp Sort_BV1 SMT_And pc2 (TypedAST_Not Sort_BV1 ast2))
         mdl
       ).
       split.
@@ -922,7 +922,7 @@ Proof.
         stk2
         gs2
         syms
-        (TypedSMT_BinOp Sort_BV1 SMT_And pc2 ast2)
+        (TypedAST_BinOp Sort_BV1 SMT_And pc2 ast2)
         mdl
       ).
       split.
@@ -947,7 +947,7 @@ Proof.
       c
       cs
       pbid
-      (v !-> Some (TypedSMTExpr Sort_BV32 (TypedSMT_Var Sort_BV32 (fresh_name syms))); ls2)
+      (v !-> Some (TypedSMTExpr Sort_BV32 (TypedAST_Var Sort_BV32 (fresh_name syms))); ls2)
       stk2
       gs2
       (extend_names syms)

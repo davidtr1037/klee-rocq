@@ -247,20 +247,20 @@ Proof.
 Admitted.
 
 Lemma equiv_smt_expr_implied_condition: forall ast1 ast2,
-  unsat (TypedSMT_BinOp Sort_BV1 SMT_And ast1 (TypedSMT_Not Sort_BV1 ast2)) ->
+  unsat (TypedAST_BinOp Sort_BV1 SMT_And ast1 (TypedAST_Not Sort_BV1 ast2)) ->
   equiv_typed_smt_expr
-    (TypedSMTExpr Sort_BV1 (TypedSMT_BinOp Sort_BV1 SMT_And ast1 ast2))
+    (TypedSMTExpr Sort_BV1 (TypedAST_BinOp Sort_BV1 SMT_And ast1 ast2))
     (TypedSMTExpr Sort_BV1 ast1).
 Proof.
 Admitted.
 
 Lemma LAUX_4_1: forall ast1 ast2 ast3,
   equiv_typed_smt_expr
-    (TypedSMTExpr Sort_BV1 (TypedSMT_BinOp Sort_BV1 SMT_And ast1 (TypedSMT_Not Sort_BV1 ast2)))
+    (TypedSMTExpr Sort_BV1 (TypedAST_BinOp Sort_BV1 SMT_And ast1 (TypedAST_Not Sort_BV1 ast2)))
     (TypedSMTExpr Sort_BV1 ast3) ->
   unsat ast3 ->
   equiv_typed_smt_expr
-    (TypedSMTExpr Sort_BV1 (TypedSMT_BinOp Sort_BV1 SMT_And ast1 ast2))
+    (TypedSMTExpr Sort_BV1 (TypedAST_BinOp Sort_BV1 SMT_And ast1 ast2))
     (TypedSMTExpr Sort_BV1 ast1).
 Proof.
   intros ast1 ast2 ast3 Heq Hunsat.

@@ -114,21 +114,21 @@ Definition smt_eval_not_by_sort s (x : (smt_sort_to_int_type s)) : (smt_sort_to_
 
 Fixpoint smt_eval_ast (m : typed_smt_model) (s : smt_sort) (ast : typed_smt_ast s) : (smt_sort_to_int_type s) :=
   match ast with
-  | TypedSMT_Const arg_sort n => n
-  | TypedSMT_Var arg_sort x => create_int_by_sort arg_sort ((bv_model m) x)
-  | TypedSMT_BinOp arg_sort op ast1 ast2 =>
+  | TypedAST_Const arg_sort n => n
+  | TypedAST_Var arg_sort x => create_int_by_sort arg_sort ((bv_model m) x)
+  | TypedAST_BinOp arg_sort op ast1 ast2 =>
       smt_eval_binop_by_sort
         op
         arg_sort
         (smt_eval_ast m arg_sort ast1)
         (smt_eval_ast m arg_sort ast2)
-  | TypedSMT_CmpOp arg_sort op ast1 ast2 =>
+  | TypedAST_CmpOp arg_sort op ast1 ast2 =>
       smt_eval_cmpop_by_sort
         op
         arg_sort
         (smt_eval_ast m arg_sort ast1)
         (smt_eval_ast m arg_sort ast2)
-  | TypedSMT_Not arg_sort ast =>
+  | TypedAST_Not arg_sort ast =>
       smt_eval_not_by_sort arg_sort (smt_eval_ast m arg_sort ast)
   end
 .
@@ -151,7 +151,7 @@ Definition unsat (ast : smt_ast_i1) := ~ sat ast.
 
 Lemma unsat_and : forall (e1 e2 : smt_ast_i1),
   unsat e1 ->
-  unsat (TypedSMT_BinOp Sort_BV1 SMT_And e1 e2).
+  unsat (TypedAST_BinOp Sort_BV1 SMT_And e1 e2).
 Proof.
 Admitted.
 
@@ -192,16 +192,16 @@ Lemma equiv_typed_smt_expr_binop : forall s op (ast1 ast2 ast3 ast4 : typed_smt_
   equiv_typed_smt_expr (TypedSMTExpr s ast1) (TypedSMTExpr s ast2) ->
   equiv_typed_smt_expr (TypedSMTExpr s ast3) (TypedSMTExpr s ast4) ->
   equiv_typed_smt_expr
-    (TypedSMTExpr s (TypedSMT_BinOp s op ast1 ast3))
-    (TypedSMTExpr s (TypedSMT_BinOp s op ast2 ast4)).
+    (TypedSMTExpr s (TypedAST_BinOp s op ast1 ast3))
+    (TypedSMTExpr s (TypedAST_BinOp s op ast2 ast4)).
 Proof.
 Admitted.
 
 Lemma equiv_typed_smt_expr_not : forall s (ast1 ast2 : typed_smt_ast s),
   equiv_typed_smt_expr (TypedSMTExpr s ast1) (TypedSMTExpr s ast2) ->
   equiv_typed_smt_expr
-    (TypedSMTExpr s (TypedSMT_Not s ast1))
-    (TypedSMTExpr s (TypedSMT_Not s ast2)).
+    (TypedSMTExpr s (TypedAST_Not s ast1))
+    (TypedSMTExpr s (TypedAST_Not s ast2)).
 Proof.
 Admitted.
 

@@ -565,7 +565,7 @@ Proof.
         s_stk
         s_gs
         s_syms
-        (TypedSMT_BinOp Sort_BV1 SMT_And s_pc ast)
+        (TypedAST_BinOp Sort_BV1 SMT_And s_pc ast)
         c_mdl
       ).
       split.
@@ -617,7 +617,7 @@ Proof.
         s_stk
         s_gs
         s_syms
-        (TypedSMT_BinOp Sort_BV1 SMT_And s_pc (TypedSMT_Not Sort_BV1 ast))
+        (TypedAST_BinOp Sort_BV1 SMT_And s_pc (TypedAST_Not Sort_BV1 ast))
         c_mdl
       ).
       split.
@@ -807,7 +807,7 @@ Proof.
       c
       cs
       c_pbid
-      (v !-> Some (TypedSMTExpr Sort_BV32 (TypedSMT_Var Sort_BV32 (fresh_name s_syms))); s_ls)
+      (v !-> Some (TypedSMTExpr Sort_BV32 (TypedAST_Var Sort_BV32 (fresh_name s_syms))); s_ls)
       s_stk
       s_gs
       (extend_names s_syms)
@@ -897,7 +897,7 @@ Proof.
         s_stk
         s_gs
         s_syms
-        (TypedSMT_BinOp Sort_BV1 SMT_And s_pc ast)
+        (TypedAST_BinOp Sort_BV1 SMT_And s_pc ast)
         c_mdl
       ).
       split.
