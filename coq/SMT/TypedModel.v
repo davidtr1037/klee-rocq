@@ -197,6 +197,14 @@ Lemma equiv_typed_smt_expr_binop : forall s op (ast1 ast2 ast3 ast4 : typed_smt_
 Proof.
 Admitted.
 
+Lemma equiv_typed_smt_expr_not : forall s (ast1 ast2 : typed_smt_ast s),
+  equiv_typed_smt_expr (TypedSMTExpr s ast1) (TypedSMTExpr s ast2) ->
+  equiv_typed_smt_expr
+    (TypedSMTExpr s (TypedSMT_Not s ast1))
+    (TypedSMTExpr s (TypedSMT_Not s ast2)).
+Proof.
+Admitted.
+
 (* TODO: define lemmas for cmpop and not *)
 
 (* TODO: define normalize *)
