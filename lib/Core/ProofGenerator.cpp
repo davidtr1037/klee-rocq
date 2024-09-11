@@ -309,6 +309,7 @@ vector<klee::ref<CoqExpr>> ProofGenerator::getImports() {
     new CoqRequire("SE", "ProofGeneration"),
     new CoqRequire("SE.SMT", "TypedExpr"),
     new CoqRequire("SE.SMT", "TypedModel"),
+    new CoqRequire("SE.Utils", "Util"),
   };
 }
 
@@ -570,7 +571,7 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForEquivAssignment(StateInfo &si,
       t,
       new Block({new Apply("equiv_sym_stack_refl")}),
       new Block({new Apply("equiv_smt_store_refl")}),
-      new Block({new Apply("equiv_smt_expr_refl")}),
+      new Block({new Apply("equiv_typed_smt_expr_refl")}),
     }
   );
 }
@@ -602,7 +603,7 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForEquivPHI(StateInfo &si,
         ),
         new Inversion("H14"),
         new Subst(),
-        new Apply("equiv_smt_expr_refl"),
+        new Apply("equiv_typed_smt_expr_refl"),
       }
     );
   } else {
@@ -623,7 +624,7 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForEquivPHI(StateInfo &si,
       t,
       new Block({new Apply("equiv_sym_stack_refl")}),
       new Block({new Apply("equiv_smt_store_refl")}),
-      new Block({new Apply("equiv_smt_expr_refl")}),
+      new Block({new Apply("equiv_typed_smt_expr_refl")}),
     }
   );
 }
@@ -658,7 +659,9 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForEquivBranch(StateInfo &si,
     } else {
       t = new Block(
         {
-          new Inversion("H12"),
+          new Apply("injection_some", "H12"),
+          new Apply("injection_ast", "H12"),
+          new Subst(),
           new Apply("LAUX_normalize_simplify"),
         }
       );
@@ -693,7 +696,7 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForEquivBranch(StateInfo &si,
         new Block({new Apply("equiv_smt_store_refl")}),
         new Block({new Apply("equiv_sym_stack_refl")}),
         new Block({new Apply("equiv_smt_store_refl")}),
-        new Block({new Apply("equiv_smt_expr_refl")}),
+        new Block({new Apply("equiv_typed_smt_expr_refl")}),
       }
     );
   }
@@ -708,7 +711,7 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForEquivCall(StateInfo &si,
         new Block({new Apply("equiv_smt_store_refl")}),
         new Block({new Apply("equiv_sym_stack_refl")}),
         new Block({new Apply("equiv_smt_store_refl")}),
-        new Block({new Apply("equiv_smt_expr_refl")}),
+        new Block({new Apply("equiv_typed_smt_expr_refl")}),
       }
     );
   } else if (isAssumeBool(si.inst)) {
@@ -742,7 +745,7 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForEquivCall(StateInfo &si,
           new Block({new Apply("equiv_smt_store_refl")}),
           new Block({new Apply("equiv_sym_stack_refl")}),
           new Block({new Apply("equiv_smt_store_refl")}),
-          new Block({new Apply("equiv_smt_expr_refl")}),
+          new Block({new Apply("equiv_typed_smt_expr_refl")}),
         }
       );
     } else {
@@ -765,7 +768,7 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForEquivCall(StateInfo &si,
           ),
           new Block({new Apply("equiv_sym_stack_refl")}),
           new Block({new Apply("equiv_smt_store_refl")}),
-          new Block({new Apply("equiv_smt_expr_refl")}),
+          new Block({new Apply("equiv_typed_smt_expr_refl")}),
         }
       );
     }
@@ -793,7 +796,7 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForEquivReturn(StateInfo &si,
         ),
         new Block({new Apply("equiv_sym_stack_refl")}),
         new Block({new Apply("equiv_smt_store_refl")}),
-        new Block({new Apply("equiv_smt_expr_refl")}),
+        new Block({new Apply("equiv_typed_smt_expr_refl")}),
       }
     );
   } else {
@@ -809,7 +812,7 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForEquivReturn(StateInfo &si,
         new Block({new Apply("equiv_smt_store_refl")}),
         new Block({new Apply("equiv_sym_stack_refl")}),
         new Block({new Apply("equiv_smt_store_refl")}),
-        new Block({new Apply("equiv_smt_expr_refl")}),
+        new Block({new Apply("equiv_typed_smt_expr_refl")}),
       }
     );
   }
@@ -901,7 +904,7 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForUnsat(ref<CoqExpr> pc, uint64_t
       new Apply("Unsat_State"),
       new Inversion("H12"),
       new Apply(
-        "equiv_smt_expr_unsat",
+        "equiv_typed_smt_expr_unsat",
         {
           pc,
           createPlaceHolder(),
@@ -909,7 +912,10 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForUnsat(ref<CoqExpr> pc, uint64_t
       ),
       new Block(
         {
-          new Apply("equiv_smt_expr_symmetry"),
+          new Apply("equiv_typed_smt_expr_symmetry"),
+          new Apply("injection_some", "H12"),
+          new Apply("injection_ast", "H12"),
+          new Subst(),
           new Apply("LAUX_normalize_simplify"),
         }
       ),

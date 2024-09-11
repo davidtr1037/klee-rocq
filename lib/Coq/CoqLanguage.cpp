@@ -294,13 +294,21 @@ string Apply::dump(int indent) const {
   ostringstream os;
   os << space(indent);
   if (args.empty()) {
-    os << "apply " << name << ".";
+    os << "apply " << name;
+    if (!in.empty()) {
+      os << " in " << in;
+    }
+    os << ".";
   } else {
     os << "apply " << "(" << name;
     for (ref<CoqExpr> e : args) {
       os << " " << "(" << e->dump() << ")";
     }
-    os << ").";
+    os << ")";
+    if (!in.empty()) {
+      os << " in " << in;
+    }
+    os << ".";
   }
   return os.str();
 }

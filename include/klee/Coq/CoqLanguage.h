@@ -354,7 +354,11 @@ public:
 
   std::vector<ref<CoqExpr>> args;
 
+  std::string in;
+
   Apply(const std::string &name) : name(name) {}
+
+  Apply(const std::string &name, const std::string &in) : name(name), in(in) {}
 
   Apply(const std::string &name, const std::vector<ref<CoqExpr>> &args) :
     name(name), args(args) {}
