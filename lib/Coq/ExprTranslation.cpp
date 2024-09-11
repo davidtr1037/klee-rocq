@@ -59,32 +59,26 @@ ref<CoqExpr> ExprTranslator::translate(ref<Expr> e,
 }
 
 ref<CoqExpr> ExprTranslator::translateConstantExpr(ref<ConstantExpr> e) {
-  std::string smt_constructor;
   std::string repr;
 
   switch (e->getWidth()) {
   case Expr::Bool:
-    smt_constructor = "SMT_Const_I1";
     repr = "Int1.repr";
     break;
 
   case Expr::Int8:
-    smt_constructor = "SMT_Const_I8";
     repr = "Int8.repr";
     break;
 
   case Expr::Int16:
-    smt_constructor = "SMT_Const_I16";
     repr = "Int16.repr";
     break;
 
   case Expr::Int32:
-    smt_constructor = "SMT_Const_I32";
     repr = "Int32.repr";
     break;
 
   case Expr::Int64:
-    smt_constructor = "SMT_Const_I64";
     repr = "Int64.repr";
     break;
 

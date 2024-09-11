@@ -649,7 +649,12 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForEquivBranch(StateInfo &si,
             }
           ),
           new Block(
-            {new Apply("LAUX_normalize_simplify")}
+            {
+              new Apply("injection_some", "H12"),
+              new Apply("injection_ast", "H12"),
+              new Subst(),
+              new Apply("LAUX_normalize_simplify"),
+            }
           ),
           new Block(
             {new Apply("UNSAT_" + to_string(hint->unsatAxiomID))}
@@ -723,7 +728,14 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForEquivCall(StateInfo &si,
         new Block({new Apply("equiv_smt_store_refl")}),
         new Block({new Apply("equiv_sym_stack_refl")}),
         new Block({new Apply("equiv_smt_store_refl")}),
-        new Block({new Apply("LAUX_normalize_simplify")}),
+        new Block(
+          {
+            new Apply("injection_some", "H16"),
+            new Apply("injection_ast", "H16"),
+            new Subst(),
+            new Apply("LAUX_normalize_simplify"),
+          }
+        ),
       }
     );
   } else {
