@@ -267,7 +267,7 @@ Lemma equiv_smt_expr_implied_condition: forall ast1 ast2,
 Proof.
 Admitted.
 
-Lemma LAUX_4_1: forall ast1 ast2 ast3,
+Lemma implied_condition: forall ast1 ast2 ast3,
   equiv_typed_smt_expr
     (TypedSMTExpr Sort_BV1 (TypedAST_BinOp Sort_BV1 SMT_And ast1 (TypedAST_Not Sort_BV1 ast2)))
     (TypedSMTExpr Sort_BV1 ast3) ->
@@ -282,3 +282,14 @@ Proof.
   { apply equiv_typed_smt_expr_symmetry. assumption. }
   { assumption. }
 Qed.
+
+Lemma implied_negated_condition: forall ast1 ast2 ast3,
+  equiv_typed_smt_expr
+    (TypedSMTExpr Sort_BV1 (TypedAST_BinOp Sort_BV1 SMT_And ast1 ast2))
+    (TypedSMTExpr Sort_BV1 ast3) ->
+  unsat ast3 ->
+  equiv_typed_smt_expr
+    (TypedSMTExpr Sort_BV1 (TypedAST_BinOp Sort_BV1 SMT_And ast1 (TypedAST_Not Sort_BV1 ast2)))
+    (TypedSMTExpr Sort_BV1 ast1).
+Proof.
+Admitted.
