@@ -21,8 +21,6 @@ From SE.SMT Require Import TypedModel.
 
 From SE.Utils Require Import IDMap.
 
-(* TODO: rename lemmas *)
-
 Lemma injection_ast : forall (sort : smt_sort) (ast1 ast2 : typed_smt_ast sort),
   TypedSMTExpr sort ast1 = TypedSMTExpr sort ast2 ->
   ast1 = ast2.
@@ -33,7 +31,7 @@ Proof.
   assumption.
 Qed.
 
-Lemma LAUX_not_error_instr_op : forall ic cid v e cs pbid ls stk gs syms pc mdl,
+Lemma not_error_instr_op : forall ic cid v e cs pbid ls stk gs syms pc mdl,
   ~ error_sym_state
     (mk_sym_state
       ic
@@ -53,7 +51,7 @@ Proof.
   inversion H.
 Qed.
 
-Lemma LAUX_not_error_phi : forall ic cid v t args cs pbid ls stk gs syms pc mdl,
+Lemma not_error_phi : forall ic cid v t args cs pbid ls stk gs syms pc mdl,
   ~ error_sym_state
     (mk_sym_state
       ic
@@ -73,7 +71,7 @@ Proof.
   inversion H.
 Qed.
 
-Lemma LAUX_not_error_unconditional_br : forall ic cid bid cs pbid ls stk gs syms pc mdl,
+Lemma not_error_unconditional_br : forall ic cid bid cs pbid ls stk gs syms pc mdl,
   ~ error_sym_state
     (mk_sym_state
       ic
@@ -93,7 +91,7 @@ Proof.
   inversion H.
 Qed.
 
-Lemma LAUX_not_error_br : forall ic cid e bid1 bid2 cs pbid ls stk gs syms pc mdl,
+Lemma not_error_br : forall ic cid e bid1 bid2 cs pbid ls stk gs syms pc mdl,
   ~ error_sym_state
     (mk_sym_state
       ic
@@ -113,7 +111,7 @@ Proof.
   inversion H.
 Qed.
 
-Lemma LAUX_not_error_call : forall ic cid v f args anns cs pbid ls stk gs syms pc mdl,
+Lemma not_error_call : forall ic cid v f args anns cs pbid ls stk gs syms pc mdl,
   ~ error_sym_state
     (mk_sym_state
       ic
@@ -133,7 +131,7 @@ Proof.
   inversion H.
 Qed.
 
-Lemma LAUX_not_error_void_call : forall ic cid f args anns cs pbid ls stk gs syms pc mdl,
+Lemma not_error_void_call : forall ic cid f args anns cs pbid ls stk gs syms pc mdl,
   f <> (TYPE_Void, assert_exp) ->
   ~ error_sym_state
     (mk_sym_state
@@ -156,7 +154,7 @@ Proof.
   reflexivity.
 Qed.
 
-Lemma LAUX_not_error_ret : forall ic cid e cs pbid ls stk gs syms pc mdl,
+Lemma not_error_ret : forall ic cid e cs pbid ls stk gs syms pc mdl,
   ~ error_sym_state
     (mk_sym_state
       ic
@@ -176,7 +174,7 @@ Proof.
   inversion H.
 Qed.
 
-Lemma LAUX_not_error_ret_void : forall ic cid cs pbid ls stk gs syms pc mdl,
+Lemma not_error_ret_void : forall ic cid cs pbid ls stk gs syms pc mdl,
   ~ error_sym_state
     (mk_sym_state
       ic
@@ -196,7 +194,7 @@ Proof.
   inversion H.
 Qed.
 
-Lemma LAUX_1 : forall s v se1 se2 se3,
+Lemma equiv_smt_store_on_update : forall s v se1 se2 se3,
   Some se1 = Some se2 ->
   equiv_typed_smt_expr se1 se3 ->
   equiv_smt_store (v !-> Some se2; s) (v !-> Some se3; s).
@@ -208,7 +206,7 @@ Proof.
   { assumption. }
 Qed.
 
-Lemma LAUX_2: forall m x se1 se2 se3 l,
+Lemma equiv_smt_store_on_optimized_update: forall m x se1 se2 se3 l,
   equiv_typed_smt_expr se2 se3 ->
   equiv_smt_store
     (x !-> Some se2; (multi_update_map (x !-> Some se1; m) l))
@@ -251,13 +249,6 @@ Proof.
     }
   }
 Qed.
-
-Lemma LAUX_normalize_simplify: forall (sort : smt_sort) (ast : typed_smt_ast sort),
-  equiv_typed_smt_expr
-    (TypedSMTExpr sort ast)
-    (TypedSMTExpr sort (simplify sort (normalize sort ast))).
-Proof.
-Admitted.
 
 Lemma equiv_smt_expr_implied_condition: forall ast1 ast2,
   unsat (TypedAST_BinOp Sort_BV1 SMT_And ast1 (TypedAST_Not Sort_BV1 ast2)) ->

@@ -369,7 +369,7 @@ klee::ref<CoqExpr> ProofGenerator::createLemmaForSubtree(StateInfo &si,
 klee::ref<CoqTactic> ProofGenerator::getTacticForSafety(StateInfo &si) {
   if (isa<BinaryOperator>(si.inst) || isa<CmpInst>(si.inst)) {
     return new Block(
-      {new Apply("LAUX_not_error_instr_op")}
+      {new Apply("not_error_instr_op")}
     );
   }
 
@@ -377,18 +377,18 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForSafety(StateInfo &si) {
     BranchInst *bi = cast<BranchInst>(si.inst);
     if (bi->isConditional()) {
       return new Block(
-        {new Apply("LAUX_not_error_br")}
+        {new Apply("not_error_br")}
       );
     } else {
       return new Block(
-        {new Apply("LAUX_not_error_unconditional_br")}
+        {new Apply("not_error_unconditional_br")}
       );
     }
   }
 
   if (isa<PHINode>(si.inst)) {
     return new Block(
-      {new Apply("LAUX_not_error_phi")}
+      {new Apply("not_error_phi")}
     );
   }
 
@@ -397,14 +397,14 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForSafety(StateInfo &si) {
     if (callInst->getFunctionType()->getReturnType()->isVoidTy()) {
       return new Block(
         {
-          new Apply("LAUX_not_error_void_call"),
+          new Apply("not_error_void_call"),
           new Intros({"H"}),
           new Inversion("H"),
         }
       );
     } else {
       return new Block(
-        {new Apply("LAUX_not_error_call")}
+        {new Apply("not_error_call")}
       );
     }
   }
@@ -413,11 +413,11 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForSafety(StateInfo &si) {
     ReturnInst *returnInst = dyn_cast<ReturnInst>(si.inst);
     if (returnInst->getReturnValue()) {
       return new Block(
-        {new Apply("LAUX_not_error_ret")}
+        {new Apply("not_error_ret")}
       );
     } else {
       return new Block(
-        {new Apply("LAUX_not_error_ret_void")}
+        {new Apply("not_error_ret_void")}
       );
     }
   }
@@ -529,7 +529,7 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForEquivAssignment(StateInfo &si,
     t = new Block(
       {
         new Apply(
-          "LAUX_2",
+          "equiv_smt_store_on_optimized_update",
           {
             createPlaceHolder(),
             createPlaceHolder(),
@@ -541,14 +541,14 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForEquivAssignment(StateInfo &si,
         ),
         new Inversion("H13"),
         new Subst(),
-        new Apply("LAUX_normalize_simplify"),
+        new Apply("equiv_typed_smt_expr_normalize_simplify"),
       }
     );
   } else {
     t = new Block(
       {
         new Apply(
-          "LAUX_1",
+          "equiv_smt_store_on_update",
           {
             createPlaceHolder(),
             createPlaceHolder(),
@@ -559,7 +559,7 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForEquivAssignment(StateInfo &si,
             new CoqVariable("H13"),
           }
         ),
-        new Apply("LAUX_normalize_simplify"),
+        new Apply("equiv_typed_smt_expr_normalize_simplify"),
       }
     );
   }
@@ -590,8 +590,9 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForEquivPHI(StateInfo &si,
     }
     t = new Block(
       {
+        /* TODO: can use a more simple lemma? */
         new Apply(
-          "LAUX_2",
+          "equiv_smt_store_on_optimized_update",
           {
             createPlaceHolder(),
             createPlaceHolder(),
@@ -652,7 +653,7 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForEquivBranch(StateInfo &si,
               new Apply("injection_some", "H12"),
               new Apply("injection_ast", "H12"),
               new Subst(),
-              new Apply("LAUX_normalize_simplify"),
+              new Apply("equiv_typed_smt_expr_normalize_simplify"),
             }
           ),
           new Block(
@@ -666,7 +667,7 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForEquivBranch(StateInfo &si,
           new Apply("injection_some", "H12"),
           new Apply("injection_ast", "H12"),
           new Subst(),
-          new Apply("LAUX_normalize_simplify"),
+          new Apply("equiv_typed_smt_expr_normalize_simplify"),
         }
       );
     }
@@ -733,7 +734,7 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForEquivCall(StateInfo &si,
             new Apply("injection_some", "H16"),
             new Apply("injection_ast", "H16"),
             new Subst(),
-            new Apply("LAUX_normalize_simplify"),
+            new Apply("equiv_typed_smt_expr_normalize_simplify"),
           }
         ),
       }
@@ -928,7 +929,7 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForUnsat(ref<CoqExpr> pc, uint64_t
           new Apply("injection_some", "H12"),
           new Apply("injection_ast", "H12"),
           new Subst(),
-          new Apply("LAUX_normalize_simplify"),
+          new Apply("equiv_typed_smt_expr_normalize_simplify"),
         }
       ),
       new Block(

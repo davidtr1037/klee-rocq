@@ -208,3 +208,10 @@ Lemma equiv_typed_smt_expr_not : forall s (ast1 ast2 : typed_smt_ast s),
     (TypedSMTExpr s (TypedAST_Not s ast2)).
 Proof.
 Admitted.
+
+Lemma equiv_typed_smt_expr_normalize_simplify: forall (sort : smt_sort) (ast : typed_smt_ast sort),
+  equiv_typed_smt_expr
+    (TypedSMTExpr sort ast)
+    (TypedSMTExpr sort (simplify sort (normalize sort ast))).
+Proof.
+Admitted.
