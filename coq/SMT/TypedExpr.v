@@ -238,6 +238,17 @@ Definition simplify_binop_bv1 op (ast1 ast2 : typed_smt_ast Sort_BV1) :=
   | TypedAST_Const Sort_BV1 n1, TypedAST_Const Sort_BV1 n2 =>
       match op with
       | SMT_Add => TypedAST_Const Sort_BV1 (add n1 n2)
+      | SMT_And => TypedAST_Const Sort_BV1 (and n1 n2)
+      | _ => TypedAST_BinOp Sort_BV1 op ast1 ast2
+      end
+  | TypedAST_Const Sort_BV1 n1, ast2 =>
+      match op with
+      | SMT_And => if eq n1 zero then smt_ast_false else ast2
+      | _ => TypedAST_BinOp Sort_BV1 op ast1 ast2
+      end
+  | ast1, TypedAST_Const Sort_BV1 n2 =>
+      match op with
+      | SMT_And => if eq n2 zero then smt_ast_false else ast1
       | _ => TypedAST_BinOp Sort_BV1 op ast1 ast2
       end
   | _, _ => TypedAST_BinOp Sort_BV1 op ast1 ast2

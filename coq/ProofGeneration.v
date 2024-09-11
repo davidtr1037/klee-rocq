@@ -1,4 +1,5 @@
 From Coq Require Import List.
+From Coq Require Import Logic.Eqdep.
 
 Import ListNotations.
 
@@ -21,6 +22,16 @@ From SE.SMT Require Import TypedModel.
 From SE.Utils Require Import IDMap.
 
 (* TODO: rename lemmas *)
+
+Lemma injection_ast : forall (sort : smt_sort) (ast1 ast2 : typed_smt_ast sort),
+  TypedSMTExpr sort ast1 = TypedSMTExpr sort ast2 ->
+  ast1 = ast2.
+Proof.
+  intros sort ast1 ast2 H.
+  inversion H.
+  apply inj_pair2.
+  assumption.
+Qed.
 
 Lemma LAUX_not_error_instr_op : forall ic cid v e cs pbid ls stk gs syms pc mdl,
   ~ error_sym_state
