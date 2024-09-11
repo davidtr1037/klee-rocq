@@ -241,8 +241,10 @@ Proof.
   }
 Qed.
 
-Lemma LAUX_normalize_simplify: forall e,
-  equiv_typed_smt_expr e (simplify (normalize e)).
+Lemma LAUX_normalize_simplify: forall (sort : smt_sort) (ast : typed_smt_ast sort),
+  equiv_typed_smt_expr
+    (TypedSMTExpr sort ast)
+    (TypedSMTExpr sort (simplify sort (normalize sort ast))).
 Proof.
 Admitted.
 

@@ -402,14 +402,14 @@ Definition simplify_cmpop op (s : smt_sort) (ast1 ast2 : typed_smt_ast s) : type
   f op ast1 ast2
 .
 
-Fixpoint simplify_ast (s : smt_sort) (ast : typed_smt_ast s) : typed_smt_ast s :=
+Fixpoint simplify (s : smt_sort) (ast : typed_smt_ast s) : typed_smt_ast s :=
   match ast with
   | TypedAST_Const sort n => TypedAST_Const sort n
   | TypedAST_Var sort x => TypedAST_Var sort x
   | TypedAST_BinOp sort op ast1 ast2 =>
-      simplify_binop op sort (simplify_ast sort ast1) (simplify_ast sort ast2)
+      simplify_binop op sort (simplify sort ast1) (simplify sort ast2)
   | TypedAST_CmpOp sort op ast1 ast2 =>
-      simplify_cmpop op sort (simplify_ast sort ast1) (simplify_ast sort ast2)
-  | TypedAST_Not sort ast => TypedAST_Not sort (simplify_ast sort ast)
+      simplify_cmpop op sort (simplify sort ast1) (simplify sort ast2)
+  | TypedAST_Not sort ast => TypedAST_Not sort (simplify sort ast)
   end
 .
