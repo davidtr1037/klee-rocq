@@ -639,9 +639,8 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForEquivBranch(StateInfo &si,
     if (hint && !isa<ConstantExpr>(si.branchCondition)) {
       t = new Block(
         {
-          new Inversion("H12"),
           new Apply(
-            "LAUX_4_1",
+            hint->isTrueBranch ? "implied_condition" : "implied_negated_condition",
             {
               createPlaceHolder(),
               createPlaceHolder(),
@@ -671,6 +670,7 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForEquivBranch(StateInfo &si,
         }
       );
     }
+
     return new Block(
       {
         new Inversion("H13"),
@@ -880,16 +880,16 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForStep(StateInfo &stateInfo,
       ref<CoqExpr> lemma = getUnsatAxiom(e, axiomID);
       unsatAxioms.push_front(lemma);
 
-      /* TODO: add proof hint */
+      ProofHint hint(e, axiomID, false);
       tactic1 = getTacticForUnsat(e, axiomID);
-      tactic2 = getTacticForSat(stateInfo, *si2.state, 0);
+      tactic2 = getTacticForSat(stateInfo, *si2.state, 0, &hint);
     }
     if (!si2.isSat) {
       ref<CoqExpr> e = exprTranslator->translate(si2.unsatPC, &si1.state->arrayTranslation);
       ref<CoqExpr> lemma = getUnsatAxiom(e, axiomID);
       unsatAxioms.push_front(lemma);
 
-      ProofHint hint(e, axiomID);
+      ProofHint hint(e, axiomID, true);
       tactic1 = getTacticForSat(stateInfo, *si1.state, 0, &hint);
       tactic2 = getTacticForUnsat(e, axiomID);
     }

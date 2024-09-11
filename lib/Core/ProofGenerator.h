@@ -48,9 +48,10 @@ public:
 
   ref<CoqExpr> unsatPC;
   uint64_t unsatAxiomID;
+  bool isTrueBranch;
 
-  ProofHint(ref<CoqExpr> unsatPC, uint64_t unsatAxiomID) :
-    unsatPC(unsatPC), unsatAxiomID(unsatAxiomID) {}
+  ProofHint(ref<CoqExpr> unsatPC, uint64_t unsatAxiomID, bool isTrueBranch) :
+    unsatPC(unsatPC), unsatAxiomID(unsatAxiomID), isTrueBranch(isTrueBranch) {}
 
 };
 
