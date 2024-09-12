@@ -3,6 +3,7 @@
 #include "klee/Coq/CoqLanguage.h"
 #include "klee/Coq/Translation.h"
 #include "klee/Coq/ExprTranslation.h"
+#include "klee/Coq/ModuleAssumptions.h"
 #include "klee/Module/KModule.h"
 #include "klee/Module/KInstruction.h"
 #include "klee/Module/Cell.h"
@@ -19,6 +20,7 @@ using namespace klee;
 
 ProofGenerator::ProofGenerator(Module &m, raw_ostream &output) : m(m), output(output) {
   moduleTranslator = new ModuleTranslator(m);
+  moduleSupport = new ModuleSupport(m, *moduleTranslator);
   exprTranslator = new ExprTranslator();
 
   /* TODO: add shared definitions (global store, etc.) */
@@ -30,6 +32,7 @@ void ProofGenerator::generate() {
   generateImports();
   generateGlobalDefs();
   generateModule();
+  generateModuleAssumptionsProof();
 }
 
 void ProofGenerator::generateGlobalDefs() {
@@ -76,6 +79,16 @@ void ProofGenerator::generateModule() {
   for (ref<CoqExpr> def : requiredDefs) {
     output << def->dump() << "\n";
   }
+}
+
+void ProofGenerator::generateModuleAssumptionsProof() {
+  ref<CoqExpr> lemma = moduleSupport->generateProof();
+
+  for (ref<CoqLemma> lemma : moduleSupport->functionLemmas) {
+    output << lemma->dump() << "\n";
+  }
+
+  output << lemma->dump() << "\n";
 }
 
 void ProofGenerator::generateState(ExecutionState &es) {
@@ -295,6 +308,7 @@ vector<klee::ref<CoqExpr>> ProofGenerator::getImports() {
     new CoqRequire("SE", "ExecutionTreeOpt"),
     new CoqRequire("SE", "IDMap"),
     new CoqRequire("SE", "LLVMAst"),
+    new CoqRequire("SE", "ModuleAssumptions"),
     new CoqRequire("SE", "Symbolic"),
     new CoqRequire("SE", "ProofGeneration"),
     new CoqRequire("SE.SMT", "TypedExpr"),

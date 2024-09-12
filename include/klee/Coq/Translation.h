@@ -129,7 +129,7 @@ public:
 
   ref<CoqExpr> createName(const std::string &name);
 
-  bool isSupportedFunction(llvm::Function *f);
+  bool isSupportedFunction(llvm::Function &f);
 
   bool isSupportedInst(llvm::Instruction &inst);
 

@@ -6,6 +6,7 @@
 #include "klee/Coq/CoqLanguage.h"
 #include "klee/Coq/Translation.h"
 #include "klee/Coq/ExprTranslation.h"
+#include "klee/Coq/ModuleAssumptions.h"
 
 #include "llvm/IR/Module.h"
 #include "llvm/Support/raw_ostream.h"
@@ -69,6 +70,8 @@ public:
 
   ModuleTranslator *moduleTranslator;
 
+  ModuleSupport *moduleSupport;
+
   ExprTranslator *exprTranslator;
 
   std::list<ref<CoqExpr>> treeDefs;
@@ -84,6 +87,8 @@ public:
   void generateGlobalDefs();
 
   void generateModule();
+
+  void generateModuleAssumptionsProof();
 
   void generateState(ExecutionState &es);
 

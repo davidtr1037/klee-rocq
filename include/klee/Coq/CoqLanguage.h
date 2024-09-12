@@ -220,6 +220,11 @@ public:
 
   std::string eqn;
 
+  Destruct(const std::string &var);
+
+  Destruct(const std::string &var,
+           const std::vector<std::vector<std::string>> &schemes);
+
   Destruct(const std::string &var,
            const std::vector<std::vector<std::string>> &schemes,
            const std::string &eqn);

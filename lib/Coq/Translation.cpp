@@ -38,7 +38,7 @@ ref<CoqExpr> ModuleTranslator::translateModule() {
   std::vector<ref<CoqExpr>> coq_defs;
 
   for (Function &f : m) {
-    if (isSupportedFunction(&f)) {
+    if (isSupportedFunction(f)) {
       if (f.isDeclaration()) {
         ref<CoqExpr> coq_decl = translateDeclCached(f);
         coq_decls.push_back(coq_decl);
@@ -733,16 +733,16 @@ ref<CoqExpr> ModuleTranslator::createName(const std::string &name) {
   );
 }
 
-bool ModuleTranslator::isSupportedFunction(Function *f) {
-  if (f->isIntrinsic()) {
+bool ModuleTranslator::isSupportedFunction(Function &f) {
+  if (f.isIntrinsic()) {
     return false;
   }
 
-  if (!isSupportedType(f->getReturnType())) {
+  if (!isSupportedType(f.getReturnType())) {
     return false;
   }
 
-  for (Argument &arg : f->args()) {
+  for (Argument &arg : f.args()) {
     if (!isSupportedType(arg.getType())) {
       return false;
     }

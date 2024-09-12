@@ -8,7 +8,7 @@
 #include "klee/Coq/CoqLanguage.h"
 #include "klee/Coq/Translation.h"
 
-#include <map>
+#include <vector>
 
 namespace klee {
 
@@ -20,6 +20,8 @@ public:
 
   ModuleTranslator &moduleTranslator;
 
+  std::vector<ref<CoqLemma>> functionLemmas;
+
   ModuleSupport(llvm::Module &m, ModuleTranslator &moduleTranslator);
 
   ref<CoqExpr> generateProof();
@@ -28,7 +30,7 @@ public:
 
   ref<CoqTactic> getTacticForModule();
 
-  ref<CoqExpr> getLemmaForFunction(llvm::Function &f);
+  ref<CoqLemma> getLemmaForFunction(llvm::Function &f);
 
   ref<CoqTactic> getTacticForFunction(llvm::Function &f);
 

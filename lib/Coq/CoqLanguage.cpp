@@ -313,11 +313,46 @@ string Apply::dump(int indent) const {
   return os.str();
 }
 
+Destruct::Destruct(const string &var) : var(var) {
+
+}
+
+Destruct::Destruct(const string &var,
+                   const vector<vector<string>> &schemes) :
+  var(var), schemes(schemes) {
+
+}
+
 Destruct::Destruct(const string &var,
                    const vector<vector<string>> &schemes,
                    const string &eqn) :
   var(var), schemes(schemes), eqn(eqn) {
 
+}
+
+string Destruct::dump(int indent) const {
+  ostringstream os;
+  os << space(indent) << "destruct " << var;
+  if (!schemes.empty()) {
+    os << " as [";
+    for (size_t i = 0; i < schemes.size(); i++) {
+      for (size_t j = 0; j < schemes[i].size(); j++) {
+        os << schemes[i][j];
+        if (j != schemes[i].size() - 1) {
+          os << " ";
+        }
+      }
+      if (i != schemes.size() - 1) {
+        os << " | ";
+      }
+    }
+    os << "]";
+  }
+  if (!eqn.empty()) {
+    os << " eqn:" << eqn;
+  }
+  os << ".";
+  return os.str();
 }
 
 Discriminate::Discriminate(const string &hypothesis) : hypothesis(hypothesis) {
@@ -327,25 +362,6 @@ Discriminate::Discriminate(const string &hypothesis) : hypothesis(hypothesis) {
 string Discriminate::dump(int indent) const {
   ostringstream os;
   os << space(indent) << "discriminate " << hypothesis << ".";
-  return os.str();
-}
-
-string Destruct::dump(int indent) const {
-  ostringstream os;
-  os << space(indent) << "destruct " << var << " as [";
-  for (size_t i = 0; i < schemes.size(); i++) {
-    for (size_t j = 0; j < schemes[i].size(); j++) {
-      os << schemes[i][j];
-      if (j != schemes[i].size() - 1) {
-        os << " ";
-      }
-    }
-    if (i != schemes.size() - 1) {
-      os << " | ";
-    }
-  }
-  os << "]";
-  os << " eqn:" << eqn << ".";
   return os.str();
 }
 
