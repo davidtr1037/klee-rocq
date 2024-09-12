@@ -46,6 +46,20 @@ public:
 
   ref<CoqTactic> getTacticForInst(llvm::Instruction &inst);
 
+  ref<CoqTactic> getTacticForBinaryOperator(llvm::BinaryOperator *inst);
+
+  ref<CoqTactic> getTacticForCmpInst(llvm::CmpInst *inst);
+
+  ref<CoqTactic> getTacticForBranchInst(llvm::BranchInst *inst);
+
+  ref<CoqTactic> getTacticForPHINode(llvm::PHINode *inst);
+
+  ref<CoqTactic> getTacticForCallInst(llvm::CallInst *inst);
+
+  ref<CoqTactic> getTacticForReturnInst(llvm::ReturnInst *inst);
+
+  ref<CoqTactic> getTacticForUnreachableInst(llvm::UnreachableInst *inst);
+
   ~ModuleSupport();
 };
 

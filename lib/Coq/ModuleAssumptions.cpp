@@ -147,7 +147,33 @@ ref<CoqLemma> ModuleSupport::getLemmaForBasicBlock(BasicBlock &bb) {
 }
 
 ref<CoqTactic> ModuleSupport::getTacticForBasicBlock(BasicBlock &bb) {
-  return new Block({new Admit()});
+  std::vector<ref<CoqTactic>> tactics;
+
+  tactics.push_back(new Apply("IS_Block"));
+  tactics.push_back(new Apply("IS_CmdList"));
+  tactics.push_back(new Intros({"c", "Hin"}));
+
+  for (Instruction &inst : bb) {
+    tactics.push_back(
+      new Destruct("Hin", {{"Hin"}, {"Hin"}})
+    );
+    ref<CoqLemma> lemma = getLemmaForInst(inst);
+    instLemmas.push_back(lemma);
+    tactics.push_back(
+      new Block(
+        {
+          new Subst(),
+          new Apply(lemma->name),
+        }
+      )
+    );
+  }
+
+  tactics.push_back(
+    new Block({new Destruct("Hin")})
+  );
+
+  return new Block(tactics);
 }
 
 ref<CoqLemma> ModuleSupport::getLemmaForInst(Instruction &inst) {
@@ -167,7 +193,63 @@ ref<CoqLemma> ModuleSupport::getLemmaForInst(Instruction &inst) {
 }
 
 ref<CoqTactic> ModuleSupport::getTacticForInst(Instruction &inst) {
-  return new Block({new Admit()});
+  if (isa<BinaryOperator>(&inst)) {
+    return getTacticForBinaryOperator(dyn_cast<BinaryOperator>(&inst));
+  }
+
+  if (isa<CmpInst>(&inst)) {
+    return getTacticForCmpInst(dyn_cast<CmpInst>(&inst));
+  }
+
+  if (isa<BranchInst>(&inst)) {
+    return getTacticForBranchInst(dyn_cast<BranchInst>(&inst));
+  }
+
+  if (isa<PHINode>(&inst)) {
+    return getTacticForPHINode(dyn_cast<PHINode>(&inst));
+  }
+
+  if (isa<CallInst>(&inst)) {
+    return getTacticForCallInst(dyn_cast<CallInst>(&inst));
+  }
+
+  if (isa<ReturnInst>(&inst)) {
+    return getTacticForReturnInst(dyn_cast<ReturnInst>(&inst));
+  }
+
+  if (isa<UnreachableInst>(&inst)) {
+    return getTacticForUnreachableInst(dyn_cast<UnreachableInst>(&inst));
+  }
+
+  assert(false);
+}
+
+ref<CoqTactic> ModuleSupport::getTacticForBinaryOperator(BinaryOperator *inst) {
+  return new Admit();
+}
+
+ref<CoqTactic> ModuleSupport::getTacticForCmpInst(CmpInst *inst) {
+  return new Admit();
+}
+
+ref<CoqTactic> ModuleSupport::getTacticForBranchInst(BranchInst *inst) {
+  return new Admit();
+}
+
+ref<CoqTactic> ModuleSupport::getTacticForPHINode(PHINode *inst) {
+  return new Admit();
+}
+
+ref<CoqTactic> ModuleSupport::getTacticForCallInst(CallInst *inst) {
+  return new Admit();
+}
+
+ref<CoqTactic> ModuleSupport::getTacticForReturnInst(ReturnInst *inst) {
+  return new Admit();
+}
+
+ref<CoqTactic> ModuleSupport::getTacticForUnreachableInst(UnreachableInst *inst) {
+  return new Admit();
 }
 
 ModuleSupport::~ModuleSupport() {
