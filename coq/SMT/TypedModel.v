@@ -1,3 +1,4 @@
+From Coq Require Import Logic.Eqdep.
 From Coq Require Import Strings.String.
 From Coq Require Import ZArith.
 
@@ -221,24 +222,59 @@ Qed.
 
 Lemma equiv_typed_smt_expr_refl : forall e, equiv_typed_smt_expr e e.
 Proof.
-Admitted.
+  intros e.
+  destruct e as [sort ast].
+  apply EquivTypedSMTExpr.
+  intros m.
+  reflexivity.
+Qed.
 
 Lemma equiv_typed_smt_expr_symmetry : forall e1 e2,
   equiv_typed_smt_expr e1 e2 -> equiv_typed_smt_expr e2 e1.
 Proof.
-Admitted.
+  intros e1 e2 H.
+  inversion H; subst.
+  apply EquivTypedSMTExpr.
+  intros m.
+  symmetry.
+  apply H0.
+Qed.
 
 Lemma equiv_typed_smt_expr_transitivity : forall e1 e2 e3,
   equiv_typed_smt_expr e1 e2 -> equiv_typed_smt_expr e2 e3 -> equiv_typed_smt_expr e1 e3.
 Proof.
-Admitted.
+  intros e1 e2 e3 H1 H2.
+  inversion H1; subst.
+  inversion H2; subst.
+  apply inj_pair2 in H4.
+  subst.
+  rename ast4 into ast3.
+  apply EquivTypedSMTExpr.
+  intros m.
+  specialize (H m).
+  specialize (H5 m).
+  rewrite H.
+  assumption.
+Qed.
 
 Lemma equiv_typed_smt_expr_unsat : forall (ast1 ast2 : smt_ast_bool),
   equiv_typed_smt_expr (TypedSMTExpr Sort_BV1 ast1) (TypedSMTExpr Sort_BV1 ast2) ->
   unsat ast1 ->
   unsat ast2.
 Proof.
-Admitted.
+  intros ast1 ast2 Heq Hunsat.
+  unfold unsat, sat in *.
+  intros Hsat.
+  apply Hunsat.
+  destruct Hsat as [m Hsat].
+  exists m.
+  unfold sat_via in *.
+  rewrite <- Hsat.
+  inversion Heq; subst.
+  apply inj_pair2 in H1, H2.
+  subst.
+  apply H0.
+Qed.
 
 Lemma equiv_typed_smt_expr_binop : forall s op (ast1 ast2 ast3 ast4 : typed_smt_ast s),
   equiv_typed_smt_expr (TypedSMTExpr s ast1) (TypedSMTExpr s ast2) ->
@@ -247,7 +283,21 @@ Lemma equiv_typed_smt_expr_binop : forall s op (ast1 ast2 ast3 ast4 : typed_smt_
     (TypedSMTExpr s (TypedAST_BinOp s op ast1 ast3))
     (TypedSMTExpr s (TypedAST_BinOp s op ast2 ast4)).
 Proof.
-Admitted.
+  intros s op ast1 ast2 ast3 ast4 H1 H2.
+  apply EquivTypedSMTExpr.
+  intros m.
+  simpl.
+  inversion H1; subst.
+  apply inj_pair2 in H3, H4.
+  subst.
+  inversion H2; subst.
+  apply inj_pair2 in H4, H5.
+  subst.
+  specialize (H0 m).
+  specialize (H3 m).
+  rewrite H0, H3.
+  reflexivity.
+Qed.
 
 Lemma equiv_typed_smt_expr_cmpop : forall s op (ast1 ast2 ast3 ast4 : typed_smt_ast s),
   equiv_typed_smt_expr (TypedSMTExpr s ast1) (TypedSMTExpr s ast2) ->
@@ -256,7 +306,21 @@ Lemma equiv_typed_smt_expr_cmpop : forall s op (ast1 ast2 ast3 ast4 : typed_smt_
     (TypedSMTExpr Sort_BV1 (TypedAST_CmpOp s op ast1 ast3))
     (TypedSMTExpr Sort_BV1 (TypedAST_CmpOp s op ast2 ast4)).
 Proof.
-Admitted.
+  intros s op ast1 ast2 ast3 ast4 H1 H2.
+  apply EquivTypedSMTExpr.
+  intros m.
+  simpl.
+  inversion H1; subst.
+  apply inj_pair2 in H3, H4.
+  subst.
+  inversion H2; subst.
+  apply inj_pair2 in H4, H5.
+  subst.
+  specialize (H0 m).
+  specialize (H3 m).
+  rewrite H0, H3.
+  reflexivity.
+Qed.
 
 Lemma equiv_typed_smt_expr_not : forall s (ast1 ast2 : typed_smt_ast s),
   equiv_typed_smt_expr (TypedSMTExpr s ast1) (TypedSMTExpr s ast2) ->
@@ -264,7 +328,17 @@ Lemma equiv_typed_smt_expr_not : forall s (ast1 ast2 : typed_smt_ast s),
     (TypedSMTExpr s (TypedAST_Not s ast1))
     (TypedSMTExpr s (TypedAST_Not s ast2)).
 Proof.
-Admitted.
+  intros s ast1 ast2 H.
+  apply EquivTypedSMTExpr.
+  intros m.
+  simpl.
+  inversion H; subst.
+  apply inj_pair2 in H2, H3.
+  subst.
+  specialize (H1 m).
+  rewrite H1.
+  reflexivity.
+Qed.
 
 Lemma equiv_typed_smt_expr_normalize_simplify: forall (sort : smt_sort) (ast : typed_smt_ast sort),
   equiv_typed_smt_expr
