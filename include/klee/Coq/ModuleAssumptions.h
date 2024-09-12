@@ -22,7 +22,11 @@ public:
 
   ModuleSupport(llvm::Module &m, ModuleTranslator &moduleTranslator);
 
-  ref<CoqTactic> generateProof();
+  ref<CoqExpr> generateProof();
+
+  ref<CoqExpr> getLemmaForModule();
+
+  ref<CoqTactic> getTacticForModule();
 
   ref<CoqExpr> getLemmaForFunction(llvm::Function &f);
 

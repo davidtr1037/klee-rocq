@@ -19,8 +19,29 @@ ModuleSupport::ModuleSupport(Module &m, ModuleTranslator &moduleTranslator) :
 
 }
 
-ref<CoqTactic> ModuleSupport::generateProof() {
-  return nullptr;
+ref<CoqExpr> ModuleSupport::generateProof() {
+  return getLemmaForModule();
+}
+
+ref<CoqExpr> ModuleSupport::getLemmaForModule() {
+  /* TODO: use aliases */
+  ref<CoqExpr> body = new CoqApplication(
+    new CoqVariable("is_supported_module"),
+    {moduleTranslator.translateModule()}
+  );
+
+  ref<CoqTactic> proof = getTacticForModule();
+
+  return new CoqLemma(
+    "is_supported_?",
+    body,
+    proof,
+    true
+  );
+}
+
+ref<CoqTactic> ModuleSupport::getTacticForModule() {
+  return new Block({new Admit()});
 }
 
 ref<CoqExpr> ModuleSupport::getLemmaForFunction(Function &f) {

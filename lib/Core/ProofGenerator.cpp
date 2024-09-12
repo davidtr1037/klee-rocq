@@ -85,6 +85,7 @@ void ProofGenerator::generateModule() {
   }
 
   /* set aliases */
+  /* TODO: the alias should be defined in ModuleTranslator */
   coqModuleAlias = new CoqVariable(alias);
 }
 
