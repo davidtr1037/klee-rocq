@@ -184,8 +184,8 @@ ref<CoqExpr> ModuleTranslator::translateBasicBlockCached(BasicBlock &bb) {
     return i->second;
   }
 
-  uint64_t varId = bbCache.size();
-  std::string varName = "bb_" + std::to_string(varId);
+  uint64_t bbId = getBasicBlockID(bb);
+  std::string varName = "bb_" + std::to_string(bbId);
 
   ref<CoqExpr> expr = translateBasicBlock(bb);
   ref<CoqExpr> alias = new CoqVariable(varName);
@@ -195,6 +195,19 @@ ref<CoqExpr> ModuleTranslator::translateBasicBlockCached(BasicBlock &bb) {
   bbDefs.push_back(def);
 
   return alias;
+}
+
+uint64_t ModuleTranslator::getBasicBlockID(BasicBlock &bb) {
+  uint64_t id;
+  auto i = bbIds.find(&bb);
+  if (i == bbIds.end()) {
+    id = bbIds.size();
+    bbIds.insert(std::make_pair(&bb, id));
+  } else {
+    id = i->second;
+  }
+
+  return id;
 }
 
 ref<CoqExpr> ModuleTranslator::translateBasicBlock(BasicBlock &bb) {
@@ -224,8 +237,8 @@ ref<CoqExpr> ModuleTranslator::translateInstCached(Instruction &inst) {
     return i->second;
   }
 
-  uint64_t varId = instCache.size();
-  std::string varName = "inst_" + std::to_string(varId);
+  uint64_t instId = getInstID(inst);
+  std::string varName = "inst_" + std::to_string(instId);
 
   ref<CoqExpr> expr = translateInst(inst);
   if (expr.isNull()) {
@@ -240,6 +253,19 @@ ref<CoqExpr> ModuleTranslator::translateInstCached(Instruction &inst) {
   instDefs.push_back(def);
 
   return alias;
+}
+
+uint64_t ModuleTranslator::getInstID(Instruction &inst) {
+  uint64_t id;
+  auto i = instIDs.find(&inst);
+  if (i == instIDs.end()) {
+    id = instIDs.size();
+    instIDs.insert(std::make_pair(&inst, id));
+  } else {
+    id = i->second;
+  }
+
+  return id;
 }
 
 ref<CoqExpr> ModuleTranslator::translateInst(Instruction &inst) {

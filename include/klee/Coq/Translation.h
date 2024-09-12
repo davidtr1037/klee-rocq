@@ -21,9 +21,13 @@ public:
 
   llvm::Module &m;
 
+  std::map<llvm::Instruction*, uint64_t> instIds;
+
   std::map<llvm::Instruction*, ref<CoqExpr>> instCache;
 
   std::vector<ref<CoqExpr>> instDefs;
+
+  std::map<llvm::BasicBlock*, uint64_t> bbIds;
 
   std::map<llvm::BasicBlock*, ref<CoqExpr>> bbCache;
 
@@ -63,9 +67,13 @@ public:
 
   ref<CoqExpr> translateBasicBlockCached(llvm::BasicBlock &bb);
 
+  uint64_t getBasicBlockID(llvm::BasicBlock &inst);
+
   ref<CoqExpr> translateBasicBlock(llvm::BasicBlock &bb);
 
   ref<CoqExpr> translateInstCached(llvm::Instruction &inst);
+
+  uint64_t getInstID(llvm::Instruction &inst);
 
   ref<CoqExpr> translateInst(llvm::Instruction &inst);
 
