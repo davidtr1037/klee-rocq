@@ -281,6 +281,10 @@ uint64_t ModuleTranslator::getInstID(Instruction &inst) {
 }
 
 ref<CoqExpr> ModuleTranslator::translateInst(Instruction &inst) {
+  if (!isSupportedInst(inst)) {
+    return nullptr;
+  }
+
   ref<CoqExpr> coq_inst = nullptr;
 
   if (isa<BinaryOperator>(&inst)) {
@@ -519,10 +523,6 @@ ref<CoqExpr> ModuleTranslator::translatePHINode(PHINode *inst) {
 }
 
 ref<CoqExpr> ModuleTranslator::translateCallInst(CallInst *inst) {
-  if (shouldIgnoreCall(inst)) {
-    return nullptr;
-  }
-
   Function *f = dyn_cast<Function>(inst->getCalledOperand());
   assert(f);
 
@@ -751,7 +751,6 @@ bool ModuleTranslator::isSupportedFunction(Function &f) {
   return true;
 }
 
-/* TODO: use in this module */
 bool ModuleTranslator::isSupportedInst(Instruction &inst) {
   if (isa<CallInst>(&inst)) {
     return !shouldIgnoreCall(dyn_cast<CallInst>(&inst));

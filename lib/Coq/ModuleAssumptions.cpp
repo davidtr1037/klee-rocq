@@ -151,6 +151,10 @@ ref<CoqTactic> ModuleSupport::getTacticForBasicBlock(BasicBlock &bb) {
   tactics.push_back(new Intros({"c", "Hin"}));
 
   for (Instruction &inst : bb) {
+    if (!moduleTranslator.isSupportedInst(inst)) {
+      continue;
+    }
+
     tactics.push_back(
       new Destruct("Hin", {{"Hin"}, {"Hin"}})
     );
@@ -341,7 +345,9 @@ ref<CoqTactic> ModuleSupport::getTacticForReturnInst(ReturnInst *inst) {
 }
 
 ref<CoqTactic> ModuleSupport::getTacticForUnreachableInst(UnreachableInst *inst) {
-  return new Admit();
+  return new Block(
+    {new Apply("IS_Term_Unreachable")}
+  );
 }
 
 ref<CoqTactic> ModuleSupport::getTacticForValue(Value *value) {
