@@ -56,6 +56,8 @@ Inductive is_supported_cmd : llvm_cmd -> Prop :=
       is_supported_cmd (CMD_Term n (TERM_Br (t, e) bid1 bid2))
   | IS_Term_UnconditionalBr : forall n bid,
       is_supported_cmd (CMD_Term n (TERM_UnconditionalBr bid))
+  | IS_Term_Unreachable : forall n,
+      is_supported_cmd (CMD_Term n TERM_Unreachable)
 .
 
 Inductive is_supported_cmd_list : list llvm_cmd -> Prop :=
