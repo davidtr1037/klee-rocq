@@ -17,8 +17,8 @@ From SE Require Import WellDefinedness.
 
 From SE.Numeric Require Import Integers.
 
-From SE.SMT Require Import TypedExpr.
-From SE.SMT Require Import TypedModel.
+From SE.SMT Require Import Expr.
+From SE.SMT Require Import Model.
 
 (* TODO: fix namespace issues *)
 From SE.Utils Require Import IDMap.

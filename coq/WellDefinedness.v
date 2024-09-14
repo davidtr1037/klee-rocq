@@ -13,8 +13,8 @@ From SE Require Import LLVMAst.
 From SE Require Import Symbolic.
 From SE Require Import Relation.
 
-From SE.SMT Require Import TypedExpr.
-From SE.SMT Require Import TypedModel.
+From SE.SMT Require Import Expr.
+From SE.SMT Require Import Model.
 
 From SE.Utils Require Import IDMap.
 From SE.Utils Require Import ListUtil.

@@ -12,8 +12,8 @@ From SE Require Import DynamicValue.
 From SE Require Import LLVMAst.
 From SE Require Import Relation.
 
-From SE.SMT Require Import TypedExpr.
-From SE.SMT Require Import TypedModel.
+From SE.SMT Require Import Expr.
+From SE.SMT Require Import Model.
 
 From SE.Utils Require Import IDMap.
 From SE.Utils Require Import ListUtil.
@@ -81,7 +81,7 @@ Inductive error_sym_state : sym_state -> Prop :=
        )
 .
 
-Inductive sat_sym_state : typed_smt_model -> sym_state -> Prop :=
+Inductive sat_sym_state : smt_model -> sym_state -> Prop :=
   | Sat_State: forall m ic c cs pbid ls stk gs syms pc mdl,
       sat_via pc m ->
       sat_sym_state m (mk_sym_state ic c cs pbid ls stk gs syms pc mdl)
@@ -638,7 +638,7 @@ Definition make_dynamic_int (s : smt_sort) (x : smt_sort_to_int_type s) : dynami
 
 (* TODO: rename (over_approx/over_approx_via_model) *)
 Inductive equiv_via_model :
-  option dynamic_value -> option smt_expr -> typed_smt_model -> Prop :=
+  option dynamic_value -> option smt_expr -> smt_model -> Prop :=
   | EVM_None : forall m,
       equiv_via_model None None m
   | EVM_Some : forall m sort (ast : smt_ast sort) (i : smt_sort_to_int_type sort) di,
@@ -648,13 +648,13 @@ Inductive equiv_via_model :
 .
 
 (* TODO: use in the relevant locations *)
-Inductive over_approx_store_via : smt_store -> dv_store -> typed_smt_model -> Prop :=
+Inductive over_approx_store_via : smt_store -> dv_store -> smt_model -> Prop :=
   | OA_Store : forall c_s s_s m,
       (forall (x : raw_id), equiv_via_model (c_s x) (s_s x) m) ->
       over_approx_store_via s_s c_s m
 .
 
-Inductive over_approx_frame_via : sym_frame -> frame -> typed_smt_model -> Prop :=
+Inductive over_approx_frame_via : sym_frame -> frame -> smt_model -> Prop :=
   | OA_Frame : forall s_s c_s m ic pbid v,
       over_approx_store_via s_s c_s m ->
       over_approx_frame_via
@@ -663,7 +663,7 @@ Inductive over_approx_frame_via : sym_frame -> frame -> typed_smt_model -> Prop 
         m
 .
 
-Inductive over_approx_stack_via : list sym_frame -> list frame -> typed_smt_model -> Prop :=
+Inductive over_approx_stack_via : list sym_frame -> list frame -> smt_model -> Prop :=
   | OA_Stack_Empty : forall m,
       over_approx_stack_via [] [] m
   | OA_Stack_NonEmpty : forall s_f s_stk c_f c_stk m,
@@ -672,7 +672,7 @@ Inductive over_approx_stack_via : list sym_frame -> list frame -> typed_smt_mode
       over_approx_stack_via (s_f :: s_stk) (c_f :: c_stk) m
 .
 
-Inductive over_approx_via : sym_state -> state -> typed_smt_model -> Prop :=
+Inductive over_approx_via : sym_state -> state -> smt_model -> Prop :=
   | OAV_State : forall ic c cs pbid s_ls s_stk s_gs syms pc mdl c_ls c_stk c_gs m,
       (over_approx_store_via s_ls c_ls m) ->
       (over_approx_stack_via s_stk c_stk m) ->
