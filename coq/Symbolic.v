@@ -19,8 +19,6 @@ From SE.Utils Require Import IDMap.
 From SE.Utils Require Import ListUtil.
 From SE.Utils Require Import Util.
 
-(* TODO: smt_store -> sym_store? *)
-
 Definition smt_store := total_map (option smt_expr).
 
 Definition empty_smt_store : smt_store := empty_map None.
@@ -176,7 +174,7 @@ Fixpoint sym_eval_exp (s : smt_store) (g : smt_store) (t : option typ) (e : llvm
   | EXP_Bool b => Some (make_smt_bool b)
   | EXP_Null => None
   | EXP_Zero_initializer => None
-  | EXP_Undef => None (* TODO: how to handle? *)
+  | EXP_Undef => None
   | EXP_Poison => None
   | OP_IBinop op t v1 v2 =>
       match (sym_eval_exp s g (Some t) v1, sym_eval_exp s g (Some t) v2) with
@@ -637,20 +635,20 @@ Definition make_dynamic_int (s : smt_sort) (x : smt_sort_to_int_type s) : dynami
 .
 
 (* TODO: rename (over_approx/over_approx_via_model) *)
-Inductive equiv_via_model :
+Inductive over_approx_via_model :
   option dynamic_value -> option smt_expr -> smt_model -> Prop :=
-  | EVM_None : forall m,
-      equiv_via_model None None m
-  | EVM_Some : forall m sort (ast : smt_ast sort) (i : smt_sort_to_int_type sort) di,
+  | OA_None : forall m,
+      over_approx_via_model None None m
+  | OA_Some : forall m sort (ast : smt_ast sort) (i : smt_sort_to_int_type sort) di,
       (smt_eval_ast m sort ast) = i ->
       (make_dynamic_int sort i) = di ->
-      equiv_via_model (Some (DV_Int di)) (Some (Expr sort ast)) m
+      over_approx_via_model (Some (DV_Int di)) (Some (Expr sort ast)) m
 .
 
 (* TODO: use in the relevant locations *)
 Inductive over_approx_store_via : smt_store -> dv_store -> smt_model -> Prop :=
   | OA_Store : forall c_s s_s m,
-      (forall (x : raw_id), equiv_via_model (c_s x) (s_s x) m) ->
+      (forall (x : raw_id), over_approx_via_model (c_s x) (s_s x) m) ->
       over_approx_store_via s_s c_s m
 .
 

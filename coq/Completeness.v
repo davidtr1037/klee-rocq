@@ -30,7 +30,7 @@ Lemma eval_exp_correspondence : forall c_ls s_ls c_gs s_gs ot e m,
   is_supported_exp e ->
   over_approx_store_via s_ls c_ls m ->
   over_approx_store_via s_gs c_gs m ->
-  equiv_via_model (eval_exp c_ls c_gs ot e) (sym_eval_exp s_ls s_gs ot e) m.
+  over_approx_via_model (eval_exp c_ls c_gs ot e) (sym_eval_exp s_ls s_gs ot e) m.
 Proof.
   intros c_ls s_ls c_gs s_gs ot e m His Hls Hgs.
   generalize dependent ot.
@@ -51,12 +51,12 @@ Proof.
   {
     destruct ot.
     {
-      destruct t; try (apply EVM_None).
-      repeat (destruct w; try (apply EVM_None)); (
-        eapply EVM_Some; reflexivity
+      destruct t; try (apply OA_None).
+      repeat (destruct w; try (apply OA_None)); (
+        eapply OA_Some; reflexivity
       ).
     }
-    { apply EVM_None. }
+    { apply OA_None. }
   }
   {
     apply IHe1 with (ot := (Some t)) in H2.
@@ -69,19 +69,19 @@ Proof.
         inversion H2; subst.
         inversion H4; subst.
         rename sort into sort1, ast into ast1, sort0 into sort2, ast0 into ast2.
-        destruct sort1, sort2; try (apply EVM_None); (
-          eapply EVM_Some; reflexivity
+        destruct sort1, sort2; try (apply OA_None); (
+          eapply OA_Some; reflexivity
         ).
       }
       {
         inversion H2; subst.
         inversion H4; subst.
-        apply EVM_None.
+        apply OA_None.
       }
     }
     {
       inversion H2; subst.
-      apply EVM_None.
+      apply OA_None.
     }
   }
   {
@@ -95,9 +95,9 @@ Proof.
         inversion H4; subst.
         rename sort into sort1, ast into ast1, sort0 into sort2, ast0 into ast2.
         (* TODO: find a better solution! *)
-        destruct sort1, sort2; try (apply EVM_None).
+        destruct sort1, sort2; try (apply OA_None).
         {
-          eapply EVM_Some.
+          eapply OA_Some.
           { reflexivity. }
           {
             simpl.
@@ -119,7 +119,7 @@ Proof.
           }
         }
         {
-          eapply EVM_Some.
+          eapply OA_Some.
           { reflexivity. }
           {
             simpl.
@@ -141,7 +141,7 @@ Proof.
           }
         }
         {
-          eapply EVM_Some.
+          eapply OA_Some.
           { reflexivity. }
           {
             simpl.
@@ -163,7 +163,7 @@ Proof.
           }
         }
         {
-          eapply EVM_Some.
+          eapply OA_Some.
           { reflexivity. }
           {
             simpl.
@@ -185,7 +185,7 @@ Proof.
           }
         }
         {
-          eapply EVM_Some.
+          eapply OA_Some.
           { reflexivity. }
           {
             simpl.
@@ -210,12 +210,12 @@ Proof.
       {
         inversion H1; subst.
         inversion H4; subst.
-        apply EVM_None.
+        apply OA_None.
       }
     }
     {
       inversion H1; subst.
-      apply EVM_None.
+      apply OA_None.
     }
   }
 Qed.
@@ -228,11 +228,11 @@ Proof.
   intros x.
   unfold empty_dv_store, empty_smt_store.
   rewrite apply_empty_map, apply_empty_map.
-  apply EVM_None.
+  apply OA_None.
 Qed.
 
 Lemma store_update_correspondence : forall dv se m v c_s s_s,
-  equiv_via_model (Some dv) (Some se) m ->
+  over_approx_via_model (Some dv) (Some se) m ->
   over_approx_store_via s_s c_s m ->
   over_approx_store_via (v !-> Some se; s_s) (v !-> Some dv; c_s) m.
 Proof.
@@ -258,7 +258,7 @@ Lemma eval_phi_args_correspondence : forall c_ls s_ls c_gs s_gs t args pbid m,
   (forall bid e, In (bid, e) args -> is_supported_exp e) ->
   over_approx_store_via s_ls c_ls m ->
   over_approx_store_via s_gs c_gs m ->
-  equiv_via_model
+  over_approx_via_model
     (eval_phi_args c_ls c_gs t args pbid)
     (sym_eval_phi_args s_ls s_gs t args pbid)
     m.
@@ -267,7 +267,7 @@ Proof.
   induction args as [ | arg args_tail].
   {
     simpl.
-    apply EVM_None.
+    apply OA_None.
   }
   {
     simpl.
@@ -316,7 +316,7 @@ Proof.
     simpl in Hc.
     destruct arg as [y attrs]. destruct y.
     assert(L :
-      equiv_via_model
+      over_approx_via_model
         (eval_exp c_ls c_gs (Some t) e)
         (sym_eval_exp s_ls s_gs (Some t) e)
         m
@@ -364,7 +364,7 @@ Proof.
           {
             inversion Hc; subst.
             apply store_update_correspondence; try assumption.
-            eapply EVM_Some; reflexivity.
+            eapply OA_Some; reflexivity.
           }
         }
       }
@@ -429,9 +429,9 @@ Proof.
   inversion Hoa; subst.
   specialize (H x).
   inversion H; subst.
-  { apply EVM_None. }
+  { apply OA_None. }
   {
-    eapply EVM_Some; try reflexivity.
+    eapply OA_Some; try reflexivity.
     rewrite <- subexpr_non_interference with (x := name) (n := n).
     { reflexivity. }
     {
@@ -497,7 +497,7 @@ Proof.
     destruct H as [m H].
     inversion H; subst.
     assert(L :
-      equiv_via_model
+      over_approx_via_model
         (eval_exp c_ls c_gs None e)
         (sym_eval_exp s_ls s_gs None e)
         m
@@ -537,7 +537,7 @@ Proof.
         {
           rewrite H8 in H0.
           rewrite <- H0.
-          eapply EVM_Some; reflexivity.
+          eapply OA_Some; reflexivity.
         }
         { assumption. }
       }
@@ -548,7 +548,7 @@ Proof.
     destruct H as [m H].
     inversion H; subst.
     assert(L :
-      equiv_via_model
+      over_approx_via_model
         (eval_phi_args c_ls c_gs t args pbid)
         (sym_eval_phi_args s_ls s_gs t args pbid)
         m
@@ -588,7 +588,7 @@ Proof.
         {
           rewrite H8 in H0.
           rewrite <- H0.
-          eapply EVM_Some; reflexivity.
+          eapply OA_Some; reflexivity.
         }
         { assumption. }
       }
@@ -623,7 +623,7 @@ Proof.
     destruct H as [m H].
     inversion H; subst.
     assert(L :
-      equiv_via_model
+      over_approx_via_model
         (eval_exp c_ls c_gs (Some (TYPE_I 1)) e)
         (sym_eval_exp s_ls s_gs (Some (TYPE_I 1)) e)
         m
@@ -675,7 +675,7 @@ Proof.
     destruct H as [m H].
     inversion H; subst.
     assert(L :
-      equiv_via_model
+      over_approx_via_model
         (eval_exp c_ls c_gs (Some (TYPE_I 1)) e)
         (sym_eval_exp s_ls s_gs (Some (TYPE_I 1)) e)
         m
@@ -835,7 +835,7 @@ Proof.
     inversion H23; subst.
     inversion H3; subst.
     assert(L :
-      equiv_via_model
+      over_approx_via_model
         (eval_exp c_ls c_gs (Some t) e)
         (sym_eval_exp s_ls s_gs (Some t) e)
         m
@@ -875,7 +875,7 @@ Proof.
         {
           rewrite H8 in H0.
           rewrite <- H0.
-          eapply EVM_Some; reflexivity.
+          eapply OA_Some; reflexivity.
         }
         { assumption. }
       }
@@ -912,7 +912,7 @@ Proof.
         {
           replace (DI_I32 (repr n)) with (make_dynamic_int Sort_BV32 (Int32.repr n)).
           {
-            eapply EVM_Some; try reflexivity.
+            eapply OA_Some; try reflexivity.
             simpl.
             rewrite StringMap.update_map_eq.
             reflexivity.
@@ -950,7 +950,7 @@ Proof.
     destruct H as [m H].
     inversion H; subst.
     assert(L :
-      equiv_via_model
+      over_approx_via_model
         (eval_exp c_ls c_gs (Some (TYPE_I 1)) e)
         (sym_eval_exp s_ls s_gs (Some (TYPE_I 1)) e)
         m
