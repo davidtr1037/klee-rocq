@@ -21,7 +21,7 @@ ref<CoqExpr> ExprTranslator::translateAsSMTExpr(ref<Expr> e,
   }
 
   return new CoqApplication(
-    new CoqVariable("TypedSMTExpr"),
+    new CoqVariable("Expr"),
     {
       createBVSort(e->getWidth()),
       coqAST,
@@ -87,7 +87,7 @@ ref<CoqExpr> ExprTranslator::translateConstantExpr(ref<ConstantExpr> e) {
   }
 
   return new CoqApplication(
-    new CoqVariable("TypedAST_Const"),
+    new CoqVariable("AST_Const"),
     {
       createBVSort(e->getWidth()),
       new CoqApplication(
@@ -113,7 +113,7 @@ ref<CoqExpr> ExprTranslator::createSMTBinOp(std::string op,
   }
 
   return new CoqApplication(
-    new CoqVariable("TypedAST_BinOp"),
+    new CoqVariable("AST_BinOp"),
     {
       createBVSort(left->getWidth()),
       new CoqVariable(op),
@@ -183,7 +183,7 @@ ref<CoqExpr> ExprTranslator::translateCmpExpr(ref<CmpExpr> e,
   }
 
   return new CoqApplication(
-    new CoqVariable("TypedAST_CmpOp"),
+    new CoqVariable("AST_CmpOp"),
     {
       createBVSort(e->left->getWidth()),
       new CoqVariable(op),
@@ -243,7 +243,7 @@ ref<CoqExpr> ExprTranslator::createSMTVar(unsigned width,
   }
 
   return new CoqApplication(
-    new CoqVariable("TypedAST_Var"),
+    new CoqVariable("AST_Var"),
     {
       createBVSort(width),
       name

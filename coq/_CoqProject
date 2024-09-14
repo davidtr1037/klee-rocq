@@ -17,8 +17,8 @@ Numeric/Floats.v
 Numeric/IEEE754_extra.v
 Numeric/Integers.v
 Numeric/Zbits.v
-SMT/TypedExpr.v
-SMT/TypedModel.v
+SMT/Expr.v
+SMT/Model.v
 Soundness.v
 Relation.v
 Utilities.v
