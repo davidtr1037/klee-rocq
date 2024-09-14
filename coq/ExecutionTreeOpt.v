@@ -1086,7 +1086,7 @@ Proof.
   intros mdl fid init_s l Hism Hinit Hse.
   unfold is_safe_program.
   assert(L1: exists init_c, init_state mdl fid = Some init_c).
-  { apply (initialization_correspondence mdl fid). exists init_s. assumption. }
+  { apply (init_state_correspondence mdl fid). exists init_s. assumption. }
   destruct L1 as [init_c L1].
   exists init_c.
   split.

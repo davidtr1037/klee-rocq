@@ -634,7 +634,6 @@ Definition make_dynamic_int (s : smt_sort) (x : smt_sort_to_int_type s) : dynami
   in f x
 .
 
-(* TODO: rename (over_approx/over_approx_via_model) *)
 Inductive over_approx_via_model :
   option dynamic_value -> option smt_expr -> smt_model -> Prop :=
   | OA_None : forall m,
@@ -645,7 +644,6 @@ Inductive over_approx_via_model :
       over_approx_via_model (Some (DV_Int di)) (Some (Expr sort ast)) m
 .
 
-(* TODO: use in the relevant locations *)
 Inductive over_approx_store_via : smt_store -> dv_store -> smt_model -> Prop :=
   | OA_Store : forall c_s s_s m,
       (forall (x : raw_id), over_approx_via_model (c_s x) (s_s x) m) ->

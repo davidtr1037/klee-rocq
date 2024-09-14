@@ -479,7 +479,6 @@ Proof.
   { reflexivity. }
 Qed.
 
-(* TODO: remove redundant exists tactics *)
 Lemma completeness_single_step :
   forall c c' s,
     is_supported_state c ->
@@ -1003,8 +1002,7 @@ Proof.
   }
 Qed.
 
-(* TODO: rename: init_correspondence *)
-Lemma initialization_correspondence : forall mdl fid,
+Lemma init_state_correspondence : forall mdl fid,
   (exists c, (init_state mdl fid) = Some c) <-> (exists s, (init_sym_state mdl fid) = Some s).
 Proof.
   intros mdl fid.
@@ -1108,7 +1106,7 @@ Proof.
   intros mdl fid init_c c Hism Hinit Hms.
   (* TODO: rename *)
   assert(L1 : exists init_s, init_sym_state mdl fid = Some init_s).
-  { apply (initialization_correspondence mdl fid). exists init_c. assumption. }
+  { apply (init_state_correspondence mdl fid). exists init_c. assumption. }
   destruct L1 as [init_s L1].
   exists init_s.
   induction Hms as [init_c c | init_c c c'].
