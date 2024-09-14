@@ -42,7 +42,7 @@ Inductive equiv_smt_store : smt_store -> smt_store -> Prop :=
   | EquivSMTStore : forall (s1 s2 : smt_store),
       (forall x,
         ((s1 x) = None /\ (s2 x) = None) \/
-        (exists se1 se2, (s1 x) = Some se1 /\ (s2 x) = Some se2 /\ equiv_typed_smt_expr se1 se2)
+        (exists se1 se2, (s1 x) = Some se1 /\ (s2 x) = Some se2 /\ equiv_smt_expr se1 se2)
       ) -> equiv_smt_store s1 s2
 .
 
@@ -58,7 +58,7 @@ Proof.
     exists se, se.
     split; try reflexivity.
     split; try reflexivity.
-    apply equiv_typed_smt_expr_refl.
+    apply equiv_smt_expr_refl.
   }
   { left. split; reflexivity. }
 Qed.
@@ -83,7 +83,7 @@ Proof.
     exists se2, se1.
     split; try assumption.
     split; try assumption.
-    apply equiv_typed_smt_expr_symmetry.
+    apply equiv_smt_expr_symmetry.
     assumption.
   }
 Qed.
@@ -130,7 +130,7 @@ Proof.
       exists se1, se3.
       split; try assumption.
       split; try assumption.
-      apply equiv_typed_smt_expr_transitivity with (e2 := se2); assumption.
+      apply equiv_smt_expr_transitivity with (e2 := se2); assumption.
     }
   }
 Qed.
@@ -145,7 +145,7 @@ Qed.
 
 Lemma equiv_smt_store_update : forall s1 s2 v se1 se2,
   equiv_smt_store s1 s2 ->
-  equiv_typed_smt_expr se1 se2 ->
+  equiv_smt_expr se1 se2 ->
   equiv_smt_store (v !-> Some se1; s1) (v !-> Some se2; s2).
 Proof.
   intros s1 s2 v se1 se2 Hs He.
@@ -175,7 +175,7 @@ Lemma equiv_sym_eval_exp : forall ls1 gs1 ls2 gs2 ot e se1,
   equiv_smt_store ls1 ls2 ->
   equiv_smt_store gs1 gs2 ->
   sym_eval_exp ls1 gs1 ot e = Some se1 ->
-  (exists se2, (sym_eval_exp ls2 gs2 ot e) = Some se2 /\ equiv_typed_smt_expr se1 se2).
+  (exists se2, (sym_eval_exp ls2 gs2 ot e) = Some se2 /\ equiv_smt_expr se1 se2).
 Proof.
   intros ls1 gs1 ls2 gs2 ot e se1 His Heq1 Heq2 Heval.
   generalize dependent se1.
@@ -219,7 +219,7 @@ Proof.
     exists se1.
     split.
     { simpl. assumption. }
-    { apply equiv_typed_smt_expr_refl. }
+    { apply equiv_smt_expr_refl. }
   }
   {
     inversion H5; subst.
@@ -245,7 +245,7 @@ Proof.
       inversion Heval; subst;
       eexists;
       split; try reflexivity;
-      apply equiv_typed_smt_expr_binop; assumption
+      apply equiv_smt_expr_binop; assumption
     ).
   }
   {
@@ -271,7 +271,7 @@ Proof.
       inversion Heval; subst;
       eexists;
       split; try reflexivity;
-      apply equiv_typed_smt_expr_cmpop; assumption
+      apply equiv_smt_expr_cmpop; assumption
     ).
   }
 Qed.
@@ -281,7 +281,7 @@ Lemma equiv_sym_eval_phi_args : forall ls1 gs1 ls2 gs2 t args pbid se1,
   equiv_smt_store ls1 ls2 ->
   equiv_smt_store gs1 gs2 ->
   sym_eval_phi_args ls1 gs1 t args pbid = Some se1 ->
-  (exists se2, sym_eval_phi_args ls2 gs2 t args pbid = Some se2 /\ equiv_typed_smt_expr se1 se2).
+  (exists se2, sym_eval_phi_args ls2 gs2 t args pbid = Some se2 /\ equiv_smt_expr se1 se2).
 Proof.
   intros ls1 gs1 ls2 gs2 t args pbid se1 His Heq1 Heq2 Heval.
   induction args as [ | arg args_tail].
@@ -473,7 +473,7 @@ Inductive equiv_sym_state : sym_state -> sym_state -> Prop :=
       equiv_smt_store ls1 ls2 ->
       equiv_sym_stack stk1 stk2 ->
       equiv_smt_store gs1 gs2 ->
-      equiv_typed_smt_expr (TypedSMTExpr Sort_BV1 pc1) (TypedSMTExpr Sort_BV1 pc2) ->
+      equiv_smt_expr (Expr Sort_BV1 pc1) (Expr Sort_BV1 pc2) ->
       equiv_sym_state
         (mk_sym_state
           ic
@@ -510,7 +510,7 @@ Proof.
   { apply equiv_smt_store_symmetry. assumption. }
   { apply equiv_sym_stack_symmetry. assumption. }
   { apply equiv_smt_store_symmetry. assumption. }
-  { apply equiv_typed_smt_expr_symmetry. assumption. }
+  { apply equiv_smt_expr_symmetry. assumption. }
 Qed.
 
 Lemma equiv_sym_state_transitivity: forall s1 s2 s3,
@@ -524,7 +524,7 @@ Proof.
   { apply equiv_sym_stack_transivity with (stk2 := stk2); assumption. }
   { apply equiv_smt_store_transitivity with (s2 := gs2); assumption. }
   {
-    apply equiv_typed_smt_expr_transitivity with (e2 := (TypedSMTExpr Sort_BV1 pc2));
+    apply equiv_smt_expr_transitivity with (e2 := (Expr Sort_BV1 pc2));
     assumption.
   }
 Qed.
@@ -746,14 +746,14 @@ Proof.
         stk2
         gs2
         syms
-        (TypedAST_BinOp Sort_BV1 SMT_And pc2 ast2)
+        (AST_BinOp Sort_BV1 SMT_And pc2 ast2)
         mdl
       ).
       split.
       { apply Sym_Step_Br_True with (d := d) (b := b); assumption. }
       {
         apply EquivSymState; try assumption.
-        apply equiv_typed_smt_expr_binop; assumption.
+        apply equiv_smt_expr_binop; assumption.
       }
     }
     {
@@ -778,15 +778,15 @@ Proof.
         stk2
         gs2
         syms
-        (TypedAST_BinOp Sort_BV1 SMT_And pc2 (TypedAST_Not Sort_BV1 ast2))
+        (AST_BinOp Sort_BV1 SMT_And pc2 (AST_Not Sort_BV1 ast2))
         mdl
       ).
       split.
       { apply Sym_Step_Br_False with (d := d) (b := b); assumption. }
       {
         apply EquivSymState; try assumption.
-        apply equiv_typed_smt_expr_binop; try assumption.
-        apply equiv_typed_smt_expr_not.
+        apply equiv_smt_expr_binop; try assumption.
+        apply equiv_smt_expr_not.
         assumption.
       }
     }
@@ -937,14 +937,14 @@ Proof.
         stk2
         gs2
         syms
-        (TypedAST_BinOp Sort_BV1 SMT_And pc2 ast2)
+        (AST_BinOp Sort_BV1 SMT_And pc2 ast2)
         mdl
       ).
       split.
       { apply Sym_Step_Assume with (d := d); assumption. }
       {
         apply EquivSymState; try assumption.
-        apply equiv_typed_smt_expr_binop; assumption.
+        apply equiv_smt_expr_binop; assumption.
       }
     }
     {
@@ -962,7 +962,7 @@ Proof.
       c
       cs
       pbid
-      (v !-> Some (TypedSMTExpr Sort_BV32 (TypedAST_Var Sort_BV32 (fresh_name syms))); ls2)
+      (v !-> Some (Expr Sort_BV32 (AST_Var Sort_BV32 (fresh_name syms))); ls2)
       stk2
       gs2
       (extend_names syms)
@@ -974,7 +974,7 @@ Proof.
     {
       apply EquivSymState; try assumption.
       apply equiv_smt_store_update; try assumption.
-      apply equiv_typed_smt_expr_refl.
+      apply equiv_smt_expr_refl.
     }
   }
 Qed.
@@ -1015,8 +1015,8 @@ Proof.
         inversion Hstep_2; subst.
         inversion Hstep_1; subst.
         apply Unsat_State.
-        apply equiv_typed_smt_expr_unsat with (ast1 := pc2) (ast2 := pc1).
-        { apply equiv_typed_smt_expr_symmetry. assumption. }
+        apply equiv_smt_expr_unsat with (ast1 := pc2) (ast2 := pc1).
+        { apply equiv_smt_expr_symmetry. assumption. }
         { assumption. }
       }
     }

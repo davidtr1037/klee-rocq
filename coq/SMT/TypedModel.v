@@ -99,30 +99,30 @@ Definition smt_eval_not_by_sort s (x : (smt_sort_to_int_type s)) : (smt_sort_to_
   smt_eval_binop_by_sort SMT_Xor s x (create_mone_by_sort s)
 .
 
-Fixpoint smt_eval_ast (m : typed_smt_model) (s : smt_sort) (ast : typed_smt_ast s) : (smt_sort_to_int_type s) :=
+Fixpoint smt_eval_ast (m : typed_smt_model) (s : smt_sort) (ast : smt_ast s) : (smt_sort_to_int_type s) :=
   match ast with
-  | TypedAST_Const arg_sort n => n
-  | TypedAST_Var arg_sort x => create_int_by_sort arg_sort ((bv_model m) x)
-  | TypedAST_BinOp arg_sort op ast1 ast2 =>
+  | AST_Const arg_sort n => n
+  | AST_Var arg_sort x => create_int_by_sort arg_sort ((bv_model m) x)
+  | AST_BinOp arg_sort op ast1 ast2 =>
       smt_eval_binop_by_sort
         op
         arg_sort
         (smt_eval_ast m arg_sort ast1)
         (smt_eval_ast m arg_sort ast2)
-  | TypedAST_CmpOp arg_sort op ast1 ast2 =>
+  | AST_CmpOp arg_sort op ast1 ast2 =>
       smt_eval_cmpop_by_sort
         op
         arg_sort
         (smt_eval_ast m arg_sort ast1)
         (smt_eval_ast m arg_sort ast2)
-  | TypedAST_Not arg_sort ast =>
+  | AST_Not arg_sort ast =>
       smt_eval_not_by_sort arg_sort (smt_eval_ast m arg_sort ast)
   end
 .
 
-Definition smt_eval (m : typed_smt_model) (e : typed_smt_expr) : (smt_sort_to_int_type (get_sort e)) :=
+Definition smt_eval (m : typed_smt_model) (e : smt_expr) : (smt_sort_to_int_type (get_sort e)) :=
   match e with
-  | TypedSMTExpr sort ast => smt_eval_ast m sort ast
+  | Expr sort ast => smt_eval_ast m sort ast
   end
 .
 
@@ -139,7 +139,7 @@ Definition unsat (ast : smt_ast_bool) := ~ sat ast.
 
 Lemma unsat_and : forall (e1 e2 : smt_ast_bool),
   unsat e1 ->
-  unsat (TypedAST_BinOp Sort_BV1 SMT_And e1 e2).
+  unsat (AST_BinOp Sort_BV1 SMT_And e1 e2).
 Proof.
   intros e1 e2 Hunsat.
   unfold unsat in *.
@@ -154,8 +154,8 @@ Proof.
   assumption.
 Qed.
 
-Lemma subexpr_non_interference : forall sort (ast : typed_smt_ast sort) x m n,
-  (~ contains_var (TypedSMTExpr sort ast) x ) ->
+Lemma subexpr_non_interference : forall sort (ast : smt_ast sort) x m n,
+  (~ contains_var (Expr sort ast) x ) ->
   smt_eval_ast m sort ast = smt_eval_ast (mk_smt_model (x !-> n; bv_model m)) sort ast.
 Proof.
   intros sort ast x m n H.
@@ -177,9 +177,9 @@ Proof.
     }
   }
   {
-    assert(L1 : ~ contains_var (TypedSMTExpr s ast1) x).
+    assert(L1 : ~ contains_var (Expr s ast1) x).
     { intros Hse. apply H. apply contains_var_binop_intro_l. assumption. }
-    assert(L2 : ~ contains_var (TypedSMTExpr s ast2) x).
+    assert(L2 : ~ contains_var (Expr s ast2) x).
     { intros Hse. apply H. apply contains_var_binop_intro_r. assumption. }
     apply IHast1 in L1.
     apply IHast2 in L2.
@@ -187,9 +187,9 @@ Proof.
     reflexivity.
   }
   {
-    assert(L1 : ~ contains_var (TypedSMTExpr s ast1) x).
+    assert(L1 : ~ contains_var (Expr s ast1) x).
     { intros Hse. apply H. apply contains_var_cmpop_intro_l. assumption. }
-    assert(L2 : ~ contains_var (TypedSMTExpr s ast2) x).
+    assert(L2 : ~ contains_var (Expr s ast2) x).
     { intros Hse. apply H. apply contains_var_cmpop_intro_r. assumption. }
     apply IHast1 in L1.
     apply IHast2 in L2.
@@ -197,7 +197,7 @@ Proof.
     reflexivity.
   }
   {
-    assert(L : ~ contains_var (TypedSMTExpr s ast) x).
+    assert(L : ~ contains_var (Expr s ast) x).
     { intros Hse. apply H. apply contains_var_not_intro. assumption. }
     apply IHast in L.
     rewrite L.
@@ -205,14 +205,14 @@ Proof.
   }
 Qed.
 
-Inductive equiv_typed_smt_expr : typed_smt_expr -> typed_smt_expr -> Prop :=
-  | EquivTypedSMTExpr : forall s (ast1 ast2 : typed_smt_ast s),
+Inductive equiv_smt_expr : smt_expr -> smt_expr -> Prop :=
+  | EquivExpr : forall s (ast1 ast2 : smt_ast s),
       (forall m, smt_eval_ast m s ast1 = smt_eval_ast m s ast2) ->
-      equiv_typed_smt_expr (TypedSMTExpr s ast1) (TypedSMTExpr s ast2)
+      equiv_smt_expr (Expr s ast1) (Expr s ast2)
 .
 
 Lemma sort_injection : forall sort1 sort2 ast1 ast2,
-  equiv_typed_smt_expr (TypedSMTExpr sort1 ast1) (TypedSMTExpr sort2 ast2) ->
+  equiv_smt_expr (Expr sort1 ast1) (Expr sort2 ast2) ->
   sort1 = sort2.
 Proof.
   intros sort1 sort2 ast1 ast2 H.
@@ -220,28 +220,28 @@ Proof.
   reflexivity.
 Qed.
 
-Lemma equiv_typed_smt_expr_refl : forall e, equiv_typed_smt_expr e e.
+Lemma equiv_smt_expr_refl : forall e, equiv_smt_expr e e.
 Proof.
   intros e.
   destruct e as [sort ast].
-  apply EquivTypedSMTExpr.
+  apply EquivExpr.
   intros m.
   reflexivity.
 Qed.
 
-Lemma equiv_typed_smt_expr_symmetry : forall e1 e2,
-  equiv_typed_smt_expr e1 e2 -> equiv_typed_smt_expr e2 e1.
+Lemma equiv_smt_expr_symmetry : forall e1 e2,
+  equiv_smt_expr e1 e2 -> equiv_smt_expr e2 e1.
 Proof.
   intros e1 e2 H.
   inversion H; subst.
-  apply EquivTypedSMTExpr.
+  apply EquivExpr.
   intros m.
   symmetry.
   apply H0.
 Qed.
 
-Lemma equiv_typed_smt_expr_transitivity : forall e1 e2 e3,
-  equiv_typed_smt_expr e1 e2 -> equiv_typed_smt_expr e2 e3 -> equiv_typed_smt_expr e1 e3.
+Lemma equiv_smt_expr_transitivity : forall e1 e2 e3,
+  equiv_smt_expr e1 e2 -> equiv_smt_expr e2 e3 -> equiv_smt_expr e1 e3.
 Proof.
   intros e1 e2 e3 H1 H2.
   inversion H1; subst.
@@ -249,7 +249,7 @@ Proof.
   apply inj_pair2 in H4.
   subst.
   rename ast4 into ast3.
-  apply EquivTypedSMTExpr.
+  apply EquivExpr.
   intros m.
   specialize (H m).
   specialize (H5 m).
@@ -257,8 +257,8 @@ Proof.
   assumption.
 Qed.
 
-Lemma equiv_typed_smt_expr_unsat : forall (ast1 ast2 : smt_ast_bool),
-  equiv_typed_smt_expr (TypedSMTExpr Sort_BV1 ast1) (TypedSMTExpr Sort_BV1 ast2) ->
+Lemma equiv_smt_expr_unsat : forall (ast1 ast2 : smt_ast_bool),
+  equiv_smt_expr (Expr Sort_BV1 ast1) (Expr Sort_BV1 ast2) ->
   unsat ast1 ->
   unsat ast2.
 Proof.
@@ -276,15 +276,15 @@ Proof.
   apply H0.
 Qed.
 
-Lemma equiv_typed_smt_expr_binop : forall s op (ast1 ast2 ast3 ast4 : typed_smt_ast s),
-  equiv_typed_smt_expr (TypedSMTExpr s ast1) (TypedSMTExpr s ast2) ->
-  equiv_typed_smt_expr (TypedSMTExpr s ast3) (TypedSMTExpr s ast4) ->
-  equiv_typed_smt_expr
-    (TypedSMTExpr s (TypedAST_BinOp s op ast1 ast3))
-    (TypedSMTExpr s (TypedAST_BinOp s op ast2 ast4)).
+Lemma equiv_smt_expr_binop : forall s op (ast1 ast2 ast3 ast4 : smt_ast s),
+  equiv_smt_expr (Expr s ast1) (Expr s ast2) ->
+  equiv_smt_expr (Expr s ast3) (Expr s ast4) ->
+  equiv_smt_expr
+    (Expr s (AST_BinOp s op ast1 ast3))
+    (Expr s (AST_BinOp s op ast2 ast4)).
 Proof.
   intros s op ast1 ast2 ast3 ast4 H1 H2.
-  apply EquivTypedSMTExpr.
+  apply EquivExpr.
   intros m.
   simpl.
   inversion H1; subst.
@@ -299,15 +299,15 @@ Proof.
   reflexivity.
 Qed.
 
-Lemma equiv_typed_smt_expr_cmpop : forall s op (ast1 ast2 ast3 ast4 : typed_smt_ast s),
-  equiv_typed_smt_expr (TypedSMTExpr s ast1) (TypedSMTExpr s ast2) ->
-  equiv_typed_smt_expr (TypedSMTExpr s ast3) (TypedSMTExpr s ast4) ->
-  equiv_typed_smt_expr
-    (TypedSMTExpr Sort_BV1 (TypedAST_CmpOp s op ast1 ast3))
-    (TypedSMTExpr Sort_BV1 (TypedAST_CmpOp s op ast2 ast4)).
+Lemma equiv_smt_expr_cmpop : forall s op (ast1 ast2 ast3 ast4 : smt_ast s),
+  equiv_smt_expr (Expr s ast1) (Expr s ast2) ->
+  equiv_smt_expr (Expr s ast3) (Expr s ast4) ->
+  equiv_smt_expr
+    (Expr Sort_BV1 (AST_CmpOp s op ast1 ast3))
+    (Expr Sort_BV1 (AST_CmpOp s op ast2 ast4)).
 Proof.
   intros s op ast1 ast2 ast3 ast4 H1 H2.
-  apply EquivTypedSMTExpr.
+  apply EquivExpr.
   intros m.
   simpl.
   inversion H1; subst.
@@ -322,14 +322,12 @@ Proof.
   reflexivity.
 Qed.
 
-Lemma equiv_typed_smt_expr_not : forall s (ast1 ast2 : typed_smt_ast s),
-  equiv_typed_smt_expr (TypedSMTExpr s ast1) (TypedSMTExpr s ast2) ->
-  equiv_typed_smt_expr
-    (TypedSMTExpr s (TypedAST_Not s ast1))
-    (TypedSMTExpr s (TypedAST_Not s ast2)).
+Lemma equiv_smt_expr_not : forall s (ast1 ast2 : smt_ast s),
+  equiv_smt_expr (Expr s ast1) (Expr s ast2) ->
+  equiv_smt_expr (Expr s (AST_Not s ast1)) (Expr s (AST_Not s ast2)).
 Proof.
   intros s ast1 ast2 H.
-  apply EquivTypedSMTExpr.
+  apply EquivExpr.
   intros m.
   simpl.
   inversion H; subst.
@@ -340,9 +338,9 @@ Proof.
   reflexivity.
 Qed.
 
-Lemma equiv_typed_smt_expr_normalize_simplify: forall (sort : smt_sort) (ast : typed_smt_ast sort),
-  equiv_typed_smt_expr
-    (TypedSMTExpr sort ast)
-    (TypedSMTExpr sort (simplify sort (normalize sort ast))).
+Lemma equiv_smt_expr_normalize_simplify: forall (sort : smt_sort) (ast : smt_ast sort),
+  equiv_smt_expr
+    (Expr sort ast)
+    (Expr sort (simplify sort (normalize sort ast))).
 Proof.
 Admitted.

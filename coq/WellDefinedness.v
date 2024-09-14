@@ -20,7 +20,7 @@ From SE.Utils Require Import IDMap.
 From SE.Utils Require Import ListUtil.
 From SE.Utils Require Import Util.
 
-Inductive well_defined_smt_expr : typed_smt_expr -> list string -> Prop :=
+Inductive well_defined_smt_expr : smt_expr -> list string -> Prop :=
   | WD_Expr : forall se syms,
       (forall n, contains_var se n -> In n syms) ->
       well_defined_smt_expr se syms
@@ -46,7 +46,7 @@ Inductive well_defined : sym_state -> Prop :=
       well_defined_smt_store ls syms ->
       well_defined_smt_store gs syms ->
       well_defined_stack stk syms ->
-      well_defined_smt_expr (TypedSMTExpr Sort_BV1 pc) syms ->
+      well_defined_smt_expr (Expr Sort_BV1 pc) syms ->
       well_defined
         (mk_sym_state
           ic
@@ -501,14 +501,14 @@ Proof.
         assumption.
       }
       {
-        assert(L : well_defined_smt_expr (TypedSMTExpr Sort_BV1 cond) syms).
+        assert(L : well_defined_smt_expr (Expr Sort_BV1 cond) syms).
         {
           apply (well_defined_sym_eval_exp
             ls
             gs
             (Some (TYPE_I 1))
             e
-            (TypedSMTExpr Sort_BV1 cond)
+            (Expr Sort_BV1 cond)
             syms
           ); assumption.
         }
@@ -531,14 +531,14 @@ Proof.
         assumption.
       }
       {
-        assert(L : well_defined_smt_expr (TypedSMTExpr Sort_BV1 cond) syms).
+        assert(L : well_defined_smt_expr (Expr Sort_BV1 cond) syms).
         {
           apply (well_defined_sym_eval_exp
             ls
             gs
             (Some (TYPE_I 1))
             e
-            (TypedSMTExpr Sort_BV1 cond)
+            (Expr Sort_BV1 cond)
             syms
           ); assumption.
         }
@@ -599,14 +599,14 @@ Proof.
         assumption.
       }
       {
-        assert(L : well_defined_smt_expr (TypedSMTExpr Sort_BV1 cond) syms).
+        assert(L : well_defined_smt_expr (Expr Sort_BV1 cond) syms).
         {
           apply (well_defined_sym_eval_exp
             ls
             gs
             (Some (TYPE_I 1))
             e
-            (TypedSMTExpr Sort_BV1 cond)
+            (Expr Sort_BV1 cond)
             syms
           ); assumption.
         }

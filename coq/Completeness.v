@@ -94,6 +94,7 @@ Proof.
         inversion H1; subst.
         inversion H4; subst.
         rename sort into sort1, ast into ast1, sort0 into sort2, ast0 into ast2.
+        (* TODO: find a better solution! *)
         destruct sort1, sort2; try (apply EVM_None).
         {
           eapply EVM_Some.
@@ -117,10 +118,94 @@ Proof.
             { destruct op; reflexivity. }
           }
         }
-        { admit. }
-        { admit. }
-        { admit. }
-        { admit. }
+        {
+          eapply EVM_Some.
+          { reflexivity. }
+          {
+            simpl.
+            unfold smt_eval_cmpop_by_sort.
+            unfold smt_eval_cmpop_generic.
+            simpl.
+            replace
+              (smt_cmpop_to_comparison (icmp_to_smt_cmpop op)) with (icmp_to_comparison op).
+            {
+              remember (
+                Int8.cmp
+                  (icmp_to_comparison op)
+                  (smt_eval_ast m Sort_BV8 ast1)
+                  (smt_eval_ast m Sort_BV8 ast2)
+              ) as b.
+              destruct b; reflexivity.
+            }
+            { destruct op; reflexivity. }
+          }
+        }
+        {
+          eapply EVM_Some.
+          { reflexivity. }
+          {
+            simpl.
+            unfold smt_eval_cmpop_by_sort.
+            unfold smt_eval_cmpop_generic.
+            simpl.
+            replace
+              (smt_cmpop_to_comparison (icmp_to_smt_cmpop op)) with (icmp_to_comparison op).
+            {
+              remember (
+                Int16.cmp
+                  (icmp_to_comparison op)
+                  (smt_eval_ast m Sort_BV16 ast1)
+                  (smt_eval_ast m Sort_BV16 ast2)
+              ) as b.
+              destruct b; reflexivity.
+            }
+            { destruct op; reflexivity. }
+          }
+        }
+        {
+          eapply EVM_Some.
+          { reflexivity. }
+          {
+            simpl.
+            unfold smt_eval_cmpop_by_sort.
+            unfold smt_eval_cmpop_generic.
+            simpl.
+            replace
+              (smt_cmpop_to_comparison (icmp_to_smt_cmpop op)) with (icmp_to_comparison op).
+            {
+              remember (
+                Int32.cmp
+                  (icmp_to_comparison op)
+                  (smt_eval_ast m Sort_BV32 ast1)
+                  (smt_eval_ast m Sort_BV32 ast2)
+              ) as b.
+              destruct b; reflexivity.
+            }
+            { destruct op; reflexivity. }
+          }
+        }
+        {
+          eapply EVM_Some.
+          { reflexivity. }
+          {
+            simpl.
+            unfold smt_eval_cmpop_by_sort.
+            unfold smt_eval_cmpop_generic.
+            simpl.
+            replace
+              (smt_cmpop_to_comparison (icmp_to_smt_cmpop op)) with (icmp_to_comparison op).
+            {
+              remember (
+                Int64.cmp
+                  (icmp_to_comparison op)
+                  (smt_eval_ast m Sort_BV64 ast1)
+                  (smt_eval_ast m Sort_BV64 ast2)
+              ) as b.
+              destruct b; reflexivity.
+            }
+            { destruct op; reflexivity. }
+          }
+        }
       }
       {
         inversion H1; subst.
@@ -133,7 +218,7 @@ Proof.
       apply EVM_None.
     }
   }
-Admitted.
+Qed.
 
 Lemma empty_store_correspondence : forall m,
   over_approx_store_via empty_smt_store empty_dv_store m.
@@ -268,7 +353,7 @@ Proof.
         {
           destruct L2 as [L2_1 L2_2].
           inversion L; subst.
-          exists (x !-> Some (TypedSMTExpr sort ast); s_ls'').
+          exists (x !-> Some (Expr sort ast); s_ls'').
           split.
           {
             simpl.
@@ -350,7 +435,7 @@ Proof.
     rewrite <- subexpr_non_interference with (x := name) (n := n).
     { reflexivity. }
     {
-      apply (LX0 s_s x (TypedSMTExpr sort ast) name syms); try assumption.
+      apply (LX0 s_s x (Expr sort ast) name syms); try assumption.
       symmetry.
       assumption.
     }
@@ -431,7 +516,7 @@ Proof.
         c
         cs
         c_pbid
-        (v !-> Some (TypedSMTExpr sort ast); s_ls)
+        (v !-> Some (Expr sort ast); s_ls)
         s_stk
         s_gs
         s_syms
@@ -482,7 +567,7 @@ Proof.
         c
         cs
         (Some pbid)
-        (v !-> Some (TypedSMTExpr sort ast); s_ls)
+        (v !-> Some (Expr sort ast); s_ls)
         s_stk
         s_gs
         s_syms
@@ -565,7 +650,7 @@ Proof.
         s_stk
         s_gs
         s_syms
-        (TypedAST_BinOp Sort_BV1 SMT_And s_pc ast)
+        (AST_BinOp Sort_BV1 SMT_And s_pc ast)
         c_mdl
       ).
       split.
@@ -617,7 +702,7 @@ Proof.
         s_stk
         s_gs
         s_syms
-        (TypedAST_BinOp Sort_BV1 SMT_And s_pc (TypedAST_Not Sort_BV1 ast))
+        (AST_BinOp Sort_BV1 SMT_And s_pc (AST_Not Sort_BV1 ast))
         c_mdl
       ).
       split.
@@ -769,7 +854,7 @@ Proof.
         c'0
         cs'
         pbid'
-        (v !-> Some (TypedSMTExpr sort ast); s_s)
+        (v !-> Some (Expr sort ast); s_s)
         s_stk0
         s_gs
         s_syms
@@ -806,7 +891,7 @@ Proof.
       c
       cs
       c_pbid
-      (v !-> Some (TypedSMTExpr Sort_BV32 (TypedAST_Var Sort_BV32 (fresh_name s_syms))); s_ls)
+      (v !-> Some (Expr Sort_BV32 (AST_Var Sort_BV32 (fresh_name s_syms))); s_ls)
       s_stk
       s_gs
       (extend_names s_syms)
@@ -896,7 +981,7 @@ Proof.
         s_stk
         s_gs
         s_syms
-        (TypedAST_BinOp Sort_BV1 SMT_And s_pc ast)
+        (AST_BinOp Sort_BV1 SMT_And s_pc ast)
         c_mdl
       ).
       split.

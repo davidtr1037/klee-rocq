@@ -21,8 +21,8 @@ From SE.SMT Require Import TypedModel.
 
 From SE.Utils Require Import IDMap.
 
-Lemma injection_ast : forall (sort : smt_sort) (ast1 ast2 : typed_smt_ast sort),
-  TypedSMTExpr sort ast1 = TypedSMTExpr sort ast2 ->
+Lemma injection_ast : forall (sort : smt_sort) (ast1 ast2 : smt_ast sort),
+  Expr sort ast1 = Expr sort ast2 ->
   ast1 = ast2.
 Proof.
   intros sort ast1 ast2 H.
@@ -196,7 +196,7 @@ Qed.
 
 Lemma equiv_smt_store_on_update : forall s v se1 se2 se3,
   Some se1 = Some se2 ->
-  equiv_typed_smt_expr se1 se3 ->
+  equiv_smt_expr se1 se3 ->
   equiv_smt_store (v !-> Some se2; s) (v !-> Some se3; s).
 Proof.
   intros s v se1 se2 se3 H Heq.
@@ -207,7 +207,7 @@ Proof.
 Qed.
 
 Lemma equiv_smt_store_on_optimized_update: forall m x se1 se2 se3 l,
-  equiv_typed_smt_expr se2 se3 ->
+  equiv_smt_expr se2 se3 ->
   equiv_smt_store
     (x !-> Some se2; (multi_update_map (x !-> Some se1; m) l))
     (x !-> Some se3; (multi_update_map m l)).
@@ -241,7 +241,7 @@ Proof.
       exists se, se.
       split; try reflexivity.
       split; try reflexivity.
-      apply equiv_typed_smt_expr_refl.
+      apply equiv_smt_expr_refl.
     }
     {
       left.
@@ -251,13 +251,13 @@ Proof.
 Qed.
 
 Lemma equiv_smt_expr_implied_condition: forall ast1 ast2,
-  unsat (TypedAST_BinOp Sort_BV1 SMT_And ast1 (TypedAST_Not Sort_BV1 ast2)) ->
-  equiv_typed_smt_expr
-    (TypedSMTExpr Sort_BV1 (TypedAST_BinOp Sort_BV1 SMT_And ast1 ast2))
-    (TypedSMTExpr Sort_BV1 ast1).
+  unsat (AST_BinOp Sort_BV1 SMT_And ast1 (AST_Not Sort_BV1 ast2)) ->
+  equiv_smt_expr
+    (Expr Sort_BV1 (AST_BinOp Sort_BV1 SMT_And ast1 ast2))
+    (Expr Sort_BV1 ast1).
 Proof.
   intros ast1 ast2 Hunsat.
-  apply EquivTypedSMTExpr.
+  apply EquivExpr.
   intros m.
   unfold unsat, sat in Hunsat.
   assert(L1 :
@@ -294,28 +294,28 @@ Proof.
 Qed.
 
 Lemma implied_condition: forall ast1 ast2 ast3,
-  equiv_typed_smt_expr
-    (TypedSMTExpr Sort_BV1 (TypedAST_BinOp Sort_BV1 SMT_And ast1 (TypedAST_Not Sort_BV1 ast2)))
-    (TypedSMTExpr Sort_BV1 ast3) ->
+  equiv_smt_expr
+    (Expr Sort_BV1 (AST_BinOp Sort_BV1 SMT_And ast1 (AST_Not Sort_BV1 ast2)))
+    (Expr Sort_BV1 ast3) ->
   unsat ast3 ->
-  equiv_typed_smt_expr
-    (TypedSMTExpr Sort_BV1 (TypedAST_BinOp Sort_BV1 SMT_And ast1 ast2))
-    (TypedSMTExpr Sort_BV1 ast1).
+  equiv_smt_expr
+    (Expr Sort_BV1 (AST_BinOp Sort_BV1 SMT_And ast1 ast2))
+    (Expr Sort_BV1 ast1).
 Proof.
   intros ast1 ast2 ast3 Heq Hunsat.
   apply equiv_smt_expr_implied_condition.
-  apply equiv_typed_smt_expr_unsat with (ast1 := ast3).
-  { apply equiv_typed_smt_expr_symmetry. assumption. }
+  apply equiv_smt_expr_unsat with (ast1 := ast3).
+  { apply equiv_smt_expr_symmetry. assumption. }
   { assumption. }
 Qed.
 
-Lemma equiv_typed_smt_expr_not_not : forall (ast : typed_smt_ast Sort_BV1),
-  equiv_typed_smt_expr
-    (TypedSMTExpr Sort_BV1 ast)
-    (TypedSMTExpr Sort_BV1 (TypedAST_Not Sort_BV1 (TypedAST_Not Sort_BV1 ast))).
+Lemma equiv_smt_expr_not_not : forall (ast : smt_ast Sort_BV1),
+  equiv_smt_expr
+    (Expr Sort_BV1 ast)
+    (Expr Sort_BV1 (AST_Not Sort_BV1 (AST_Not Sort_BV1 ast))).
 Proof.
   intros ast.
-  apply EquivTypedSMTExpr.
+  apply EquivExpr.
   intros m.
   simpl.
   assert(L :
@@ -326,25 +326,25 @@ Proof.
 Qed.
 
 Lemma implied_negated_condition: forall ast1 ast2 ast3,
-  equiv_typed_smt_expr
-    (TypedSMTExpr Sort_BV1 (TypedAST_BinOp Sort_BV1 SMT_And ast1 ast2))
-    (TypedSMTExpr Sort_BV1 ast3) ->
+  equiv_smt_expr
+    (Expr Sort_BV1 (AST_BinOp Sort_BV1 SMT_And ast1 ast2))
+    (Expr Sort_BV1 ast3) ->
   unsat ast3 ->
-  equiv_typed_smt_expr
-    (TypedSMTExpr Sort_BV1 (TypedAST_BinOp Sort_BV1 SMT_And ast1 (TypedAST_Not Sort_BV1 ast2)))
-    (TypedSMTExpr Sort_BV1 ast1).
+  equiv_smt_expr
+    (Expr Sort_BV1 (AST_BinOp Sort_BV1 SMT_And ast1 (AST_Not Sort_BV1 ast2)))
+    (Expr Sort_BV1 ast1).
 Proof.
   intros ast1 ast2 ast3 Heq Hunsat.
-  apply (implied_condition ast1 (TypedAST_Not Sort_BV1 ast2) ast3).
+  apply (implied_condition ast1 (AST_Not Sort_BV1 ast2) ast3).
   {
-    apply equiv_typed_smt_expr_transitivity with
-      (e2 := (TypedSMTExpr Sort_BV1 (TypedAST_BinOp Sort_BV1 SMT_And ast1 ast2))).
+    apply equiv_smt_expr_transitivity with
+      (e2 := (Expr Sort_BV1 (AST_BinOp Sort_BV1 SMT_And ast1 ast2))).
     {
-      apply equiv_typed_smt_expr_binop.
-      { apply equiv_typed_smt_expr_refl. }
+      apply equiv_smt_expr_binop.
+      { apply equiv_smt_expr_refl. }
       {
-        apply equiv_typed_smt_expr_symmetry.
-        apply equiv_typed_smt_expr_not_not.
+        apply equiv_smt_expr_symmetry.
+        apply equiv_smt_expr_not_not.
       }
     }
     { assumption. }
