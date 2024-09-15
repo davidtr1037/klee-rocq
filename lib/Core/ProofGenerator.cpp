@@ -567,7 +567,6 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForEquivAssignment(StateInfo &si,
             createPlaceHolder(),
             createPlaceHolder(),
             createPlaceHolder(),
-            /* TODO: avoid */
             new CoqVariable("H13"),
           }
         ),
