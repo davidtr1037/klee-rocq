@@ -19,9 +19,21 @@ namespace klee {
 
 class OptimizedProofGenerator : public ProofGenerator {
 
+private:
+
+  std::vector<ref<CoqLemma>> lemmas;
+
 public:
 
   OptimizedProofGenerator(llvm::Module &m, llvm::raw_ostream &output);
+
+  void generate();
+
+  void generateModuleLemmas();
+
+  ref<CoqLemma> getFunctionLemma(llvm::Function &f);
+
+  ref<CoqLemma> getBasicBlockLemma(llvm::BasicBlock &bb);
 
   ref<CoqTactic> getTacticForEquivAssignment(StateInfo &si,
                                              ExecutionState &successor);

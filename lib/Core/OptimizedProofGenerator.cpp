@@ -3,6 +3,7 @@
 #include "klee/Coq/CoqLanguage.h"
 #include "klee/Coq/Translation.h"
 #include "klee/Coq/ExprTranslation.h"
+#include "klee/Module/KInstruction.h"
 
 #include <string>
 
@@ -13,6 +14,71 @@ using namespace klee;
 OptimizedProofGenerator::OptimizedProofGenerator(Module &m, raw_ostream &output)
   : ProofGenerator(m, output) {
 
+}
+
+void OptimizedProofGenerator::generate() {
+  generateImports();
+  generateGlobalDefs();
+  generateModule();
+  generateModuleAssumptionsProof();
+  generateModuleLemmas();
+}
+
+void OptimizedProofGenerator::generateModuleLemmas() {
+  for (Function &f : m) {
+    if (moduleTranslator->isSupportedFunction(f)) {
+      if (f.isDeclaration()) {
+        continue;
+      }
+
+      ref<CoqLemma> lemma = getFunctionLemma(f);
+      lemmas.push_back(lemma);
+
+      //for (BasicBlock &bb : f) {
+      //  ref<CoqLemma> lemma = getBasicBlockLemma(bb);
+      //  lemmas.push_back(lemma);
+      //}
+    }
+  }
+
+  for (ref<CoqLemma> lemma : lemmas) {
+    output << lemma->dump() << "\n";
+  }
+}
+
+klee::ref<CoqLemma> OptimizedProofGenerator::getFunctionLemma(Function &f) {
+  ref<CoqExpr> body = new CoqImply(
+    new CoqEq(
+      new CoqApplication(
+        new CoqVariable("find_function"),
+        {
+          new CoqVariable("mdl"),
+          moduleTranslator->createName(f.getName().str()),
+        }
+      ),
+      createSome(new CoqVariable("d"))
+    ),
+    new CoqEq(
+      new CoqVariable("d"),
+      moduleTranslator->translateFunctionCached(f)
+    )
+  );
+
+  ref<CoqTactic> proof = new Block(
+    {
+      new Intros({"d", "H"}),
+      new Inversion("H"),
+      new Subst(),
+      new Reflexivity(),
+    }
+  );
+
+  return new CoqLemma(
+    "L_" + f.getName().str(),
+    {"d"},
+    body,
+    proof
+  );
 }
 
 klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForEquivAssignment(StateInfo &si,
