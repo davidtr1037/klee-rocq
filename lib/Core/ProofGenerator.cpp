@@ -708,11 +708,7 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForEquivBranch(StateInfo &si,
         new Subst(),
         new Inversion("H12"),
         new Subst(),
-        new Apply("EquivSymState"),
-        new Block({new Apply("equiv_smt_store_refl")}),
-        new Block({new Apply("equiv_sym_stack_refl")}),
-        new Block({new Apply("equiv_smt_store_refl")}),
-        new Block({new Apply("equiv_smt_expr_refl")}),
+        new Apply("equiv_sym_state_refl"),
       }
     );
   }
