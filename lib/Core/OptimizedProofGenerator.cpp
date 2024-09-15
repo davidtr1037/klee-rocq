@@ -139,7 +139,58 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForEquivBranch(StateInfo 
 
   BranchInst *bi = cast<BranchInst>(si.inst);
   if (bi->isConditional()) {
-    return ProofGenerator::getTacticForEquivBranch(si, successor, hint);
+    assert(si.branchCondition);
+    ref<CoqTactic> t;
+    if (hint && !isa<ConstantExpr>(si.branchCondition)) {
+      t = new Block(
+        {
+          new Apply(
+            hint->isTrueBranch ? "implied_condition" : "implied_negated_condition",
+            {
+              createPlaceHolder(),
+              createPlaceHolder(),
+              hint->unsatPC,
+            }
+          ),
+          new Block(
+            {
+              new Apply("injection_some", "Heval"),
+              new Apply("injection_ast", "Heval"),
+              new Subst(),
+              new Apply("equiv_smt_expr_normalize_simplify"),
+            }
+          ),
+          new Block(
+            {new Apply("UNSAT_" + to_string(hint->unsatAxiomID))}
+          ),
+        }
+      );
+    } else {
+      t = new Block(
+        {
+          new Apply("injection_some", "Heval"),
+          new Apply("injection_ast", "Heval"),
+          new Subst(),
+          new Apply("equiv_smt_expr_normalize_simplify"),
+        }
+      );
+    }
+
+    return new Block(
+      {
+        new Inversion("Hd"),
+        new Subst(),
+        new Inversion("Hb"),
+        new Subst(),
+        new Inversion("Hcs"),
+        new Subst(),
+        new Apply("EquivSymState"),
+        new Block({new Apply("equiv_smt_store_refl")}),
+        new Block({new Apply("equiv_sym_stack_refl")}),
+        new Block({new Apply("equiv_smt_store_refl")}),
+        t,
+      }
+    );
   } else {
     return new Block(
       {
@@ -149,13 +200,13 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForEquivBranch(StateInfo 
         new Destruct("Hstep", {{"c", "Hstep"}}),
         new Destruct("Hstep", {{"cs", "Hstep"}}),
         new Destruct("Hstep", {{"Hd", "Hb"}}),
-        new Destruct("Hb", {{"Hb", "Hc"}}),
-        new Destruct("Hc", {{"Hc", "Hcs"}}),
+        new Destruct("Hb", {{"Hb", "Hcs"}}),
+        new Destruct("Hcs", {{"Hcs", "Heq"}}),
         new Inversion("Hd"),
         new Subst(),
         new Inversion("Hb"),
         new Subst(),
-        new Inversion("Hc"),
+        new Inversion("Hcs"),
         new Subst(),
         new Apply("EquivSymState"),
         new Block({new Apply("equiv_smt_store_refl")}),
@@ -175,4 +226,66 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForEquivCall(StateInfo &s
 klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForEquivReturn(StateInfo &si,
                                                                       ExecutionState &successor) {
   return ProofGenerator::getTacticForEquivReturn(si, successor);
+}
+
+klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForStep(StateInfo &stateInfo,
+                                                               SuccessorInfo &si1,
+                                                               SuccessorInfo &si2) {
+  ref<CoqTactic> tactic1, tactic2;
+  getTacticsForBranches(stateInfo, si1, si2, tactic1, tactic2);
+  return new Block(
+    {
+      new Intros({"s", "Hstep"}),
+      new Apply("inversion_br", "Hstep"),
+      new Destruct("Hstep", {{"cond", "Hstep"}}),
+      new Destruct("Hstep", {{"d", "Hstep"}}),
+      new Destruct("Hstep", {{"b", "Hstep"}}),
+      new Destruct("Hstep", {{"c", "Hstep"}}),
+      new Destruct("Hstep", {{"cs", "Hstep"}}),
+      new Destruct("Hstep", {{"Heval", "Hstep"}}),
+      new Destruct("Hstep", {{"Hd", "Hstep"}}),
+      new Concat(
+        {
+          new Destruct("Hstep", {{"Hstep"}, {"Hstep"}}),
+          new Destruct("Hstep", {{"Hb", "Hcs"}}),
+          new Destruct("Hcs", {{"Hcs", "Heq"}}),
+          new Rewrite("Heq"),
+        }
+      ),
+      tactic1,
+      tactic2,
+    }
+  );
+}
+
+klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForUnsat(ref<CoqExpr> pc,
+                                                                uint64_t axiomID) {
+  return new Block(
+    {
+      new Right(),
+      new Apply("Unsat_State"),
+      new Inversion("Heval"),
+      new Apply(
+        "equiv_smt_expr_unsat",
+        {
+          pc,
+          createPlaceHolder(),
+        }
+      ),
+      new Block(
+        {
+          new Apply("equiv_smt_expr_symmetry"),
+          new Apply("injection_some", "Heval"),
+          new Apply("injection_ast", "Heval"),
+          new Subst(),
+          new Apply("equiv_smt_expr_normalize_simplify"),
+        }
+      ),
+      new Block(
+        {
+          new Apply("UNSAT_" + to_string(axiomID)),
+        }
+      ),
+    }
+  );
 }

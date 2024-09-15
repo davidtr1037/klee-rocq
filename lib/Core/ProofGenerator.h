@@ -178,9 +178,9 @@ public:
                                      SuccessorInfo &successor1,
                                      SuccessorInfo &successor2);
 
-  ref<CoqTactic> getTacticForStep(StateInfo &stateInfo,
-                                  SuccessorInfo &successor1,
-                                  SuccessorInfo &successor2);
+  virtual ref<CoqTactic> getTacticForStep(StateInfo &stateInfo,
+                                          SuccessorInfo &successor1,
+                                          SuccessorInfo &successor2);
 
   void getTacticsForBranches(StateInfo &stateInfo,
                              SuccessorInfo &si1,
@@ -188,7 +188,7 @@ public:
                              ref<CoqTactic> &tactic1,
                              ref<CoqTactic> &tactic2);
 
-  ref<CoqTactic> getTacticForUnsat(ref<CoqExpr> pc, uint64_t axiomID);
+  virtual ref<CoqTactic> getTacticForUnsat(ref<CoqExpr> pc, uint64_t axiomID);
 
   ref<CoqExpr> getUnsatAxiom(ref<CoqExpr> pc, uint64_t axiomID);
 
