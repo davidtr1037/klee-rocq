@@ -155,8 +155,6 @@ public:
 
 };
 
-ref<CoqExpr> createZ(uint64_t n);
-
 class CoqImport : public CoqExpr {
 
 public:
@@ -196,6 +194,12 @@ public:
 
     std::string pretty_dump(int indent = 0) const;
 };
+
+ref<CoqExpr> createFalse();
+
+ref<CoqExpr> createTrue();
+
+ref<CoqExpr> createZ(uint64_t n);
 
 ref<CoqExpr> createEmptyList();
 

@@ -15,8 +15,6 @@
 using namespace llvm;
 using namespace klee;
 
-/* TODO: handle constants: true, false, null */
-
 ModuleTranslator::ModuleTranslator(Module &m) :
   m(m), moduleAlias(nullptr), moduleDef(nullptr) {
 
@@ -54,11 +52,11 @@ ref<CoqExpr> ModuleTranslator::translateModule() {
   ref<CoqExpr> coq_module = new CoqApplication(
     new CoqVariable("mk_module"),
     {
-      new CoqVariable("None"),
-      new CoqVariable("None"),
-      new CoqVariable("None"),
-      new CoqList({}),
-      new CoqList({}),
+      createNone(),
+      createNone(),
+      createNone(),
+      createEmptyList(),
+      createEmptyList(),
       new CoqList(coq_decls),
       new CoqList(coq_defs),
     }
@@ -140,7 +138,7 @@ ref<CoqExpr> ModuleTranslator::createFunctionType(Function &f) {
     {
       translateType(ft->getReturnType()),
       new CoqList(arg_types),
-      new CoqVariable("false"),
+      createFalse(),
     }
   );
 }
@@ -148,19 +146,19 @@ ref<CoqExpr> ModuleTranslator::createFunctionType(Function &f) {
 /* TODO: ... */
 ref<CoqExpr> ModuleTranslator::createParamAttrs(Function &f) {
   return new CoqPair(
-    new CoqList({}),
-    new CoqList({new CoqList({}), new CoqList({})})
+    createEmptyList(),
+    new CoqList({createEmptyList(), createEmptyList()})
   );
 }
 
 /* TODO: ... */
 ref<CoqExpr> ModuleTranslator::createAttrs(Function &f) {
-  return new CoqList({});
+  return createEmptyList();
 }
 
 /* TODO: ... */
 ref<CoqExpr> ModuleTranslator::createAnnotations(Function &f) {
-  return new CoqList({});
+  return createEmptyList();
 }
 
 ref<CoqExpr> ModuleTranslator::createArgs(Function &f) {
@@ -238,7 +236,7 @@ ref<CoqExpr> ModuleTranslator::translateBasicBlock(BasicBlock &bb) {
       {
         createName(bb.getName().str()),
         new CoqList(coq_insts),
-        new CoqVariable("None"),
+        createNone(),
       }
   );
 }
@@ -332,7 +330,10 @@ ref<CoqExpr> ModuleTranslator::translateBinaryOperator(BinaryOperator *inst) {
         createName(inst->getName().str()),
         new CoqApplication(
           new CoqVariable("LLVMAst.Add"),
-          {new CoqVariable("false"), new CoqVariable("false"), }
+          {
+            createFalse(),
+            createFalse(),
+          }
         ),
         translateType(operandType),
         translateValue(v1),
@@ -542,7 +543,7 @@ ref<CoqExpr> ModuleTranslator::translateCallInst(CallInst *inst) {
             createGlobalID(f->getName().str())
           ),
           new CoqList(coq_args),
-          new CoqList({}),
+          createEmptyList(),
         }
       )
     );
@@ -558,7 +559,7 @@ ref<CoqExpr> ModuleTranslator::translateCallInst(CallInst *inst) {
             createGlobalID(f->getName().str())
           ),
           new CoqList(coq_args),
-          new CoqList({}),
+          createEmptyList(),
         }
       )
     );
@@ -593,7 +594,7 @@ std::vector<ref<CoqExpr>> ModuleTranslator::translateArgs(CallInst *inst) {
         translateType(arg->getType()),
         translateValue(arg)
       ),
-      new CoqList({})
+      createEmptyList()
     );
     coq_args.push_back(coq_arg);
   }

@@ -191,12 +191,6 @@ CoqImply::CoqImply(const ref<CoqExpr> &left, const ref<CoqExpr> &right) :
 
 }
 
-klee::ref<CoqExpr> klee::createZ(uint64_t n) {
-  ostringstream os;
-  os << "(" << n << ")" << "%Z";
-  return new CoqVariable(os.str());
-}
-
 CoqImport::CoqImport(const string &module_name) : module_name(module_name) {
 
 }
@@ -236,6 +230,29 @@ string CoqDefinition::pretty_dump(int indent) const {
   os << "Definition " << name << " : " << type << " :=\n";
   os << body->pretty_dump(indent + 1) << ".\n";
   return os.str();
+}
+
+static klee::ref<CoqExpr> coqTrue = nullptr;
+
+klee::ref<CoqExpr> klee::createTrue() {
+  if (coqTrue.isNull()) {
+    coqTrue = new CoqVariable("true");
+  }
+  return coqTrue;
+}
+
+static klee::ref<CoqExpr> coqFalse = nullptr;
+
+klee::ref<CoqExpr> klee::createFalse() {
+  if (coqTrue.isNull()) {
+    coqFalse = new CoqVariable("false");
+  }
+  return coqFalse;
+}
+klee::ref<CoqExpr> klee::createZ(uint64_t n) {
+  ostringstream os;
+  os << "(" << n << ")" << "%Z";
+  return new CoqVariable(os.str());
 }
 
 static klee::ref<CoqExpr> coqEmptyList = nullptr;
