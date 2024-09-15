@@ -25,6 +25,8 @@ private:
 
   std::map<llvm::BasicBlock *, std::string> bbLemmas;
 
+  std::map<llvm::BasicBlock *, std::string> bbDecompositionLemmas;
+
 public:
 
   OptimizedProofGenerator(llvm::Module &m, llvm::raw_ostream &output);
@@ -36,6 +38,8 @@ public:
   ref<CoqLemma> getFunctionLemma(llvm::Function &f);
 
   ref<CoqLemma> getBasicBlockLemma(llvm::BasicBlock &bb);
+
+  ref<CoqLemma> getBasicBlockDecompositionLemma(llvm::BasicBlock &bb);
 
   ref<CoqTactic> getTacticForEquivAssignment(StateInfo &si,
                                              ExecutionState &successor);

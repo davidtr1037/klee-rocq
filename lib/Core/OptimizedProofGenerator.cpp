@@ -42,6 +42,9 @@ void OptimizedProofGenerator::generateModuleLemmas() {
         ref<CoqLemma> lemma = getBasicBlockLemma(bb);
         lemmas.push_back(lemma);
         bbLemmas.insert(std::make_pair(&bb, lemma->name));
+        ref<CoqLemma> decompositionLemma = getBasicBlockDecompositionLemma(bb);
+        lemmas.push_back(decompositionLemma);
+        bbDecompositionLemmas.insert(std::make_pair(&bb, decompositionLemma->name));
       }
     }
   }
@@ -113,12 +116,61 @@ klee::ref<CoqLemma> OptimizedProofGenerator::getBasicBlockLemma(BasicBlock &bb) 
     }
   );
 
-  string name = "L_" + bb.getName().str();
-  std::replace(name.begin(), name.end(), '.', '_');
+  return new CoqLemma(
+    "L_bb_" + to_string(moduleTranslator->getBasicBlockID(bb)),
+    {"b"},
+    body,
+    proof
+  );
+}
+
+klee::ref<CoqLemma> OptimizedProofGenerator::getBasicBlockDecompositionLemma(BasicBlock &bb) {
+  ref<CoqExpr> head = nullptr;
+  std::vector<ref<CoqExpr>> tail;
+
+  for (Instruction &inst : bb) {
+    if (!head) {
+      head = moduleTranslator->translateInstCached(inst);
+    } else {
+      ref<CoqExpr> coqInst = moduleTranslator->translateInstCached(inst);
+      if (coqInst) {
+        tail.push_back(coqInst);
+      } else {
+        assert(false);
+      }
+    }
+  }
+
+  ref<CoqExpr> body = new CoqImply(
+    new CoqEq(
+      new CoqApplication(
+        new CoqVariable("blk_cmds"),
+        {moduleTranslator->translateBasicBlockCached(bb)}
+      ),
+      /* TODO: ... */
+      new CoqVariable("c :: cs")
+    ),
+    new CoqAnd(
+      new CoqEq(new CoqVariable("c"), head),
+      new CoqEq(new CoqVariable("cs"), new CoqList(tail))
+    )
+  );
+
+  ref<CoqTactic> proof = new Block(
+    {
+      new Intros({"c", "cs", "H"}),
+      new Inversion("H"),
+      new Subst(),
+      new Split(
+        new Block({new Reflexivity()}),
+        new Block({new Reflexivity()})
+      ),
+    }
+  );
 
   return new CoqLemma(
-    name,
-    {"b"},
+    "L_decompose_bb_" + to_string(moduleTranslator->getBasicBlockID(bb)),
+    {"c", "cs"},
     body,
     proof
   );
@@ -267,6 +319,20 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForEquivBranch(StateInfo 
                                                                       ExecutionState &successor,
                                                                       ProofHint *hint) {
 
+  /* target instruction */
+  Instruction *inst = successor.pc->inst;
+  BasicBlock *bb = inst->getParent();
+  Function *f = bb->getParent();
+
+  assert(bbLemmas.find(bb) != bbLemmas.end());
+  string bbLemma = bbLemmas[bb];
+
+  assert(bbDecompositionLemmas.find(bb) != bbDecompositionLemmas.end());
+  string bbDecompositionLemma = bbDecompositionLemmas[bb];
+
+  assert(functionLemmas.find(f) != functionLemmas.end());
+  string functionLemma = functionLemmas[f];
+
   BranchInst *bi = cast<BranchInst>(si.inst);
   if (bi->isConditional()) {
     assert(si.branchCondition);
@@ -308,11 +374,12 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForEquivBranch(StateInfo 
 
     return new Block(
       {
-        new Inversion("Hd"),
+        new Apply(functionLemma, "Hd"),
         new Subst(),
-        new Inversion("Hb"),
+        new Apply(bbLemma, "Hb"),
         new Subst(),
-        new Inversion("Hcs"),
+        new Apply(bbDecompositionLemma, "Hcs"),
+        new Destruct("Hcs", {{"Hc", "Hcs"}}),
         new Subst(),
         new Apply("EquivSymState"),
         new Block({new Apply("equiv_smt_store_refl")}),
@@ -332,11 +399,12 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForEquivBranch(StateInfo 
         new Destruct("Hstep", {{"Hd", "Hb"}}),
         new Destruct("Hb", {{"Hb", "Hcs"}}),
         new Destruct("Hcs", {{"Hcs", "Heq"}}),
-        new Inversion("Hd"),
+        new Apply(functionLemma, "Hd"),
         new Subst(),
-        new Inversion("Hb"),
+        new Apply(bbLemma, "Hb"),
         new Subst(),
-        new Inversion("Hcs"),
+        new Apply(bbDecompositionLemma, "Hcs"),
+        new Destruct("Hcs", {{"Hc", "Hcs"}}),
         new Subst(),
         new Apply("equiv_sym_state_refl"),
       }
