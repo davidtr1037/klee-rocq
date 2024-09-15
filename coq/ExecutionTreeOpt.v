@@ -500,7 +500,19 @@ Inductive equiv_sym_state : sym_state -> sym_state -> Prop :=
         )
 .
 
-Lemma equiv_sym_state_symmetry: forall s1 s2,
+Lemma equiv_sym_state_refl : forall s,
+  equiv_sym_state s s.
+Proof.
+  intros s.
+  destruct s as [ic c cs pbid ls stk gs syms pc mdl].
+  apply EquivSymState.
+  { apply equiv_smt_store_refl. }
+  { apply equiv_sym_stack_refl. }
+  { apply equiv_smt_store_refl. }
+  { apply equiv_smt_expr_refl. }
+Qed.
+
+Lemma equiv_sym_state_symmetry : forall s1 s2,
   equiv_sym_state s1 s2 -> equiv_sym_state s2 s1.
 Proof.
   intros s1 s2 Heq.
@@ -512,7 +524,7 @@ Proof.
   { apply equiv_smt_expr_symmetry. assumption. }
 Qed.
 
-Lemma equiv_sym_state_transitivity: forall s1 s2 s3,
+Lemma equiv_sym_state_transitivity : forall s1 s2 s3,
   equiv_sym_state s1 s2 -> equiv_sym_state s2 s3 -> equiv_sym_state s1 s3.
 Proof.
   intros s1 s2 s3 Heq1 Heq2.
@@ -528,7 +540,7 @@ Proof.
   }
 Qed.
 
-Lemma error_equiv_sym_state: forall s1 s2,
+Lemma error_equiv_sym_state : forall s1 s2,
   equiv_sym_state s1 s2 -> ~ error_sym_state s1 -> ~ error_sym_state s2.
 Proof.
   intros s1 s2 Heq Hes1.
