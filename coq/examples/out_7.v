@@ -22,7 +22,7 @@ Definition inst_0 : llvm_cmd := (CMD_Term 0 (TERM_UnconditionalBr (Name "while.c
 
 Definition inst_1 : llvm_cmd := (CMD_Phi 1 (Phi (Name "n.0"%string) (TYPE_I 32) [((Name "entry"%string), (EXP_Integer (0)%Z)); ((Name "while.body"%string), (EXP_Ident (ID_Local (Name "inc"%string))))])).
 
-Definition inst_2 : llvm_cmd := (CMD_Inst 2 (INSTR_Op (Name "cmp"%string) (OP_ICmp Slt (TYPE_I 32) (EXP_Ident (ID_Local (Name "n.0"%string))) (EXP_Integer (2)%Z)))).
+Definition inst_2 : llvm_cmd := (CMD_Inst 2 (INSTR_Op (Name "cmp"%string) (OP_ICmp Slt (TYPE_I 32) (EXP_Ident (ID_Local (Name "n.0"%string))) (EXP_Integer (10)%Z)))).
 
 Definition inst_3 : llvm_cmd := (CMD_Term 3 (TERM_Br ((TYPE_I 1), (EXP_Ident (ID_Local (Name "cmp"%string)))) (Name "while.body"%string) (Name "while.end"%string))).
 
@@ -298,11 +298,171 @@ Definition s_11 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%strin
 
 Definition s_12 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.cond"%string) 2) inst_2 [inst_3] (Some (Name "while.body"%string)) ((Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 2)))); (Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 2)))); (Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 1)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
 
-Definition s_13 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.cond"%string) 3) inst_3 [] (Some (Name "while.body"%string)) ((Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 0)))); (Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 2)))); (Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 2)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
+Definition s_13 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.cond"%string) 3) inst_3 [] (Some (Name "while.body"%string)) ((Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 1)))); (Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 2)))); (Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 2)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
 
-Definition s_14 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.end"%string) 6) inst_6 [] (Some (Name "while.cond"%string)) ((Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 0)))); (Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 2)))); (Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 2)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
+Definition s_14 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.body"%string) 4) inst_4 [inst_5] (Some (Name "while.cond"%string)) ((Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 1)))); (Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 2)))); (Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 2)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
 
-Definition t_14 : execution_tree := (t_leaf s_14).
+Definition s_15 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.body"%string) 5) inst_5 [] (Some (Name "while.cond"%string)) ((Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 3)))); (Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 1)))); (Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 2)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
+
+Definition s_16 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.cond"%string) 1) inst_1 [inst_2; inst_3] (Some (Name "while.body"%string)) ((Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 3)))); (Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 1)))); (Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 2)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
+
+Definition s_17 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.cond"%string) 2) inst_2 [inst_3] (Some (Name "while.body"%string)) ((Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 3)))); (Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 3)))); (Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 1)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
+
+Definition s_18 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.cond"%string) 3) inst_3 [] (Some (Name "while.body"%string)) ((Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 1)))); (Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 3)))); (Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 3)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
+
+Definition s_19 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.body"%string) 4) inst_4 [inst_5] (Some (Name "while.cond"%string)) ((Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 1)))); (Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 3)))); (Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 3)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
+
+Definition s_20 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.body"%string) 5) inst_5 [] (Some (Name "while.cond"%string)) ((Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 4)))); (Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 1)))); (Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 3)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
+
+Definition s_21 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.cond"%string) 1) inst_1 [inst_2; inst_3] (Some (Name "while.body"%string)) ((Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 4)))); (Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 1)))); (Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 3)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
+
+Definition s_22 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.cond"%string) 2) inst_2 [inst_3] (Some (Name "while.body"%string)) ((Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 4)))); (Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 4)))); (Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 1)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
+
+Definition s_23 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.cond"%string) 3) inst_3 [] (Some (Name "while.body"%string)) ((Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 1)))); (Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 4)))); (Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 4)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
+
+Definition s_24 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.body"%string) 4) inst_4 [inst_5] (Some (Name "while.cond"%string)) ((Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 1)))); (Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 4)))); (Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 4)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
+
+Definition s_25 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.body"%string) 5) inst_5 [] (Some (Name "while.cond"%string)) ((Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 5)))); (Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 1)))); (Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 4)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
+
+Definition s_26 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.cond"%string) 1) inst_1 [inst_2; inst_3] (Some (Name "while.body"%string)) ((Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 5)))); (Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 1)))); (Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 4)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
+
+Definition s_27 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.cond"%string) 2) inst_2 [inst_3] (Some (Name "while.body"%string)) ((Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 5)))); (Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 5)))); (Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 1)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
+
+Definition s_28 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.cond"%string) 3) inst_3 [] (Some (Name "while.body"%string)) ((Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 1)))); (Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 5)))); (Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 5)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
+
+Definition s_29 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.body"%string) 4) inst_4 [inst_5] (Some (Name "while.cond"%string)) ((Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 1)))); (Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 5)))); (Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 5)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
+
+Definition s_30 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.body"%string) 5) inst_5 [] (Some (Name "while.cond"%string)) ((Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 6)))); (Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 1)))); (Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 5)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
+
+Definition s_31 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.cond"%string) 1) inst_1 [inst_2; inst_3] (Some (Name "while.body"%string)) ((Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 6)))); (Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 1)))); (Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 5)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
+
+Definition s_32 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.cond"%string) 2) inst_2 [inst_3] (Some (Name "while.body"%string)) ((Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 6)))); (Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 6)))); (Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 1)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
+
+Definition s_33 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.cond"%string) 3) inst_3 [] (Some (Name "while.body"%string)) ((Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 1)))); (Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 6)))); (Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 6)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
+
+Definition s_34 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.body"%string) 4) inst_4 [inst_5] (Some (Name "while.cond"%string)) ((Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 1)))); (Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 6)))); (Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 6)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
+
+Definition s_35 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.body"%string) 5) inst_5 [] (Some (Name "while.cond"%string)) ((Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 7)))); (Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 1)))); (Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 6)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
+
+Definition s_36 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.cond"%string) 1) inst_1 [inst_2; inst_3] (Some (Name "while.body"%string)) ((Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 7)))); (Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 1)))); (Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 6)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
+
+Definition s_37 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.cond"%string) 2) inst_2 [inst_3] (Some (Name "while.body"%string)) ((Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 7)))); (Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 7)))); (Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 1)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
+
+Definition s_38 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.cond"%string) 3) inst_3 [] (Some (Name "while.body"%string)) ((Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 1)))); (Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 7)))); (Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 7)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
+
+Definition s_39 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.body"%string) 4) inst_4 [inst_5] (Some (Name "while.cond"%string)) ((Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 1)))); (Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 7)))); (Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 7)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
+
+Definition s_40 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.body"%string) 5) inst_5 [] (Some (Name "while.cond"%string)) ((Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 8)))); (Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 1)))); (Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 7)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
+
+Definition s_41 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.cond"%string) 1) inst_1 [inst_2; inst_3] (Some (Name "while.body"%string)) ((Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 8)))); (Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 1)))); (Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 7)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
+
+Definition s_42 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.cond"%string) 2) inst_2 [inst_3] (Some (Name "while.body"%string)) ((Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 8)))); (Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 8)))); (Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 1)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
+
+Definition s_43 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.cond"%string) 3) inst_3 [] (Some (Name "while.body"%string)) ((Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 1)))); (Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 8)))); (Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 8)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
+
+Definition s_44 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.body"%string) 4) inst_4 [inst_5] (Some (Name "while.cond"%string)) ((Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 1)))); (Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 8)))); (Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 8)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
+
+Definition s_45 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.body"%string) 5) inst_5 [] (Some (Name "while.cond"%string)) ((Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 9)))); (Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 1)))); (Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 8)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
+
+Definition s_46 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.cond"%string) 1) inst_1 [inst_2; inst_3] (Some (Name "while.body"%string)) ((Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 9)))); (Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 1)))); (Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 8)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
+
+Definition s_47 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.cond"%string) 2) inst_2 [inst_3] (Some (Name "while.body"%string)) ((Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 9)))); (Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 9)))); (Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 1)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
+
+Definition s_48 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.cond"%string) 3) inst_3 [] (Some (Name "while.body"%string)) ((Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 1)))); (Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 9)))); (Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 9)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
+
+Definition s_49 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.body"%string) 4) inst_4 [inst_5] (Some (Name "while.cond"%string)) ((Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 1)))); (Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 9)))); (Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 9)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
+
+Definition s_50 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.body"%string) 5) inst_5 [] (Some (Name "while.cond"%string)) ((Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 10)))); (Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 1)))); (Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 9)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
+
+Definition s_51 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.cond"%string) 1) inst_1 [inst_2; inst_3] (Some (Name "while.body"%string)) ((Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 10)))); (Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 1)))); (Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 9)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
+
+Definition s_52 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.cond"%string) 2) inst_2 [inst_3] (Some (Name "while.body"%string)) ((Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 10)))); (Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 10)))); (Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 1)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
+
+Definition s_53 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.cond"%string) 3) inst_3 [] (Some (Name "while.body"%string)) ((Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 0)))); (Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 10)))); (Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 10)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
+
+Definition s_54 : sym_state := (mk_sym_state (mk_inst_counter (Name "main"%string) (Name "while.end"%string) 6) inst_6 [] (Some (Name "while.cond"%string)) ((Name "cmp"%string) !-> Some ((Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr 0)))); (Name "n.0"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 10)))); (Name "inc"%string) !-> Some ((Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr 10)))); empty_smt_store) [] gs [] (AST_Const Sort_BV1 (Int1.repr 1)) mdl).
+
+Definition t_54 : execution_tree := (t_leaf s_54).
+
+Definition t_53 : execution_tree := (t_subtree s_53 [t_54]).
+
+Definition t_52 : execution_tree := (t_subtree s_52 [t_53]).
+
+Definition t_51 : execution_tree := (t_subtree s_51 [t_52]).
+
+Definition t_50 : execution_tree := (t_subtree s_50 [t_51]).
+
+Definition t_49 : execution_tree := (t_subtree s_49 [t_50]).
+
+Definition t_48 : execution_tree := (t_subtree s_48 [t_49]).
+
+Definition t_47 : execution_tree := (t_subtree s_47 [t_48]).
+
+Definition t_46 : execution_tree := (t_subtree s_46 [t_47]).
+
+Definition t_45 : execution_tree := (t_subtree s_45 [t_46]).
+
+Definition t_44 : execution_tree := (t_subtree s_44 [t_45]).
+
+Definition t_43 : execution_tree := (t_subtree s_43 [t_44]).
+
+Definition t_42 : execution_tree := (t_subtree s_42 [t_43]).
+
+Definition t_41 : execution_tree := (t_subtree s_41 [t_42]).
+
+Definition t_40 : execution_tree := (t_subtree s_40 [t_41]).
+
+Definition t_39 : execution_tree := (t_subtree s_39 [t_40]).
+
+Definition t_38 : execution_tree := (t_subtree s_38 [t_39]).
+
+Definition t_37 : execution_tree := (t_subtree s_37 [t_38]).
+
+Definition t_36 : execution_tree := (t_subtree s_36 [t_37]).
+
+Definition t_35 : execution_tree := (t_subtree s_35 [t_36]).
+
+Definition t_34 : execution_tree := (t_subtree s_34 [t_35]).
+
+Definition t_33 : execution_tree := (t_subtree s_33 [t_34]).
+
+Definition t_32 : execution_tree := (t_subtree s_32 [t_33]).
+
+Definition t_31 : execution_tree := (t_subtree s_31 [t_32]).
+
+Definition t_30 : execution_tree := (t_subtree s_30 [t_31]).
+
+Definition t_29 : execution_tree := (t_subtree s_29 [t_30]).
+
+Definition t_28 : execution_tree := (t_subtree s_28 [t_29]).
+
+Definition t_27 : execution_tree := (t_subtree s_27 [t_28]).
+
+Definition t_26 : execution_tree := (t_subtree s_26 [t_27]).
+
+Definition t_25 : execution_tree := (t_subtree s_25 [t_26]).
+
+Definition t_24 : execution_tree := (t_subtree s_24 [t_25]).
+
+Definition t_23 : execution_tree := (t_subtree s_23 [t_24]).
+
+Definition t_22 : execution_tree := (t_subtree s_22 [t_23]).
+
+Definition t_21 : execution_tree := (t_subtree s_21 [t_22]).
+
+Definition t_20 : execution_tree := (t_subtree s_20 [t_21]).
+
+Definition t_19 : execution_tree := (t_subtree s_19 [t_20]).
+
+Definition t_18 : execution_tree := (t_subtree s_18 [t_19]).
+
+Definition t_17 : execution_tree := (t_subtree s_17 [t_18]).
+
+Definition t_16 : execution_tree := (t_subtree s_16 [t_17]).
+
+Definition t_15 : execution_tree := (t_subtree s_15 [t_16]).
+
+Definition t_14 : execution_tree := (t_subtree s_14 [t_15]).
 
 Definition t_13 : execution_tree := (t_subtree s_13 [t_14]).
 
@@ -332,6 +492,38 @@ Definition t_1 : execution_tree := (t_subtree s_1 [t_2]).
 
 Definition t_0 : execution_tree := (t_subtree s_0 [t_1]).
 
+Lemma UNSAT_10 : (unsat (AST_Const Sort_BV1 (Int1.repr 0))).
+Proof.
+Admitted.
+
+Lemma UNSAT_9 : (unsat (AST_Const Sort_BV1 (Int1.repr 0))).
+Proof.
+Admitted.
+
+Lemma UNSAT_8 : (unsat (AST_Const Sort_BV1 (Int1.repr 0))).
+Proof.
+Admitted.
+
+Lemma UNSAT_7 : (unsat (AST_Const Sort_BV1 (Int1.repr 0))).
+Proof.
+Admitted.
+
+Lemma UNSAT_6 : (unsat (AST_Const Sort_BV1 (Int1.repr 0))).
+Proof.
+Admitted.
+
+Lemma UNSAT_5 : (unsat (AST_Const Sort_BV1 (Int1.repr 0))).
+Proof.
+Admitted.
+
+Lemma UNSAT_4 : (unsat (AST_Const Sort_BV1 (Int1.repr 0))).
+Proof.
+Admitted.
+
+Lemma UNSAT_3 : (unsat (AST_Const Sort_BV1 (Int1.repr 0))).
+Proof.
+Admitted.
+
 Lemma UNSAT_2 : (unsat (AST_Const Sort_BV1 (Int1.repr 0))).
 Proof.
 Admitted.
@@ -344,12 +536,12 @@ Lemma UNSAT_0 : (unsat (AST_Const Sort_BV1 (Int1.repr 0))).
 Proof.
 Admitted.
 
-Lemma L_14 : (safe_et_opt t_14).
+Lemma L_54 : (safe_et_opt t_54).
 Proof.
 apply Safe_Leaf_Ret.
 Qed.
 
-Lemma L_13 : (safe_et_opt t_13).
+Lemma L_53 : (safe_et_opt t_53).
 Proof.
 {
   apply Safe_Subtree.
@@ -373,9 +565,2153 @@ Proof.
         apply equiv_smt_expr_normalize_simplify.
       }
       {
-        apply UNSAT_2.
+        apply UNSAT_10.
       }
     }
+    {
+      left.
+      exists (t_54).
+      split.
+      {
+        simpl.
+        left.
+        reflexivity.
+      }
+      {
+        split.
+        {
+          apply L_54.
+        }
+        {
+          inversion H13.
+          subst.
+          inversion H14.
+          subst.
+          inversion H15.
+          subst.
+          apply EquivSymState.
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_sym_stack_refl.
+          }
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply injection_some in H12.
+            apply injection_ast in H12.
+            subst.
+            apply equiv_smt_expr_normalize_simplify.
+          }
+        }
+      }
+    }
+  }
+}
+Qed.
+
+Lemma L_52 : (safe_et_opt t_52).
+Proof.
+{
+  apply Safe_Subtree.
+  {
+    apply not_error_instr_op.
+  }
+  {
+    intros s Hstep.
+    {
+      left.
+      exists (t_53).
+      split.
+      {
+        simpl.
+        left.
+        reflexivity.
+      }
+      {
+        split.
+        {
+          apply L_53.
+        }
+        {
+          inversion Hstep.
+          subst.
+          apply EquivSymState.
+          {
+            apply (equiv_smt_store_on_optimized_update (_) (_) (_) (_) (_) ([((Name "inc"%string), _); ((Name "n.0"%string), _)])).
+            inversion H13.
+            subst.
+            apply equiv_smt_expr_normalize_simplify.
+          }
+          {
+            apply equiv_sym_stack_refl.
+          }
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_smt_expr_refl.
+          }
+        }
+      }
+    }
+  }
+}
+Qed.
+
+Lemma L_51 : (safe_et_opt t_51).
+Proof.
+{
+  apply Safe_Subtree.
+  {
+    apply not_error_phi.
+  }
+  {
+    intros s Hstep.
+    {
+      left.
+      exists (t_52).
+      split.
+      {
+        simpl.
+        left.
+        reflexivity.
+      }
+      {
+        split.
+        {
+          apply L_52.
+        }
+        {
+          inversion Hstep.
+          subst.
+          apply EquivSymState.
+          {
+            apply (equiv_smt_store_on_optimized_update (_) (_) (_) (_) (_) ([((Name "cmp"%string), _); ((Name "inc"%string), _)])).
+            inversion H14.
+            subst.
+            apply equiv_smt_expr_refl.
+          }
+          {
+            apply equiv_sym_stack_refl.
+          }
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_smt_expr_refl.
+          }
+        }
+      }
+    }
+  }
+}
+Qed.
+
+Lemma L_50 : (safe_et_opt t_50).
+Proof.
+{
+  apply Safe_Subtree.
+  {
+    apply not_error_unconditional_br.
+  }
+  {
+    intros s Hstep.
+    {
+      left.
+      exists (t_51).
+      split.
+      {
+        simpl.
+        left.
+        reflexivity.
+      }
+      {
+        split.
+        {
+          apply L_51.
+        }
+        {
+          inversion Hstep.
+          subst.
+          inversion H10.
+          subst.
+          inversion H11.
+          subst.
+          inversion H12.
+          subst.
+          apply EquivSymState.
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_sym_stack_refl.
+          }
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_smt_expr_refl.
+          }
+        }
+      }
+    }
+  }
+}
+Qed.
+
+Lemma L_49 : (safe_et_opt t_49).
+Proof.
+{
+  apply Safe_Subtree.
+  {
+    apply not_error_instr_op.
+  }
+  {
+    intros s Hstep.
+    {
+      left.
+      exists (t_50).
+      split.
+      {
+        simpl.
+        left.
+        reflexivity.
+      }
+      {
+        split.
+        {
+          apply L_50.
+        }
+        {
+          inversion Hstep.
+          subst.
+          apply EquivSymState.
+          {
+            apply (equiv_smt_store_on_optimized_update (_) (_) (_) (_) (_) ([((Name "n.0"%string), _); ((Name "cmp"%string), _)])).
+            inversion H13.
+            subst.
+            apply equiv_smt_expr_normalize_simplify.
+          }
+          {
+            apply equiv_sym_stack_refl.
+          }
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_smt_expr_refl.
+          }
+        }
+      }
+    }
+  }
+}
+Qed.
+
+Lemma L_48 : (safe_et_opt t_48).
+Proof.
+{
+  apply Safe_Subtree.
+  {
+    apply not_error_br.
+  }
+  {
+    intros s Hstep.
+    inversion Hstep.
+    subst.
+    {
+      left.
+      exists (t_49).
+      split.
+      {
+        simpl.
+        left.
+        reflexivity.
+      }
+      {
+        split.
+        {
+          apply L_49.
+        }
+        {
+          inversion H13.
+          subst.
+          inversion H14.
+          subst.
+          inversion H15.
+          subst.
+          apply EquivSymState.
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_sym_stack_refl.
+          }
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply injection_some in H12.
+            apply injection_ast in H12.
+            subst.
+            apply equiv_smt_expr_normalize_simplify.
+          }
+        }
+      }
+    }
+    {
+      right.
+      apply Unsat_State.
+      inversion H12.
+      apply (equiv_smt_expr_unsat ((AST_Const Sort_BV1 (Int1.repr 0))) (_)).
+      {
+        apply equiv_smt_expr_symmetry.
+        apply injection_some in H12.
+        apply injection_ast in H12.
+        subst.
+        apply equiv_smt_expr_normalize_simplify.
+      }
+      {
+        apply UNSAT_9.
+      }
+    }
+  }
+}
+Qed.
+
+Lemma L_47 : (safe_et_opt t_47).
+Proof.
+{
+  apply Safe_Subtree.
+  {
+    apply not_error_instr_op.
+  }
+  {
+    intros s Hstep.
+    {
+      left.
+      exists (t_48).
+      split.
+      {
+        simpl.
+        left.
+        reflexivity.
+      }
+      {
+        split.
+        {
+          apply L_48.
+        }
+        {
+          inversion Hstep.
+          subst.
+          apply EquivSymState.
+          {
+            apply (equiv_smt_store_on_optimized_update (_) (_) (_) (_) (_) ([((Name "inc"%string), _); ((Name "n.0"%string), _)])).
+            inversion H13.
+            subst.
+            apply equiv_smt_expr_normalize_simplify.
+          }
+          {
+            apply equiv_sym_stack_refl.
+          }
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_smt_expr_refl.
+          }
+        }
+      }
+    }
+  }
+}
+Qed.
+
+Lemma L_46 : (safe_et_opt t_46).
+Proof.
+{
+  apply Safe_Subtree.
+  {
+    apply not_error_phi.
+  }
+  {
+    intros s Hstep.
+    {
+      left.
+      exists (t_47).
+      split.
+      {
+        simpl.
+        left.
+        reflexivity.
+      }
+      {
+        split.
+        {
+          apply L_47.
+        }
+        {
+          inversion Hstep.
+          subst.
+          apply EquivSymState.
+          {
+            apply (equiv_smt_store_on_optimized_update (_) (_) (_) (_) (_) ([((Name "cmp"%string), _); ((Name "inc"%string), _)])).
+            inversion H14.
+            subst.
+            apply equiv_smt_expr_refl.
+          }
+          {
+            apply equiv_sym_stack_refl.
+          }
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_smt_expr_refl.
+          }
+        }
+      }
+    }
+  }
+}
+Qed.
+
+Lemma L_45 : (safe_et_opt t_45).
+Proof.
+{
+  apply Safe_Subtree.
+  {
+    apply not_error_unconditional_br.
+  }
+  {
+    intros s Hstep.
+    {
+      left.
+      exists (t_46).
+      split.
+      {
+        simpl.
+        left.
+        reflexivity.
+      }
+      {
+        split.
+        {
+          apply L_46.
+        }
+        {
+          inversion Hstep.
+          subst.
+          inversion H10.
+          subst.
+          inversion H11.
+          subst.
+          inversion H12.
+          subst.
+          apply EquivSymState.
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_sym_stack_refl.
+          }
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_smt_expr_refl.
+          }
+        }
+      }
+    }
+  }
+}
+Qed.
+
+Lemma L_44 : (safe_et_opt t_44).
+Proof.
+{
+  apply Safe_Subtree.
+  {
+    apply not_error_instr_op.
+  }
+  {
+    intros s Hstep.
+    {
+      left.
+      exists (t_45).
+      split.
+      {
+        simpl.
+        left.
+        reflexivity.
+      }
+      {
+        split.
+        {
+          apply L_45.
+        }
+        {
+          inversion Hstep.
+          subst.
+          apply EquivSymState.
+          {
+            apply (equiv_smt_store_on_optimized_update (_) (_) (_) (_) (_) ([((Name "n.0"%string), _); ((Name "cmp"%string), _)])).
+            inversion H13.
+            subst.
+            apply equiv_smt_expr_normalize_simplify.
+          }
+          {
+            apply equiv_sym_stack_refl.
+          }
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_smt_expr_refl.
+          }
+        }
+      }
+    }
+  }
+}
+Qed.
+
+Lemma L_43 : (safe_et_opt t_43).
+Proof.
+{
+  apply Safe_Subtree.
+  {
+    apply not_error_br.
+  }
+  {
+    intros s Hstep.
+    inversion Hstep.
+    subst.
+    {
+      left.
+      exists (t_44).
+      split.
+      {
+        simpl.
+        left.
+        reflexivity.
+      }
+      {
+        split.
+        {
+          apply L_44.
+        }
+        {
+          inversion H13.
+          subst.
+          inversion H14.
+          subst.
+          inversion H15.
+          subst.
+          apply EquivSymState.
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_sym_stack_refl.
+          }
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply injection_some in H12.
+            apply injection_ast in H12.
+            subst.
+            apply equiv_smt_expr_normalize_simplify.
+          }
+        }
+      }
+    }
+    {
+      right.
+      apply Unsat_State.
+      inversion H12.
+      apply (equiv_smt_expr_unsat ((AST_Const Sort_BV1 (Int1.repr 0))) (_)).
+      {
+        apply equiv_smt_expr_symmetry.
+        apply injection_some in H12.
+        apply injection_ast in H12.
+        subst.
+        apply equiv_smt_expr_normalize_simplify.
+      }
+      {
+        apply UNSAT_8.
+      }
+    }
+  }
+}
+Qed.
+
+Lemma L_42 : (safe_et_opt t_42).
+Proof.
+{
+  apply Safe_Subtree.
+  {
+    apply not_error_instr_op.
+  }
+  {
+    intros s Hstep.
+    {
+      left.
+      exists (t_43).
+      split.
+      {
+        simpl.
+        left.
+        reflexivity.
+      }
+      {
+        split.
+        {
+          apply L_43.
+        }
+        {
+          inversion Hstep.
+          subst.
+          apply EquivSymState.
+          {
+            apply (equiv_smt_store_on_optimized_update (_) (_) (_) (_) (_) ([((Name "inc"%string), _); ((Name "n.0"%string), _)])).
+            inversion H13.
+            subst.
+            apply equiv_smt_expr_normalize_simplify.
+          }
+          {
+            apply equiv_sym_stack_refl.
+          }
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_smt_expr_refl.
+          }
+        }
+      }
+    }
+  }
+}
+Qed.
+
+Lemma L_41 : (safe_et_opt t_41).
+Proof.
+{
+  apply Safe_Subtree.
+  {
+    apply not_error_phi.
+  }
+  {
+    intros s Hstep.
+    {
+      left.
+      exists (t_42).
+      split.
+      {
+        simpl.
+        left.
+        reflexivity.
+      }
+      {
+        split.
+        {
+          apply L_42.
+        }
+        {
+          inversion Hstep.
+          subst.
+          apply EquivSymState.
+          {
+            apply (equiv_smt_store_on_optimized_update (_) (_) (_) (_) (_) ([((Name "cmp"%string), _); ((Name "inc"%string), _)])).
+            inversion H14.
+            subst.
+            apply equiv_smt_expr_refl.
+          }
+          {
+            apply equiv_sym_stack_refl.
+          }
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_smt_expr_refl.
+          }
+        }
+      }
+    }
+  }
+}
+Qed.
+
+Lemma L_40 : (safe_et_opt t_40).
+Proof.
+{
+  apply Safe_Subtree.
+  {
+    apply not_error_unconditional_br.
+  }
+  {
+    intros s Hstep.
+    {
+      left.
+      exists (t_41).
+      split.
+      {
+        simpl.
+        left.
+        reflexivity.
+      }
+      {
+        split.
+        {
+          apply L_41.
+        }
+        {
+          inversion Hstep.
+          subst.
+          inversion H10.
+          subst.
+          inversion H11.
+          subst.
+          inversion H12.
+          subst.
+          apply EquivSymState.
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_sym_stack_refl.
+          }
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_smt_expr_refl.
+          }
+        }
+      }
+    }
+  }
+}
+Qed.
+
+Lemma L_39 : (safe_et_opt t_39).
+Proof.
+{
+  apply Safe_Subtree.
+  {
+    apply not_error_instr_op.
+  }
+  {
+    intros s Hstep.
+    {
+      left.
+      exists (t_40).
+      split.
+      {
+        simpl.
+        left.
+        reflexivity.
+      }
+      {
+        split.
+        {
+          apply L_40.
+        }
+        {
+          inversion Hstep.
+          subst.
+          apply EquivSymState.
+          {
+            apply (equiv_smt_store_on_optimized_update (_) (_) (_) (_) (_) ([((Name "n.0"%string), _); ((Name "cmp"%string), _)])).
+            inversion H13.
+            subst.
+            apply equiv_smt_expr_normalize_simplify.
+          }
+          {
+            apply equiv_sym_stack_refl.
+          }
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_smt_expr_refl.
+          }
+        }
+      }
+    }
+  }
+}
+Qed.
+
+Lemma L_38 : (safe_et_opt t_38).
+Proof.
+{
+  apply Safe_Subtree.
+  {
+    apply not_error_br.
+  }
+  {
+    intros s Hstep.
+    inversion Hstep.
+    subst.
+    {
+      left.
+      exists (t_39).
+      split.
+      {
+        simpl.
+        left.
+        reflexivity.
+      }
+      {
+        split.
+        {
+          apply L_39.
+        }
+        {
+          inversion H13.
+          subst.
+          inversion H14.
+          subst.
+          inversion H15.
+          subst.
+          apply EquivSymState.
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_sym_stack_refl.
+          }
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply injection_some in H12.
+            apply injection_ast in H12.
+            subst.
+            apply equiv_smt_expr_normalize_simplify.
+          }
+        }
+      }
+    }
+    {
+      right.
+      apply Unsat_State.
+      inversion H12.
+      apply (equiv_smt_expr_unsat ((AST_Const Sort_BV1 (Int1.repr 0))) (_)).
+      {
+        apply equiv_smt_expr_symmetry.
+        apply injection_some in H12.
+        apply injection_ast in H12.
+        subst.
+        apply equiv_smt_expr_normalize_simplify.
+      }
+      {
+        apply UNSAT_7.
+      }
+    }
+  }
+}
+Qed.
+
+Lemma L_37 : (safe_et_opt t_37).
+Proof.
+{
+  apply Safe_Subtree.
+  {
+    apply not_error_instr_op.
+  }
+  {
+    intros s Hstep.
+    {
+      left.
+      exists (t_38).
+      split.
+      {
+        simpl.
+        left.
+        reflexivity.
+      }
+      {
+        split.
+        {
+          apply L_38.
+        }
+        {
+          inversion Hstep.
+          subst.
+          apply EquivSymState.
+          {
+            apply (equiv_smt_store_on_optimized_update (_) (_) (_) (_) (_) ([((Name "inc"%string), _); ((Name "n.0"%string), _)])).
+            inversion H13.
+            subst.
+            apply equiv_smt_expr_normalize_simplify.
+          }
+          {
+            apply equiv_sym_stack_refl.
+          }
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_smt_expr_refl.
+          }
+        }
+      }
+    }
+  }
+}
+Qed.
+
+Lemma L_36 : (safe_et_opt t_36).
+Proof.
+{
+  apply Safe_Subtree.
+  {
+    apply not_error_phi.
+  }
+  {
+    intros s Hstep.
+    {
+      left.
+      exists (t_37).
+      split.
+      {
+        simpl.
+        left.
+        reflexivity.
+      }
+      {
+        split.
+        {
+          apply L_37.
+        }
+        {
+          inversion Hstep.
+          subst.
+          apply EquivSymState.
+          {
+            apply (equiv_smt_store_on_optimized_update (_) (_) (_) (_) (_) ([((Name "cmp"%string), _); ((Name "inc"%string), _)])).
+            inversion H14.
+            subst.
+            apply equiv_smt_expr_refl.
+          }
+          {
+            apply equiv_sym_stack_refl.
+          }
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_smt_expr_refl.
+          }
+        }
+      }
+    }
+  }
+}
+Qed.
+
+Lemma L_35 : (safe_et_opt t_35).
+Proof.
+{
+  apply Safe_Subtree.
+  {
+    apply not_error_unconditional_br.
+  }
+  {
+    intros s Hstep.
+    {
+      left.
+      exists (t_36).
+      split.
+      {
+        simpl.
+        left.
+        reflexivity.
+      }
+      {
+        split.
+        {
+          apply L_36.
+        }
+        {
+          inversion Hstep.
+          subst.
+          inversion H10.
+          subst.
+          inversion H11.
+          subst.
+          inversion H12.
+          subst.
+          apply EquivSymState.
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_sym_stack_refl.
+          }
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_smt_expr_refl.
+          }
+        }
+      }
+    }
+  }
+}
+Qed.
+
+Lemma L_34 : (safe_et_opt t_34).
+Proof.
+{
+  apply Safe_Subtree.
+  {
+    apply not_error_instr_op.
+  }
+  {
+    intros s Hstep.
+    {
+      left.
+      exists (t_35).
+      split.
+      {
+        simpl.
+        left.
+        reflexivity.
+      }
+      {
+        split.
+        {
+          apply L_35.
+        }
+        {
+          inversion Hstep.
+          subst.
+          apply EquivSymState.
+          {
+            apply (equiv_smt_store_on_optimized_update (_) (_) (_) (_) (_) ([((Name "n.0"%string), _); ((Name "cmp"%string), _)])).
+            inversion H13.
+            subst.
+            apply equiv_smt_expr_normalize_simplify.
+          }
+          {
+            apply equiv_sym_stack_refl.
+          }
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_smt_expr_refl.
+          }
+        }
+      }
+    }
+  }
+}
+Qed.
+
+Lemma L_33 : (safe_et_opt t_33).
+Proof.
+{
+  apply Safe_Subtree.
+  {
+    apply not_error_br.
+  }
+  {
+    intros s Hstep.
+    inversion Hstep.
+    subst.
+    {
+      left.
+      exists (t_34).
+      split.
+      {
+        simpl.
+        left.
+        reflexivity.
+      }
+      {
+        split.
+        {
+          apply L_34.
+        }
+        {
+          inversion H13.
+          subst.
+          inversion H14.
+          subst.
+          inversion H15.
+          subst.
+          apply EquivSymState.
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_sym_stack_refl.
+          }
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply injection_some in H12.
+            apply injection_ast in H12.
+            subst.
+            apply equiv_smt_expr_normalize_simplify.
+          }
+        }
+      }
+    }
+    {
+      right.
+      apply Unsat_State.
+      inversion H12.
+      apply (equiv_smt_expr_unsat ((AST_Const Sort_BV1 (Int1.repr 0))) (_)).
+      {
+        apply equiv_smt_expr_symmetry.
+        apply injection_some in H12.
+        apply injection_ast in H12.
+        subst.
+        apply equiv_smt_expr_normalize_simplify.
+      }
+      {
+        apply UNSAT_6.
+      }
+    }
+  }
+}
+Qed.
+
+Lemma L_32 : (safe_et_opt t_32).
+Proof.
+{
+  apply Safe_Subtree.
+  {
+    apply not_error_instr_op.
+  }
+  {
+    intros s Hstep.
+    {
+      left.
+      exists (t_33).
+      split.
+      {
+        simpl.
+        left.
+        reflexivity.
+      }
+      {
+        split.
+        {
+          apply L_33.
+        }
+        {
+          inversion Hstep.
+          subst.
+          apply EquivSymState.
+          {
+            apply (equiv_smt_store_on_optimized_update (_) (_) (_) (_) (_) ([((Name "inc"%string), _); ((Name "n.0"%string), _)])).
+            inversion H13.
+            subst.
+            apply equiv_smt_expr_normalize_simplify.
+          }
+          {
+            apply equiv_sym_stack_refl.
+          }
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_smt_expr_refl.
+          }
+        }
+      }
+    }
+  }
+}
+Qed.
+
+Lemma L_31 : (safe_et_opt t_31).
+Proof.
+{
+  apply Safe_Subtree.
+  {
+    apply not_error_phi.
+  }
+  {
+    intros s Hstep.
+    {
+      left.
+      exists (t_32).
+      split.
+      {
+        simpl.
+        left.
+        reflexivity.
+      }
+      {
+        split.
+        {
+          apply L_32.
+        }
+        {
+          inversion Hstep.
+          subst.
+          apply EquivSymState.
+          {
+            apply (equiv_smt_store_on_optimized_update (_) (_) (_) (_) (_) ([((Name "cmp"%string), _); ((Name "inc"%string), _)])).
+            inversion H14.
+            subst.
+            apply equiv_smt_expr_refl.
+          }
+          {
+            apply equiv_sym_stack_refl.
+          }
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_smt_expr_refl.
+          }
+        }
+      }
+    }
+  }
+}
+Qed.
+
+Lemma L_30 : (safe_et_opt t_30).
+Proof.
+{
+  apply Safe_Subtree.
+  {
+    apply not_error_unconditional_br.
+  }
+  {
+    intros s Hstep.
+    {
+      left.
+      exists (t_31).
+      split.
+      {
+        simpl.
+        left.
+        reflexivity.
+      }
+      {
+        split.
+        {
+          apply L_31.
+        }
+        {
+          inversion Hstep.
+          subst.
+          inversion H10.
+          subst.
+          inversion H11.
+          subst.
+          inversion H12.
+          subst.
+          apply EquivSymState.
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_sym_stack_refl.
+          }
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_smt_expr_refl.
+          }
+        }
+      }
+    }
+  }
+}
+Qed.
+
+Lemma L_29 : (safe_et_opt t_29).
+Proof.
+{
+  apply Safe_Subtree.
+  {
+    apply not_error_instr_op.
+  }
+  {
+    intros s Hstep.
+    {
+      left.
+      exists (t_30).
+      split.
+      {
+        simpl.
+        left.
+        reflexivity.
+      }
+      {
+        split.
+        {
+          apply L_30.
+        }
+        {
+          inversion Hstep.
+          subst.
+          apply EquivSymState.
+          {
+            apply (equiv_smt_store_on_optimized_update (_) (_) (_) (_) (_) ([((Name "n.0"%string), _); ((Name "cmp"%string), _)])).
+            inversion H13.
+            subst.
+            apply equiv_smt_expr_normalize_simplify.
+          }
+          {
+            apply equiv_sym_stack_refl.
+          }
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_smt_expr_refl.
+          }
+        }
+      }
+    }
+  }
+}
+Qed.
+
+Lemma L_28 : (safe_et_opt t_28).
+Proof.
+{
+  apply Safe_Subtree.
+  {
+    apply not_error_br.
+  }
+  {
+    intros s Hstep.
+    inversion Hstep.
+    subst.
+    {
+      left.
+      exists (t_29).
+      split.
+      {
+        simpl.
+        left.
+        reflexivity.
+      }
+      {
+        split.
+        {
+          apply L_29.
+        }
+        {
+          inversion H13.
+          subst.
+          inversion H14.
+          subst.
+          inversion H15.
+          subst.
+          apply EquivSymState.
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_sym_stack_refl.
+          }
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply injection_some in H12.
+            apply injection_ast in H12.
+            subst.
+            apply equiv_smt_expr_normalize_simplify.
+          }
+        }
+      }
+    }
+    {
+      right.
+      apply Unsat_State.
+      inversion H12.
+      apply (equiv_smt_expr_unsat ((AST_Const Sort_BV1 (Int1.repr 0))) (_)).
+      {
+        apply equiv_smt_expr_symmetry.
+        apply injection_some in H12.
+        apply injection_ast in H12.
+        subst.
+        apply equiv_smt_expr_normalize_simplify.
+      }
+      {
+        apply UNSAT_5.
+      }
+    }
+  }
+}
+Qed.
+
+Lemma L_27 : (safe_et_opt t_27).
+Proof.
+{
+  apply Safe_Subtree.
+  {
+    apply not_error_instr_op.
+  }
+  {
+    intros s Hstep.
+    {
+      left.
+      exists (t_28).
+      split.
+      {
+        simpl.
+        left.
+        reflexivity.
+      }
+      {
+        split.
+        {
+          apply L_28.
+        }
+        {
+          inversion Hstep.
+          subst.
+          apply EquivSymState.
+          {
+            apply (equiv_smt_store_on_optimized_update (_) (_) (_) (_) (_) ([((Name "inc"%string), _); ((Name "n.0"%string), _)])).
+            inversion H13.
+            subst.
+            apply equiv_smt_expr_normalize_simplify.
+          }
+          {
+            apply equiv_sym_stack_refl.
+          }
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_smt_expr_refl.
+          }
+        }
+      }
+    }
+  }
+}
+Qed.
+
+Lemma L_26 : (safe_et_opt t_26).
+Proof.
+{
+  apply Safe_Subtree.
+  {
+    apply not_error_phi.
+  }
+  {
+    intros s Hstep.
+    {
+      left.
+      exists (t_27).
+      split.
+      {
+        simpl.
+        left.
+        reflexivity.
+      }
+      {
+        split.
+        {
+          apply L_27.
+        }
+        {
+          inversion Hstep.
+          subst.
+          apply EquivSymState.
+          {
+            apply (equiv_smt_store_on_optimized_update (_) (_) (_) (_) (_) ([((Name "cmp"%string), _); ((Name "inc"%string), _)])).
+            inversion H14.
+            subst.
+            apply equiv_smt_expr_refl.
+          }
+          {
+            apply equiv_sym_stack_refl.
+          }
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_smt_expr_refl.
+          }
+        }
+      }
+    }
+  }
+}
+Qed.
+
+Lemma L_25 : (safe_et_opt t_25).
+Proof.
+{
+  apply Safe_Subtree.
+  {
+    apply not_error_unconditional_br.
+  }
+  {
+    intros s Hstep.
+    {
+      left.
+      exists (t_26).
+      split.
+      {
+        simpl.
+        left.
+        reflexivity.
+      }
+      {
+        split.
+        {
+          apply L_26.
+        }
+        {
+          inversion Hstep.
+          subst.
+          inversion H10.
+          subst.
+          inversion H11.
+          subst.
+          inversion H12.
+          subst.
+          apply EquivSymState.
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_sym_stack_refl.
+          }
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_smt_expr_refl.
+          }
+        }
+      }
+    }
+  }
+}
+Qed.
+
+Lemma L_24 : (safe_et_opt t_24).
+Proof.
+{
+  apply Safe_Subtree.
+  {
+    apply not_error_instr_op.
+  }
+  {
+    intros s Hstep.
+    {
+      left.
+      exists (t_25).
+      split.
+      {
+        simpl.
+        left.
+        reflexivity.
+      }
+      {
+        split.
+        {
+          apply L_25.
+        }
+        {
+          inversion Hstep.
+          subst.
+          apply EquivSymState.
+          {
+            apply (equiv_smt_store_on_optimized_update (_) (_) (_) (_) (_) ([((Name "n.0"%string), _); ((Name "cmp"%string), _)])).
+            inversion H13.
+            subst.
+            apply equiv_smt_expr_normalize_simplify.
+          }
+          {
+            apply equiv_sym_stack_refl.
+          }
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_smt_expr_refl.
+          }
+        }
+      }
+    }
+  }
+}
+Qed.
+
+Lemma L_23 : (safe_et_opt t_23).
+Proof.
+{
+  apply Safe_Subtree.
+  {
+    apply not_error_br.
+  }
+  {
+    intros s Hstep.
+    inversion Hstep.
+    subst.
+    {
+      left.
+      exists (t_24).
+      split.
+      {
+        simpl.
+        left.
+        reflexivity.
+      }
+      {
+        split.
+        {
+          apply L_24.
+        }
+        {
+          inversion H13.
+          subst.
+          inversion H14.
+          subst.
+          inversion H15.
+          subst.
+          apply EquivSymState.
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_sym_stack_refl.
+          }
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply injection_some in H12.
+            apply injection_ast in H12.
+            subst.
+            apply equiv_smt_expr_normalize_simplify.
+          }
+        }
+      }
+    }
+    {
+      right.
+      apply Unsat_State.
+      inversion H12.
+      apply (equiv_smt_expr_unsat ((AST_Const Sort_BV1 (Int1.repr 0))) (_)).
+      {
+        apply equiv_smt_expr_symmetry.
+        apply injection_some in H12.
+        apply injection_ast in H12.
+        subst.
+        apply equiv_smt_expr_normalize_simplify.
+      }
+      {
+        apply UNSAT_4.
+      }
+    }
+  }
+}
+Qed.
+
+Lemma L_22 : (safe_et_opt t_22).
+Proof.
+{
+  apply Safe_Subtree.
+  {
+    apply not_error_instr_op.
+  }
+  {
+    intros s Hstep.
+    {
+      left.
+      exists (t_23).
+      split.
+      {
+        simpl.
+        left.
+        reflexivity.
+      }
+      {
+        split.
+        {
+          apply L_23.
+        }
+        {
+          inversion Hstep.
+          subst.
+          apply EquivSymState.
+          {
+            apply (equiv_smt_store_on_optimized_update (_) (_) (_) (_) (_) ([((Name "inc"%string), _); ((Name "n.0"%string), _)])).
+            inversion H13.
+            subst.
+            apply equiv_smt_expr_normalize_simplify.
+          }
+          {
+            apply equiv_sym_stack_refl.
+          }
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_smt_expr_refl.
+          }
+        }
+      }
+    }
+  }
+}
+Qed.
+
+Lemma L_21 : (safe_et_opt t_21).
+Proof.
+{
+  apply Safe_Subtree.
+  {
+    apply not_error_phi.
+  }
+  {
+    intros s Hstep.
+    {
+      left.
+      exists (t_22).
+      split.
+      {
+        simpl.
+        left.
+        reflexivity.
+      }
+      {
+        split.
+        {
+          apply L_22.
+        }
+        {
+          inversion Hstep.
+          subst.
+          apply EquivSymState.
+          {
+            apply (equiv_smt_store_on_optimized_update (_) (_) (_) (_) (_) ([((Name "cmp"%string), _); ((Name "inc"%string), _)])).
+            inversion H14.
+            subst.
+            apply equiv_smt_expr_refl.
+          }
+          {
+            apply equiv_sym_stack_refl.
+          }
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_smt_expr_refl.
+          }
+        }
+      }
+    }
+  }
+}
+Qed.
+
+Lemma L_20 : (safe_et_opt t_20).
+Proof.
+{
+  apply Safe_Subtree.
+  {
+    apply not_error_unconditional_br.
+  }
+  {
+    intros s Hstep.
+    {
+      left.
+      exists (t_21).
+      split.
+      {
+        simpl.
+        left.
+        reflexivity.
+      }
+      {
+        split.
+        {
+          apply L_21.
+        }
+        {
+          inversion Hstep.
+          subst.
+          inversion H10.
+          subst.
+          inversion H11.
+          subst.
+          inversion H12.
+          subst.
+          apply EquivSymState.
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_sym_stack_refl.
+          }
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_smt_expr_refl.
+          }
+        }
+      }
+    }
+  }
+}
+Qed.
+
+Lemma L_19 : (safe_et_opt t_19).
+Proof.
+{
+  apply Safe_Subtree.
+  {
+    apply not_error_instr_op.
+  }
+  {
+    intros s Hstep.
+    {
+      left.
+      exists (t_20).
+      split.
+      {
+        simpl.
+        left.
+        reflexivity.
+      }
+      {
+        split.
+        {
+          apply L_20.
+        }
+        {
+          inversion Hstep.
+          subst.
+          apply EquivSymState.
+          {
+            apply (equiv_smt_store_on_optimized_update (_) (_) (_) (_) (_) ([((Name "n.0"%string), _); ((Name "cmp"%string), _)])).
+            inversion H13.
+            subst.
+            apply equiv_smt_expr_normalize_simplify.
+          }
+          {
+            apply equiv_sym_stack_refl.
+          }
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_smt_expr_refl.
+          }
+        }
+      }
+    }
+  }
+}
+Qed.
+
+Lemma L_18 : (safe_et_opt t_18).
+Proof.
+{
+  apply Safe_Subtree.
+  {
+    apply not_error_br.
+  }
+  {
+    intros s Hstep.
+    inversion Hstep.
+    subst.
+    {
+      left.
+      exists (t_19).
+      split.
+      {
+        simpl.
+        left.
+        reflexivity.
+      }
+      {
+        split.
+        {
+          apply L_19.
+        }
+        {
+          inversion H13.
+          subst.
+          inversion H14.
+          subst.
+          inversion H15.
+          subst.
+          apply EquivSymState.
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_sym_stack_refl.
+          }
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply injection_some in H12.
+            apply injection_ast in H12.
+            subst.
+            apply equiv_smt_expr_normalize_simplify.
+          }
+        }
+      }
+    }
+    {
+      right.
+      apply Unsat_State.
+      inversion H12.
+      apply (equiv_smt_expr_unsat ((AST_Const Sort_BV1 (Int1.repr 0))) (_)).
+      {
+        apply equiv_smt_expr_symmetry.
+        apply injection_some in H12.
+        apply injection_ast in H12.
+        subst.
+        apply equiv_smt_expr_normalize_simplify.
+      }
+      {
+        apply UNSAT_3.
+      }
+    }
+  }
+}
+Qed.
+
+Lemma L_17 : (safe_et_opt t_17).
+Proof.
+{
+  apply Safe_Subtree.
+  {
+    apply not_error_instr_op.
+  }
+  {
+    intros s Hstep.
+    {
+      left.
+      exists (t_18).
+      split.
+      {
+        simpl.
+        left.
+        reflexivity.
+      }
+      {
+        split.
+        {
+          apply L_18.
+        }
+        {
+          inversion Hstep.
+          subst.
+          apply EquivSymState.
+          {
+            apply (equiv_smt_store_on_optimized_update (_) (_) (_) (_) (_) ([((Name "inc"%string), _); ((Name "n.0"%string), _)])).
+            inversion H13.
+            subst.
+            apply equiv_smt_expr_normalize_simplify.
+          }
+          {
+            apply equiv_sym_stack_refl.
+          }
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_smt_expr_refl.
+          }
+        }
+      }
+    }
+  }
+}
+Qed.
+
+Lemma L_16 : (safe_et_opt t_16).
+Proof.
+{
+  apply Safe_Subtree.
+  {
+    apply not_error_phi.
+  }
+  {
+    intros s Hstep.
+    {
+      left.
+      exists (t_17).
+      split.
+      {
+        simpl.
+        left.
+        reflexivity.
+      }
+      {
+        split.
+        {
+          apply L_17.
+        }
+        {
+          inversion Hstep.
+          subst.
+          apply EquivSymState.
+          {
+            apply (equiv_smt_store_on_optimized_update (_) (_) (_) (_) (_) ([((Name "cmp"%string), _); ((Name "inc"%string), _)])).
+            inversion H14.
+            subst.
+            apply equiv_smt_expr_refl.
+          }
+          {
+            apply equiv_sym_stack_refl.
+          }
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_smt_expr_refl.
+          }
+        }
+      }
+    }
+  }
+}
+Qed.
+
+Lemma L_15 : (safe_et_opt t_15).
+Proof.
+{
+  apply Safe_Subtree.
+  {
+    apply not_error_unconditional_br.
+  }
+  {
+    intros s Hstep.
+    {
+      left.
+      exists (t_16).
+      split.
+      {
+        simpl.
+        left.
+        reflexivity.
+      }
+      {
+        split.
+        {
+          apply L_16.
+        }
+        {
+          inversion Hstep.
+          subst.
+          inversion H10.
+          subst.
+          inversion H11.
+          subst.
+          inversion H12.
+          subst.
+          apply EquivSymState.
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_sym_stack_refl.
+          }
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_smt_expr_refl.
+          }
+        }
+      }
+    }
+  }
+}
+Qed.
+
+Lemma L_14 : (safe_et_opt t_14).
+Proof.
+{
+  apply Safe_Subtree.
+  {
+    apply not_error_instr_op.
+  }
+  {
+    intros s Hstep.
+    {
+      left.
+      exists (t_15).
+      split.
+      {
+        simpl.
+        left.
+        reflexivity.
+      }
+      {
+        split.
+        {
+          apply L_15.
+        }
+        {
+          inversion Hstep.
+          subst.
+          apply EquivSymState.
+          {
+            apply (equiv_smt_store_on_optimized_update (_) (_) (_) (_) (_) ([((Name "n.0"%string), _); ((Name "cmp"%string), _)])).
+            inversion H13.
+            subst.
+            apply equiv_smt_expr_normalize_simplify.
+          }
+          {
+            apply equiv_sym_stack_refl.
+          }
+          {
+            apply equiv_smt_store_refl.
+          }
+          {
+            apply equiv_smt_expr_refl.
+          }
+        }
+      }
+    }
+  }
+}
+Qed.
+
+Lemma L_13 : (safe_et_opt t_13).
+Proof.
+{
+  apply Safe_Subtree.
+  {
+    apply not_error_br.
+  }
+  {
+    intros s Hstep.
+    inversion Hstep.
+    subst.
     {
       left.
       exists (t_14).
@@ -414,6 +2750,22 @@ Proof.
             apply equiv_smt_expr_normalize_simplify.
           }
         }
+      }
+    }
+    {
+      right.
+      apply Unsat_State.
+      inversion H12.
+      apply (equiv_smt_expr_unsat ((AST_Const Sort_BV1 (Int1.repr 0))) (_)).
+      {
+        apply equiv_smt_expr_symmetry.
+        apply injection_some in H12.
+        apply injection_ast in H12.
+        subst.
+        apply equiv_smt_expr_normalize_simplify.
+      }
+      {
+        apply UNSAT_2.
       }
     }
   }
