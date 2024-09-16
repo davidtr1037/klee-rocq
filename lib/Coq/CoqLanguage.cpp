@@ -249,6 +249,7 @@ klee::ref<CoqExpr> klee::createFalse() {
   }
   return coqFalse;
 }
+
 klee::ref<CoqExpr> klee::createZ(uint64_t n) {
   ostringstream os;
   os << "(" << n << ")" << "%Z";
@@ -257,7 +258,6 @@ klee::ref<CoqExpr> klee::createZ(uint64_t n) {
 
 static klee::ref<CoqExpr> coqEmptyList = nullptr;
 
-/* TODO: use where needed */
 klee::ref<CoqExpr> klee::createEmptyList() {
   if (coqEmptyList.isNull()) {
     coqEmptyList = new CoqList({});
@@ -267,7 +267,6 @@ klee::ref<CoqExpr> klee::createEmptyList() {
 
 static klee::ref<CoqExpr> coqNone = nullptr;
 
-/* TODO: use where needed */
 klee::ref<CoqExpr> klee::createNone() {
   if (coqNone.isNull()) {
     coqNone = new CoqVariable("None");
@@ -277,7 +276,6 @@ klee::ref<CoqExpr> klee::createNone() {
 
 static klee::ref<CoqExpr> coqSomeConstructor = nullptr;
 
-/* TODO: use where needed */
 klee::ref<CoqExpr> klee::createSome(ref<CoqExpr> e) {
   if (coqSomeConstructor.isNull()) {
     coqSomeConstructor = new CoqVariable("Some");
