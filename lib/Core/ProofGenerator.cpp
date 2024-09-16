@@ -717,8 +717,59 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForEquivBranch(StateInfo &si,
 klee::ref<CoqTactic> ProofGenerator::getTacticForEquivCall(StateInfo &si,
                                                            ExecutionState &successor) {
   if (isMakeSymbolicInt32(si.inst)) {
+    return getTacticForEquivMakeSymbolic(si, successor);
+  } else if (isAssumeBool(si.inst)) {
+    return getTacticForEquivAssumeBool(si, successor);
+  } else {
+    return getTacticForEquivSimpleCall(si, successor);
+  }
+}
+
+klee::ref<CoqTactic> ProofGenerator::getTacticForEquivMakeSymbolic(StateInfo &si,
+                                                                   ExecutionState &successor) {
+  return new Block(
+    {new Apply("equiv_sym_state_refl")}
+  );
+}
+
+klee::ref<CoqTactic> ProofGenerator::getTacticForEquivAssumeBool(StateInfo &si,
+                                                                 ExecutionState &successor) {
+  return new Block(
+    {
+      new Inversion("H16"),
+      new Subst(),
+      new Apply("EquivSymState"),
+      new Block({new Apply("equiv_smt_store_refl")}),
+      new Block({new Apply("equiv_sym_stack_refl")}),
+      new Block({new Apply("equiv_smt_store_refl")}),
+      new Block(
+        {
+          new Apply("injection_some", "H16"),
+          new Apply("injection_expr", "H16"),
+          new Subst(),
+          new Apply("equiv_smt_expr_normalize_simplify"),
+        }
+      ),
+    }
+  );
+}
+
+klee::ref<CoqTactic> ProofGenerator::getTacticForEquivSimpleCall(StateInfo &si,
+                                                                 ExecutionState &successor) {
+  CallInst *callInst = dyn_cast<CallInst>(si.inst);
+  if (callInst->getFunctionType()->getReturnType()->isVoidTy()) {
     return new Block(
       {
+        new Inversion("Hstep"),
+        new Subst(),
+        new Inversion("H14"),
+        new Subst(),
+        new Inversion("H16"),
+        new Subst(),
+        new Inversion("H17"),
+        new Subst(),
+        new Inversion("H18"),
+        new Subst(),
         new Apply("EquivSymState"),
         new Block({new Apply("equiv_smt_store_refl")}),
         new Block({new Apply("equiv_sym_stack_refl")}),
@@ -726,71 +777,29 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForEquivCall(StateInfo &si,
         new Block({new Apply("equiv_smt_expr_refl")}),
       }
     );
-  } else if (isAssumeBool(si.inst)) {
+  } else {
     return new Block(
       {
+        new Inversion("Hstep"),
+        new Subst(),
         new Inversion("H16"),
         new Subst(),
+        new Inversion("H18"),
+        new Subst(),
+        new Inversion("H19"),
+        new Subst(),
         new Apply("EquivSymState"),
-        new Block({new Apply("equiv_smt_store_refl")}),
-        new Block({new Apply("equiv_sym_stack_refl")}),
-        new Block({new Apply("equiv_smt_store_refl")}),
         new Block(
           {
-            new Apply("injection_some", "H16"),
-            new Apply("injection_expr", "H16"),
-            new Subst(),
-            new Apply("equiv_smt_expr_normalize_simplify"),
+            new Inversion("H20"),
+            new Apply("equiv_smt_store_refl"),
           }
         ),
+        new Block({new Apply("equiv_sym_stack_refl")}),
+        new Block({new Apply("equiv_smt_store_refl")}),
+        new Block({new Apply("equiv_smt_expr_refl")}),
       }
     );
-  } else {
-    CallInst *callInst = dyn_cast<CallInst>(si.inst);
-    if (callInst->getFunctionType()->getReturnType()->isVoidTy()) {
-      return new Block(
-        {
-          new Inversion("Hstep"),
-          new Subst(),
-          new Inversion("H14"),
-          new Subst(),
-          new Inversion("H16"),
-          new Subst(),
-          new Inversion("H17"),
-          new Subst(),
-          new Inversion("H18"),
-          new Subst(),
-          new Apply("EquivSymState"),
-          new Block({new Apply("equiv_smt_store_refl")}),
-          new Block({new Apply("equiv_sym_stack_refl")}),
-          new Block({new Apply("equiv_smt_store_refl")}),
-          new Block({new Apply("equiv_smt_expr_refl")}),
-        }
-      );
-    } else {
-      return new Block(
-        {
-          new Inversion("Hstep"),
-          new Subst(),
-          new Inversion("H16"),
-          new Subst(),
-          new Inversion("H18"),
-          new Subst(),
-          new Inversion("H19"),
-          new Subst(),
-          new Apply("EquivSymState"),
-          new Block(
-            {
-              new Inversion("H20"),
-              new Apply("equiv_smt_store_refl"),
-            }
-          ),
-          new Block({new Apply("equiv_sym_stack_refl")}),
-          new Block({new Apply("equiv_smt_store_refl")}),
-          new Block({new Apply("equiv_smt_expr_refl")}),
-        }
-      );
-    }
   }
 }
 

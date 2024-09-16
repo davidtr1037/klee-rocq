@@ -167,6 +167,15 @@ public:
   virtual ref<CoqTactic> getTacticForEquivCall(StateInfo &si,
                                                ExecutionState &successor);
 
+  virtual ref<CoqTactic> getTacticForEquivMakeSymbolic(StateInfo &si,
+                                                       ExecutionState &successor);
+
+  virtual ref<CoqTactic> getTacticForEquivAssumeBool(StateInfo &si,
+                                                     ExecutionState &successor);
+
+  virtual ref<CoqTactic> getTacticForEquivSimpleCall(StateInfo &si,
+                                                     ExecutionState &successor);
+
   virtual ref<CoqTactic> getTacticForEquivReturn(StateInfo &si,
                                                  ExecutionState &successor);
 
