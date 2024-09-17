@@ -388,6 +388,7 @@ Proof.
   assumption.
 Qed.
 
+(* TODO: rename *)
 Lemma equiv_smt_expr_1 : forall se se_no_opt se_opt,
   Some se_no_opt = Some se ->
   equiv_smt_expr se_no_opt se_opt ->
@@ -397,6 +398,16 @@ Proof.
   apply injection_some in Heq.
   subst.
   assumption.
+Qed.
+
+Lemma equiv_smt_expr_via_some_injection : forall se1 se2,
+  Some se1 = Some se2 ->
+  equiv_smt_expr se2 se1.
+Proof.
+  intros se1 se2 Heq.
+  apply injection_some in Heq.
+  subst.
+  apply equiv_smt_expr_refl.
 Qed.
 
 (* helps to avoid subst *)

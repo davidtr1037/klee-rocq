@@ -552,6 +552,57 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForEquivReturn(StateInfo 
   string functionLemma = functionLemmas[f];
 
   if (returnInst->getReturnValue()) {
+    ref<CoqTactic> t;
+    if (si.wasRegisterUpdated) {
+      vector<ref<CoqExpr>> pairs;
+      for (RegisterUpdate &ru : si.suffix) {
+        ref<CoqExpr> pair = new CoqPair(
+          moduleTranslator->createName(ru.name),
+          createPlaceHolder()
+        );
+        pairs.push_back(pair);
+      }
+      t = new Block(
+        {
+          new Apply(
+            "equiv_smt_store_on_optimized_update",
+            {
+              createPlaceHolder(),
+              createPlaceHolder(),
+              createPlaceHolder(),
+              createPlaceHolder(),
+              createPlaceHolder(),
+              new CoqList(pairs),
+            }
+          ),
+          new Apply(
+            "equiv_smt_expr_via_some_injection",
+            {
+              createPlaceHolder(),
+              createPlaceHolder(),
+              new CoqVariable("Heval"),
+            }
+          ),
+        }
+      );
+    } else {
+      t = new Block(
+        {
+          new Apply(
+            "equiv_smt_store_on_update",
+            {
+              createPlaceHolder(),
+              createPlaceHolder(),
+              createPlaceHolder(),
+              createPlaceHolder(),
+              createPlaceHolder(),
+              new CoqVariable("Heval"),
+            }
+          ),
+          new Apply("equiv_smt_expr_refl"),
+        }
+      );
+    }
     return new Block(
       {
         new Apply("inversion_ret", "Hstep"),
@@ -568,22 +619,7 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForEquivReturn(StateInfo 
         new Inversion("Htrail"),
         new Subst(),
         new Apply("EquivSymState"),
-        new Block(
-          {
-            new Apply(
-              "equiv_smt_store_on_update",
-              {
-                createPlaceHolder(),
-                createPlaceHolder(),
-                createPlaceHolder(),
-                createPlaceHolder(),
-                createPlaceHolder(),
-                new CoqVariable("Heval"),
-              }
-            ),
-            new Apply("equiv_smt_expr_refl"),
-          }
-        ),
+        t,
         new Block({new Apply("equiv_sym_stack_refl")}),
         new Block({new Apply("equiv_smt_store_refl")}),
         new Block({new Apply("equiv_smt_expr_refl")}),
