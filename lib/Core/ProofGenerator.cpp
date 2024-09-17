@@ -532,14 +532,6 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForEquivAssignment(StateInfo &si,
                                                                  ExecutionState &successor) {
   ref<CoqTactic> t;
   if (si.wasRegisterUpdated) {
-    vector<ref<CoqExpr>> pairs;
-    for (RegisterUpdate &ru : si.suffix) {
-      ref<CoqExpr> pair = new CoqPair(
-        moduleTranslator->createName(ru.name),
-        createPlaceHolder()
-      );
-      pairs.push_back(pair);
-    }
     t = new Block(
       {
         new Apply(
@@ -550,7 +542,7 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForEquivAssignment(StateInfo &si,
             createPlaceHolder(),
             createPlaceHolder(),
             createPlaceHolder(),
-            new CoqList(pairs),
+            createSuffixUpdates(si.suffix),
           }
         ),
         new Inversion("H13"),
@@ -593,14 +585,6 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForEquivPHI(StateInfo &si,
                                                           ExecutionState &successor) {
   ref<CoqTactic> t;
   if (si.wasRegisterUpdated) {
-    vector<ref<CoqExpr>> pairs;
-    for (RegisterUpdate &ru : si.suffix) {
-      ref<CoqExpr> pair = new CoqPair(
-        moduleTranslator->createName(ru.name),
-        createPlaceHolder()
-      );
-      pairs.push_back(pair);
-    }
     t = new Block(
       {
         /* TODO: can use a more simple lemma? */
@@ -612,7 +596,7 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForEquivPHI(StateInfo &si,
             createPlaceHolder(),
             createPlaceHolder(),
             createPlaceHolder(),
-            new CoqList(pairs),
+            createSuffixUpdates(si.suffix),
           }
         ),
         new Inversion("H14"),
@@ -812,14 +796,6 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForEquivReturn(StateInfo &si,
     /* TODO: avoid code duplication */
     ref<CoqTactic> t;
     if (si.wasRegisterUpdated) {
-      vector<ref<CoqExpr>> pairs;
-      for (RegisterUpdate &ru : si.suffix) {
-        ref<CoqExpr> pair = new CoqPair(
-          moduleTranslator->createName(ru.name),
-          createPlaceHolder()
-        );
-        pairs.push_back(pair);
-      }
       t = new Block(
         {
           new Apply(
@@ -830,7 +806,7 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForEquivReturn(StateInfo &si,
               createPlaceHolder(),
               createPlaceHolder(),
               createPlaceHolder(),
-              new CoqList(pairs),
+              createSuffixUpdates(si.suffix),
             }
           ),
           new Inversion("H15"),
@@ -1044,6 +1020,19 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForList(StateInfo &si,
   }
 
   assert(false);
+}
+
+klee::ref<CoqList> ProofGenerator::createSuffixUpdates(list<RegisterUpdate> &updates) {
+  std::vector<ref<CoqExpr>> pairs;
+  for (RegisterUpdate &ru : updates) {
+    ref<CoqExpr> pair = new CoqPair(
+      moduleTranslator->createName(ru.name),
+      createPlaceHolder()
+    );
+    pairs.push_back(pair);
+  }
+
+  return new CoqList(pairs);
 }
 
 uint64_t ProofGenerator::allocateAxiomID() {

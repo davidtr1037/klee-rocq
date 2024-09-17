@@ -11,6 +11,7 @@
 #include "llvm/IR/Module.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include <list>
 #include <string>
 #include <vector>
 
@@ -207,6 +208,8 @@ public:
   ref<CoqExpr> createLemma(uint64_t stepID, ref<CoqTactic> tactic, bool isAdmitted = false);
 
   ref<CoqTactic> getTacticForList(StateInfo &si, unsigned index);
+
+  ref<CoqList> createSuffixUpdates(std::list<RegisterUpdate> &updates);
 
   uint64_t allocateAxiomID();
 

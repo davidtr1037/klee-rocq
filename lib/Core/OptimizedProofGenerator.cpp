@@ -219,14 +219,6 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForEquivAssignment(StateI
                                                                           ExecutionState &successor) {
   ref<CoqTactic> t;
   if (si.wasRegisterUpdated) {
-    vector<ref<CoqExpr>> pairs;
-    for (RegisterUpdate &ru : si.suffix) {
-      ref<CoqExpr> pair = new CoqPair(
-        moduleTranslator->createName(ru.name),
-        createPlaceHolder()
-      );
-      pairs.push_back(pair);
-    }
     t = new Block(
       {
         new Apply(
@@ -237,7 +229,7 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForEquivAssignment(StateI
             createPlaceHolder(),
             createPlaceHolder(),
             createPlaceHolder(),
-            new CoqList(pairs),
+            createSuffixUpdates(si.suffix),
           }
         ),
         new Apply(
@@ -290,14 +282,6 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForEquivPHI(StateInfo &si
                                                                    ExecutionState &successor) {
   ref<CoqTactic> t;
   if (si.wasRegisterUpdated) {
-    vector<ref<CoqExpr>> pairs;
-    for (RegisterUpdate &ru : si.suffix) {
-      ref<CoqExpr> pair = new CoqPair(
-        moduleTranslator->createName(ru.name),
-        createPlaceHolder()
-      );
-      pairs.push_back(pair);
-    }
     t = new Block(
       {
         new Apply(
@@ -308,7 +292,7 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForEquivPHI(StateInfo &si
             createPlaceHolder(),
             createPlaceHolder(),
             createPlaceHolder(),
-            new CoqList(pairs),
+            createSuffixUpdates(si.suffix),
           }
         ),
         new Apply(
@@ -554,14 +538,6 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForEquivReturn(StateInfo 
   if (returnInst->getReturnValue()) {
     ref<CoqTactic> t;
     if (si.wasRegisterUpdated) {
-      vector<ref<CoqExpr>> pairs;
-      for (RegisterUpdate &ru : si.suffix) {
-        ref<CoqExpr> pair = new CoqPair(
-          moduleTranslator->createName(ru.name),
-          createPlaceHolder()
-        );
-        pairs.push_back(pair);
-      }
       t = new Block(
         {
           new Apply(
@@ -572,7 +548,7 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForEquivReturn(StateInfo 
               createPlaceHolder(),
               createPlaceHolder(),
               createPlaceHolder(),
-              new CoqList(pairs),
+              createSuffixUpdates(si.suffix),
             }
           ),
           new Apply(
