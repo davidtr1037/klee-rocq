@@ -261,6 +261,8 @@ Fixpoint normalize (s : smt_sort) (ast : smt_ast s) : smt_ast s :=
       | SMT_Sgt => AST_CmpOp sort SMT_Slt (normalize sort ast2) (normalize sort ast1)
       | SMT_Uge => AST_CmpOp sort SMT_Ule (normalize sort ast2) (normalize sort ast1)
       | SMT_Ugt => AST_CmpOp sort SMT_Ult (normalize sort ast2) (normalize sort ast1)
+      | SMT_Ne =>
+          AST_CmpOp Sort_BV1 SMT_Eq (AST_Const Sort_BV1 zero) (AST_CmpOp sort SMT_Eq ast1 ast2)
       | _ => AST_CmpOp sort op (normalize sort ast1) (normalize sort ast2)
       end
   | AST_Not sort ast =>
