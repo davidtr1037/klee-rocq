@@ -37,16 +37,17 @@ void OptimizedProofGenerator::generateModuleLemmas() {
       lemmas.push_back(lemma);
       functionLemmas.insert(std::make_pair(&f, lemma->name));
 
+      /* TODO: add docs */
+      BasicBlock &entry = f.getEntryBlock();
+      ref<CoqLemma> bbEntryLemma = getBasicBlockEntryLemma(entry);
+      lemmas.push_back(bbEntryLemma);
+      bbEntryLemmas.insert(std::make_pair(&entry, bbEntryLemma->name));
 
       for (BasicBlock &bb : f) {
         /* TODO: add docs */
         ref<CoqLemma> lemma = getBasicBlockLemma(bb);
         lemmas.push_back(lemma);
         bbLemmas.insert(std::make_pair(&bb, lemma->name));
-        /* TODO: add docs */
-        ref<CoqLemma> bbEntryLemma = getBasicBlockEntryLemma(bb);
-        lemmas.push_back(bbEntryLemma);
-        bbEntryLemmas.insert(std::make_pair(&bb, bbEntryLemma->name));
         /* TODO: add docs */
         ref<CoqLemma> decompositionLemma = getBasicBlockDecompositionLemma(bb);
         lemmas.push_back(decompositionLemma);
@@ -457,7 +458,7 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForEquivSimpleCall(StateI
   assert(f);
 
   /* target basic block */
-  BasicBlock *bb = &*f->begin();
+  BasicBlock *bb = &f->getEntryBlock();
 
   assert(bbEntryLemmas.find(bb) != bbEntryLemmas.end());
   string bbEntryLemma = bbLemmas[bb];
