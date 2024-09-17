@@ -207,10 +207,12 @@ klee::ref<CoqExpr> ProofGenerator::translateRegisterUpdates(ExecutionState &es,
   return new CoqVariable(output.str());
 }
 
+/* TODO: CoqList should receive a list of CoqExpr */
+/* TODO: avoid reversed iteration */
 klee::ref<CoqExpr> ProofGenerator::createStack(ExecutionState &es) {
   vector<ref<CoqExpr>> frames;
 
-  for (unsigned i = 0; i < es.stack.size() - 1; i++) {
+  for (int i = es.stack.size() - 2; i >= 0; i--) {
     StackFrame &sf = es.stack[i];
     StackFrame &next_sf = es.stack[i + 1];
 
