@@ -139,66 +139,58 @@ klee::ref<CoqExpr> ProofGenerator::translateState(ExecutionState &es,
     );
   }
 
-  string icAlias = getICAliasName(es.stepID);
   defs.push_back(
     new CoqDefinition(
-      icAlias,
+      getICAliasName(es.stepID),
       "inst_counter",
       createInstCounter(es)
    )
   );
-  string commandAlias = getCommandAliasName(es.stepID);
   defs.push_back(
     new CoqDefinition(
-      commandAlias,
+      getCommandAliasName(es.stepID),
       "llvm_cmd",
       createCommand(es)
     )
   );
-  string commandsAlias = getCommandsAliasName(es.stepID);
   defs.push_back(
     new CoqDefinition(
-      commandsAlias,
+      getCommandsAliasName(es.stepID),
       "list llvm_cmd",
       createTrailingCommands(es)
     )
   );
-  string prevBIDAlias = getPrevBIDAliasName(es.stepID);
   defs.push_back(
     new CoqDefinition(
-      prevBIDAlias,
+      getPrevBIDAliasName(es.stepID),
       "option block_id",
       createPrevBID(es)
     )
   );
-  string localStoreAlias = getLocalStoreAliasName(es.stepID);
   defs.push_back(
     new CoqDefinition(
-      localStoreAlias,
+      getLocalStoreAliasName(es.stepID),
       "smt_store",
       createLocalStore(es)
     )
   );
-  string stackAlias = getStackAliasName(es.stepID);
   defs.push_back(
     new CoqDefinition(
-      stackAlias,
+      getStackAliasName(es.stepID),
       "list sym_frame",
       createStack(es)
     )
   );
-  string symbolicsAlias = getSymbolicsAliasName(es.stepID);
   defs.push_back(
     new CoqDefinition(
-      symbolicsAlias,
+      getSymbolicsAliasName(es.stepID),
       "list string",
       createSymbolics(es)
     )
   );
-  string pcAlias = getPCAliasName(es.stepID);
   defs.push_back(
     new CoqDefinition(
-      pcAlias,
+      getPCAliasName(es.stepID),
       "smt_ast_bool",
       createPC(es)
     )
@@ -207,15 +199,15 @@ klee::ref<CoqExpr> ProofGenerator::translateState(ExecutionState &es,
   return new CoqApplication(
     new CoqVariable("mk_sym_state"),
     {
-      new CoqVariable(icAlias),
-      new CoqVariable(commandAlias),
-      new CoqVariable(commandsAlias),
-      new CoqVariable(prevBIDAlias),
-      new CoqVariable(localStoreAlias),
-      new CoqVariable(stackAlias),
+      getICAlias(es.stepID),
+      getCommandAlias(es.stepID),
+      getCommandsAlias(es.stepID),
+      getPrevBIDAlias(es.stepID),
+      getLocalStoreAlias(es.stepID),
+      getStackAlias(es.stepID),
       createGlobalStore(es),
-      new CoqVariable(symbolicsAlias),
-      new CoqVariable(pcAlias),
+      getSymbolicsAlias(es.stepID),
+      getPCAlias(es.stepID),
       createModule(),
     }
   );
