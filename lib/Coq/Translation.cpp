@@ -317,13 +317,22 @@ ref<CoqExpr> ModuleTranslator::translateInst(Instruction &inst) {
 }
 
 ref<CoqExpr> ModuleTranslator::translateBinaryOperator(BinaryOperator *inst) {
-  Value *v1 = inst->getOperand(0);
-  Value *v2 = inst->getOperand(1);
+  return createCMDInst(
+    getInstID(inst),
+    createInstrOp(
+      translateBinaryOperatorName(inst),
+      translateBinaryOperatorExpr(inst)
+    )
+  );
+}
 
-  assert(v1->getType() == v2->getType());
-  Type *operandType = v1->getType();
+ref<CoqExpr> ModuleTranslator::translateBinaryOperatorName(BinaryOperator *inst) {
+  return createName(inst->getName().str());
+}
 
+ref<CoqExpr> ModuleTranslator::translateBinaryOperatorOpcode(BinaryOperator *inst) {
   ref<CoqExpr> op;
+
   switch (inst->getOpcode()) {
   case Instruction::Add:
     op = new CoqApplication(
@@ -359,47 +368,42 @@ ref<CoqExpr> ModuleTranslator::translateBinaryOperator(BinaryOperator *inst) {
     assert(false);
   }
 
-  return createCMDInst(
-    getInstID(inst),
-    createBinOp(
-      createName(inst->getName().str()),
-      op,
-      translateType(operandType),
-      translateValue(v1),
-      translateValue(v2)
-    )
-  );
+  return op;
 }
 
-ref<CoqExpr> ModuleTranslator::createBinOp(ref<CoqExpr> target,
-                                           ref<CoqExpr> ibinop,
-                                           ref<CoqExpr> arg_type,
-                                           ref<CoqExpr> arg1,
-                                           ref<CoqExpr> arg2) {
-  return new CoqApplication(
-    new CoqVariable("INSTR_Op"),
-    {
-      target,
-      new CoqApplication(
-        new CoqVariable("OP_IBinop"),
-        {
-          ibinop,
-          arg_type,
-          arg1,
-          arg2,
-        }
-      ),
-    }
-  );
-}
-
-ref<CoqExpr> ModuleTranslator::translateCmpInst(CmpInst *inst) {
+ref<CoqExpr> ModuleTranslator::translateBinaryOperatorExpr(BinaryOperator *inst) {
   Value *v1 = inst->getOperand(0);
   Value *v2 = inst->getOperand(1);
 
   assert(v1->getType() == v2->getType());
   Type *operandType = v1->getType();
 
+  return new CoqApplication(
+    new CoqVariable("OP_IBinop"),
+    {
+      translateBinaryOperatorOpcode(inst),
+      translateType(operandType),
+      translateValue(v1),
+      translateValue(v2),
+    }
+  );
+}
+
+ref<CoqExpr> ModuleTranslator::translateCmpInst(CmpInst *inst) {
+  return createCMDInst(
+    getInstID(inst),
+    createInstrOp(
+      translateCmpInstName(inst),
+      translateCmpInstExpr(inst)
+    )
+  );
+}
+
+ref<CoqExpr> ModuleTranslator::translateCmpInstName(CmpInst *inst) {
+  return createName(inst->getName().str());
+}
+
+ref<CoqExpr> ModuleTranslator::translateCmpInstPredicate(CmpInst *inst) {
   std::string op;
   switch (inst->getPredicate()) {
   case ICmpInst::ICMP_EQ:
@@ -446,37 +450,23 @@ ref<CoqExpr> ModuleTranslator::translateCmpInst(CmpInst *inst) {
     assert(false);
   }
 
-  return createCMDInst(
-    getInstID(inst),
-    createCmpOp(
-      createName(inst->getName().str()),
-      new CoqVariable(op),
-      translateType(operandType),
-      translateValue(v1),
-      translateValue(v2)
-    )
-  );
+  return new CoqVariable(op);
 }
 
+ref<CoqExpr> ModuleTranslator::translateCmpInstExpr(CmpInst *inst) {
+  Value *v1 = inst->getOperand(0);
+  Value *v2 = inst->getOperand(1);
 
-ref<CoqExpr> ModuleTranslator::createCmpOp(ref<CoqExpr> target,
-                                           ref<CoqExpr> icmp,
-                                           ref<CoqExpr> arg_type,
-                                           ref<CoqExpr> arg1,
-                                           ref<CoqExpr> arg2) {
+  assert(v1->getType() == v2->getType());
+  Type *operandType = v1->getType();
+
   return new CoqApplication(
-    new CoqVariable("INSTR_Op"),
+    new CoqVariable("OP_ICmp"),
     {
-      target,
-      new CoqApplication(
-        new CoqVariable("OP_ICmp"),
-        {
-          icmp,
-          arg_type,
-          arg1,
-          arg2,
-        }
-      ),
+      translateCmpInstPredicate(inst),
+      translateType(operandType),
+      translateValue(v1),
+      translateValue(v2),
     }
   );
 }
@@ -687,6 +677,17 @@ ref<CoqExpr> ModuleTranslator::createCMDPhi(uint64_t id, ref<CoqExpr> e) {
     {
       new CoqVariable(std::to_string(id)),
       e,
+    }
+  );
+}
+
+ref<CoqExpr> ModuleTranslator::createInstrOp(ref<CoqExpr> target,
+                                             ref<CoqExpr> expr) {
+  return new CoqApplication(
+    new CoqVariable("INSTR_Op"),
+    {
+      target,
+      expr,
     }
   );
 }

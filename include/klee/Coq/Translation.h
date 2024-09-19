@@ -85,19 +85,19 @@ public:
 
   ref<CoqExpr> translateBinaryOperator(llvm::BinaryOperator *inst);
 
-  ref<CoqExpr> createBinOp(ref<CoqExpr> target,
-                           ref<CoqExpr> ibinop,
-                           ref<CoqExpr> arg_type,
-                           ref<CoqExpr> arg1,
-                           ref<CoqExpr> arg2);
+  ref<CoqExpr> translateBinaryOperatorName(llvm::BinaryOperator *inst);
+
+  ref<CoqExpr> translateBinaryOperatorOpcode(llvm::BinaryOperator *inst);
+
+  ref<CoqExpr> translateBinaryOperatorExpr(llvm::BinaryOperator *inst);
 
   ref<CoqExpr> translateCmpInst(llvm::CmpInst *inst);
 
-  ref<CoqExpr> createCmpOp(ref<CoqExpr> target,
-                           ref<CoqExpr> icmp,
-                           ref<CoqExpr> arg_type,
-                           ref<CoqExpr> arg1,
-                           ref<CoqExpr> arg2);
+  ref<CoqExpr> translateCmpInstName(llvm::CmpInst *inst);
+
+  ref<CoqExpr> translateCmpInstPredicate(llvm::CmpInst *inst);
+
+  ref<CoqExpr> translateCmpInstExpr(llvm::CmpInst *inst);
 
   ref<CoqExpr> translateBranchInst(llvm::BranchInst *inst);
 
@@ -118,6 +118,8 @@ public:
   ref<CoqExpr> createCMDTerm(uint64_t id, ref<CoqExpr> e);
 
   ref<CoqExpr> createCMDPhi(uint64_t id, ref<CoqExpr> e);
+
+  ref<CoqExpr> createInstrOp(ref<CoqExpr> target, ref<CoqExpr> expr);
 
   ref<CoqExpr> translateValue(llvm::Value *v);
 
