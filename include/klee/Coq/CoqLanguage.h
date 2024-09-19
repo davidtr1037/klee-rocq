@@ -200,6 +200,8 @@ ref<CoqExpr> createFalse();
 
 ref<CoqExpr> createTrue();
 
+ref<CoqExpr> createNat(uint64_t n);
+
 ref<CoqExpr> createZ(uint64_t n);
 
 ref<CoqExpr> createEmptyList();
@@ -256,6 +258,14 @@ class Admit : public BasicTactic {
 public:
 
   Admit() : BasicTactic("admit") {}
+
+};
+
+class Assumption : public BasicTactic {
+
+public:
+
+  Assumption() : BasicTactic("assumption") {}
 
 };
 

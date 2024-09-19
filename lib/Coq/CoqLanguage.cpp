@@ -250,6 +250,12 @@ klee::ref<CoqExpr> klee::createFalse() {
   return coqFalse;
 }
 
+klee::ref<CoqExpr> klee::createNat(uint64_t n) {
+  ostringstream os;
+  os << "(" << n << ")" << "%nat";
+  return new CoqVariable(os.str());
+}
+
 klee::ref<CoqExpr> klee::createZ(uint64_t n) {
   ostringstream os;
   os << "(" << n << ")" << "%Z";
