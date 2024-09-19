@@ -399,18 +399,6 @@ Proof.
   assumption.
 Qed.
 
-(* TODO: rename *)
-Lemma equiv_smt_expr_1 : forall se se_no_opt se_opt,
-  Some se_no_opt = Some se ->
-  equiv_smt_expr se_no_opt se_opt ->
-  equiv_smt_expr se se_opt.
-Proof.
-  intros se se_no_opt se_opt Heq Hequiv.
-  apply injection_some in Heq.
-  subst.
-  assumption.
-Qed.
-
 Lemma equiv_smt_expr_via_some_injection : forall se1 se2,
   Some se1 = Some se2 ->
   equiv_smt_expr se2 se1.
