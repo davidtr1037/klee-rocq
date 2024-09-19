@@ -440,9 +440,27 @@ klee::ref<CoqLemma> ProofGenerator::createLemmaForLeaf(ExecutionState &state) {
   return createLemma(state.stepID, tactic);
 }
 
+/* TODO: check the instruction type */
 klee::ref<CoqTactic> ProofGenerator::getTacticForLeaf(ExecutionState &state) {
-  /* TODO: check the instruction type */
-  return new Apply("Safe_Leaf_Ret");
+  if (!DecomposeState) {
+    return new Apply("Safe_Leaf_Ret");
+  }
+
+  return new Apply(
+    "Safe_Leaf_Ret",
+    {
+      new CoqVariable(getICAliasName(state)),
+      createPlaceHolder(),
+      createPlaceHolder(),
+      createPlaceHolder(),
+      new CoqVariable(getPrevBIDAliasName(state)),
+      new CoqVariable(getLocalStoreAliasName(state)),
+      createGlobalStore(state),
+      new CoqVariable(getSymbolicsAliasName(state)),
+      new CoqVariable(getPCAliasName(state)),
+      createModule(),
+    }
+  );
 }
 
 void ProofGenerator::handleStep(StateInfo &si, ExecutionState &successor) {

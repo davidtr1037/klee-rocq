@@ -3787,7 +3787,6 @@ void Executor::run(ExecutionState &initialState) {
     stepInstruction(state);
 
     if (isInProofMode()) {
-      errs() << "executing " << *ki->inst << "\n";
       if (proofGenerator->moduleTranslator->isSupportedInst(*state.prevPC->inst)) {
         proofGenerator->generateState(state);
       }
