@@ -45,6 +45,10 @@ public:
 
   ref<CoqLemma> getBasicBlockDecompositionLemma(llvm::BasicBlock &bb);
 
+  void decomposeBasicBlock(llvm::BasicBlock &bb,
+                           ref<CoqExpr> &head,
+                           std::vector<ref<CoqExpr>> &tail);
+
   ref<CoqTactic> getTacticForEquivAssignment(StateInfo &si,
                                              ExecutionState &successor);
 

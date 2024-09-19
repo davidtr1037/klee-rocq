@@ -166,19 +166,7 @@ klee::ref<CoqLemma> OptimizedProofGenerator::getBasicBlockEntryLemma(BasicBlock 
 klee::ref<CoqLemma> OptimizedProofGenerator::getBasicBlockDecompositionLemma(BasicBlock &bb) {
   ref<CoqExpr> head = nullptr;
   std::vector<ref<CoqExpr>> tail;
-
-  for (Instruction &inst : bb) {
-    if (!head) {
-      head = moduleTranslator->translateInstCached(inst);
-    } else {
-      ref<CoqExpr> coqInst = moduleTranslator->translateInstCached(inst);
-      if (coqInst) {
-        tail.push_back(coqInst);
-      } else {
-        assert(false);
-      }
-    }
-  }
+  decomposeBasicBlock(bb, head, tail);
 
   ref<CoqExpr> body = new CoqImply(
     new CoqEq(
@@ -213,6 +201,25 @@ klee::ref<CoqLemma> OptimizedProofGenerator::getBasicBlockDecompositionLemma(Bas
     body,
     proof
   );
+}
+
+void OptimizedProofGenerator::decomposeBasicBlock(BasicBlock &bb,
+                                                  ref<CoqExpr> &head,
+                                                  std::vector<ref<CoqExpr>> &tail) {
+  head = nullptr;
+
+  for (Instruction &inst : bb) {
+    if (!head) {
+      head = moduleTranslator->translateInstCached(inst);
+    } else {
+      ref<CoqExpr> coqInst = moduleTranslator->translateInstCached(inst);
+      if (coqInst) {
+        tail.push_back(coqInst);
+      } else {
+        assert(false);
+      }
+    }
+  }
 }
 
 klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForEquivAssignment(StateInfo &si,
@@ -422,24 +429,36 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForEquivBranch(StateInfo 
       }
     );
   } else {
+    ref<CoqExpr> head = nullptr;
+    std::vector<ref<CoqExpr>> tail;
+    decomposeBasicBlock(*bb, head, tail);
     return new Block(
       {
-        new Apply("inversion_unconditional_br", "Hstep"),
-        new Destruct("Hstep", {{"d", "Hstep"}}),
-        new Destruct("Hstep", {{"b", "Hstep"}}),
-        new Destruct("Hstep", {{"c", "Hstep"}}),
-        new Destruct("Hstep", {{"cs", "Hstep"}}),
-        new Destruct("Hstep", {{"Hd", "Hb"}}),
-        new Destruct("Hb", {{"Hb", "Hcs"}}),
-        new Destruct("Hcs", {{"Hcs", "Heq"}}),
-        new Apply(functionLemma, "Hd"),
-        new Subst(),
-        new Apply(bbLemma, "Hb"),
-        new Subst(),
-        new Apply(bbDecompositionLemma, "Hcs"),
-        new Destruct("Hcs", {{"Hc", "Hcs"}}),
-        new Subst(),
-        new Apply("equiv_sym_state_refl"),
+        new Apply(
+          "equiv_sym_state_unconditional_br",
+          {
+            getICAlias(si.stepID),
+            createNat(moduleTranslator->getInstID(*si.inst)),
+            moduleTranslator->createName(bb->getName().str()),
+            getPrevBIDAlias(si.stepID),
+            getLocalStoreAlias(si.stepID),
+            getStackAlias(si.stepID),
+            createPlaceHolder(), /* TODO: pass argument */
+            getSymbolicsAlias(si.stepID),
+            getPCAlias(si.stepID),
+            createModule(),
+            moduleTranslator->translateFunctionCached(*f),
+            moduleTranslator->translateBasicBlockCached(*bb),
+            head,
+            new CoqList(tail),
+            new CoqVariable("s"),
+          }
+        ),
+        /* TODO: use module lemmas insead of reflexivity */
+        new Block({new Reflexivity()}),
+        new Block({new Reflexivity()}),
+        new Block({new Reflexivity()}),
+        new Block({new Assumption()}),
       }
     );
   }

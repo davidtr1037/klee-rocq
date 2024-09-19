@@ -641,6 +641,51 @@ Proof.
   reflexivity.
 Qed.
 
+Lemma equiv_sym_state_unconditional_br : forall ic cid tbid pbid ls stk gs syms pc mdl d b c cs s,
+  (find_function mdl (ic_fid ic)) = Some d ->
+  (fetch_block d tbid) = Some b ->
+  (blk_cmds b) = c :: cs ->
+  sym_step
+    (mk_sym_state
+      ic
+      (CMD_Term cid (TERM_UnconditionalBr tbid))
+      []
+      pbid
+      ls
+      stk
+      gs
+      syms
+      pc
+      mdl
+    )
+    s ->
+    equiv_sym_state
+      s
+      (mk_sym_state
+        (mk_inst_counter (ic_fid ic) tbid (get_cmd_id c))
+        c
+        cs
+        (Some (ic_bid ic))
+        ls
+        stk
+        gs
+        syms
+        pc
+        mdl
+      ).
+Proof.
+  intros ic cid tbid pbid ls stk gs syms pc mdl d b c cs s Hd Hb Hcs Hstep.
+  apply inversion_unconditional_br in Hstep.
+  destruct Hstep as [d' [b' [c' [cs' [Hd' [Hb' [Hcs' Heq]]]]]]].
+  rewrite Hd' in Hd.
+  inversion Hd; subst.
+  rewrite Hb' in Hb.
+  inversion Hb; subst.
+  rewrite Hcs' in Hcs.
+  inversion Hcs; subst.
+  apply equiv_sym_state_refl.
+Qed.
+
 Lemma inversion_br : forall ic cid e bid1 bid2 pbid ls stk gs syms pc mdl s,
   sym_step
     (mk_sym_state
