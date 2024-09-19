@@ -232,15 +232,6 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForEquivAssignment(StateI
             createSuffixUpdates(si.suffix),
           }
         ),
-        new Apply(
-          "equiv_smt_expr_1",
-          {
-            createPlaceHolder(),
-            createPlaceHolder(),
-            createPlaceHolder(),
-            new CoqVariable("Heval"),
-          }
-        ),
         new Apply("equiv_smt_expr_normalize_simplify"),
       }
     );
@@ -263,17 +254,47 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForEquivAssignment(StateI
     );
   }
 
+  /* TODO: add an option to decompose these (and define once) */
+  ref<CoqExpr> var = nullptr;
+  ref<CoqExpr> expr = nullptr;
+  if (isa<BinaryOperator>(si.inst)) {
+    BinaryOperator *bo = cast<BinaryOperator>(si.inst);
+    var = moduleTranslator->translateBinaryOperatorName(bo);
+    expr = moduleTranslator->translateBinaryOperatorExpr(bo);
+  }
+
+  if (isa<CmpInst>(si.inst)) {
+    CmpInst *ci = cast<CmpInst>(si.inst);
+    var = moduleTranslator->translateCmpInstName(ci);
+    expr = moduleTranslator->translateCmpInstExpr(ci);
+  }
+
+  assert(var && expr);
+
   return new Block(
     {
-      new Apply("inversion_instr_op", "Hstep"),
-      new Destruct("Hstep", {{"se", "Hstep"}}),
-      new Destruct("Hstep", {{"Heval", "Heq"}}),
-      new Rewrite("Heq"),
-      new Apply("EquivSymState"),
+      new Apply(
+        "equiv_sym_state_instr_op",
+        {
+          getICAlias(si.stepID),
+          createNat(moduleTranslator->getInstID(*si.inst)),
+          var,
+          expr,
+          getCommandAlias(successor.stepID),
+          getCommandsAlias(successor.stepID),
+          getPrevBIDAlias(si.stepID),
+          getLocalStoreAlias(si.stepID),
+          getStackAlias(si.stepID),
+          createPlaceHolder(), // createGlobalStore(),
+          getSymbolicsAlias(si.stepID),
+          getPCAlias(si.stepID),
+          createModule(),
+          getLocalStoreAlias(successor.stepID),
+          new CoqVariable("s"),
+        }
+      ),
       t,
-      new Block({new Apply("equiv_sym_stack_refl")}),
-      new Block({new Apply("equiv_smt_store_refl")}),
-      new Block({new Apply("equiv_smt_expr_refl")}),
+      new Block({new Assumption()}),
     }
   );
 }
