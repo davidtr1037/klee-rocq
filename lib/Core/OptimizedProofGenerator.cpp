@@ -246,6 +246,10 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtree(StateInfo &si,
     return getTacticForSubtreeBranch(si, successor);
   }
 
+  if (isa<CallInst>(si.inst)) {
+    return getTacticForSubtreeCall(si, successor);
+  }
+
   return nullptr;
 }
 
@@ -383,6 +387,7 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtreePHI(StateInfo &
     }
   );
 }
+
 klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtreeBranch(StateInfo &si,
                                                                         ExecutionState &successor) {
   BranchInst *bi = cast<BranchInst>(si.inst);
@@ -420,6 +425,121 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtreeBranch(StateInf
       new Block({new Apply("L_" + to_string(successor.stepID))}),
     }
   );
+}
+
+/* TODO: pass arguments */
+klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtreeCall(StateInfo &si,
+                                                                      ExecutionState &successor) {
+  CallInst *callInst = dyn_cast<CallInst>(si.inst);
+  assert(callInst);
+
+  Function *f = callInst->getCalledFunction();
+  assert(f);
+
+  /* entry basic block */
+  BasicBlock *bb = &f->getEntryBlock();
+
+  /* decompose */
+  ref<CoqExpr> head = nullptr;
+  std::vector<ref<CoqExpr>> tail;
+  decomposeBasicBlock(*bb, head, tail);
+
+  if (callInst->getFunctionType()->getReturnType()->isVoidTy()) {
+    return nullptr;
+  } else {
+    return new Block(
+      {
+        new Apply(
+          "safe_subtree_call",
+          {
+            getICAlias(si.stepID),
+            createNat(moduleTranslator->getInstID(callInst)),
+            createPlaceHolder(),
+            createPlaceHolder(),
+            createPlaceHolder(),
+            createPlaceHolder(),
+            createPlaceHolder(),
+            createPlaceHolder(),
+            createPlaceHolder(),
+            getPrevBIDAlias(si.stepID),
+            getLocalStoreAlias(si.stepID),
+            getStackAlias(si.stepID),
+            createGlobalStore(),
+            getSymbolicsAlias(si.stepID),
+            getPCAlias(si.stepID),
+            createModule(),
+            moduleTranslator->translateFunctionCached(*f),
+            moduleTranslator->translateBasicBlockCached(*bb),
+            head,
+            new CoqList(tail),
+            getLocalStoreAlias(successor.stepID),
+            getTreeAlias(successor.stepID),
+          }
+        ),
+        new Block({new Reflexivity()}),
+        new Block({new Reflexivity()}),
+        new Block({new Reflexivity()}),
+        new Block({new Reflexivity()}),
+        new Block({new Reflexivity()}),
+        new Block({new Reflexivity()}),
+        new Block({new Apply("L_" + to_string(successor.stepID))}),
+      }
+    );
+  }
+}
+
+klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtreeReturn(StateInfo &si,
+                                                                        ExecutionState &successor) {
+  ReturnInst *returnInst = dyn_cast<ReturnInst>(si.inst);
+  assert(returnInst);
+  return nullptr;
+
+//  /* target instruction */
+//  Instruction *inst = successor.pc->inst;
+//  Function *f = inst->getParent()->getParent();
+//
+//  if (returnInst->getReturnValue()) {
+//    ref<CoqTactic> t;
+//
+//    return new Block(
+//      {
+//        new Apply(
+//          "safe_subtree_ret",
+//          {
+//            getICAlias(si.stepID),
+//            createNat(moduleTranslator->getInstID(callInst)),
+//            createPlaceHolder(),
+//            createPlaceHolder(),
+//            createPlaceHolder(),
+//            getPrevBIDAlias(si.stepID),
+//            getLocalStoreAlias(si.stepID),
+//            createPlaceHolder(),
+//            createPlaceHolder(),
+//            createPlaceHolder(),
+//            createPlaceHolder(),
+//            getStackAlias(si.stepID),
+//            createGlobalStore(),
+//            getSymbolicsAlias(si.stepID),
+//            getPCAlias(si.stepID),
+//            createModule(),
+//            moduleTranslator->translateFunctionCached(*f),
+//            moduleTranslator->translateBasicBlockCached(*bb),
+//            createPlaceHolder(),
+//            getTreeAlias(successor.stepID),
+//          }
+//        ),
+//        new Block({new Reflexivity()}),
+//        new Block({new Reflexivity()}),
+//        new Block({new Reflexivity()}),
+//        new Block({new Reflexivity()}),
+//        new Block({new Reflexivity()}),
+//        new Block({new Reflexivity()}),
+//        new Block({new Apply("L_" + to_string(successor.stepID))}),
+//      }
+//    );
+//  } else {
+//    return nullptr;
+//  }
 }
 
 klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForEquivAssignment(StateInfo &si,

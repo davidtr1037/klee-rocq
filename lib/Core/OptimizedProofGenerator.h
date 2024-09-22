@@ -64,6 +64,12 @@ public:
   ref<CoqTactic> getTacticForSubtreeBranch(StateInfo &si,
                                            ExecutionState &successor);
 
+  ref<CoqTactic> getTacticForSubtreeCall(StateInfo &si,
+                                         ExecutionState &successor);
+
+  ref<CoqTactic> getTacticForSubtreeReturn(StateInfo &si,
+                                           ExecutionState &successor);
+
   ref<CoqTactic> getTacticForEquivAssignment(StateInfo &si,
                                              ExecutionState &successor);
 
