@@ -100,6 +100,10 @@ public:
                                       SuccessorInfo &successor1,
                                       SuccessorInfo &successor2);
 
+  ref<CoqTactic> getTacticForSubtree(StateInfo &stateInfo,
+                                     SuccessorInfo &successor1,
+                                     SuccessorInfo &successor2);
+
   ref<CoqTactic> getTacticForUnsat(ref<CoqExpr> pc, uint64_t axiomID);
 
 };

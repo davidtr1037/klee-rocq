@@ -269,6 +269,12 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtree(StateInfo &si,
   }
 
   if (isa<CallInst>(si.inst)) {
+    if (isMakeSymbolicInt32(si.inst)) {
+      return nullptr;
+    }
+    if (isAssumeBool(si.inst)) {
+      return nullptr;
+    }
     return getTacticForSubtreeCall(si, successor);
   }
 
@@ -1022,6 +1028,17 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForEquivReturn(StateInfo 
 klee::ref<CoqLemma> OptimizedProofGenerator::createLemmaForSubtree(StateInfo &stateInfo,
                                                                    SuccessorInfo &si1,
                                                                    SuccessorInfo &si2) {
+  ref<CoqTactic> t = getTacticForSubtree(stateInfo, si1, si2);
+  if (t) {
+    return createLemma(stateInfo.stepID, t);
+  } else {
+    return ProofGenerator::createLemmaForSubtree(stateInfo, si1, si2);
+  }
+}
+
+klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtree(StateInfo &stateInfo,
+                                                                  SuccessorInfo &si1,
+                                                                  SuccessorInfo &si2) {
   BranchInst *bi = dyn_cast<BranchInst>(stateInfo.inst);
   assert(bi && bi->isConditional());
 
@@ -1055,7 +1072,7 @@ klee::ref<CoqLemma> OptimizedProofGenerator::createLemmaForSubtree(StateInfo &st
     Instruction *targetInst = si1.state->pc->inst;
     BasicBlock *targetBB = targetInst->getParent();
 
-    ref<CoqTactic> t = new Block(
+    return new Block(
       {
         new Apply(
           "safe_subtree_br_sat_unsat",
@@ -1077,7 +1094,7 @@ klee::ref<CoqLemma> OptimizedProofGenerator::createLemmaForSubtree(StateInfo &st
             moduleTranslator->translateBasicBlockCached(*targetBB),
             getCommandAlias(si1.state->stepID),
             getCommandsAlias(si1.state->stepID),
-            satPC,
+            getPCAlias(si1.state->stepID),
             unsatPC,
             getTreeAlias(si1.state->stepID),
           }
@@ -1093,8 +1110,6 @@ klee::ref<CoqLemma> OptimizedProofGenerator::createLemmaForSubtree(StateInfo &st
         new Block({new Apply("UNSAT_" + to_string(axiomID))}),
       }
     );
-
-    return createLemma(stateInfo.stepID, t);
   }
 
   if (!si1.isSat && si2.isSat) {
@@ -1109,7 +1124,7 @@ klee::ref<CoqLemma> OptimizedProofGenerator::createLemmaForSubtree(StateInfo &st
     Instruction *targetInst = si2.state->pc->inst;
     BasicBlock *targetBB = targetInst->getParent();
 
-    ref<CoqTactic> t = new Block(
+    return new Block(
       {
         new Apply(
           "safe_subtree_br_unsat_sat",
@@ -1131,7 +1146,7 @@ klee::ref<CoqLemma> OptimizedProofGenerator::createLemmaForSubtree(StateInfo &st
             moduleTranslator->translateBasicBlockCached(*targetBB),
             getCommandAlias(si2.state->stepID),
             getCommandsAlias(si2.state->stepID),
-            satPC,
+            getPCAlias(si2.state->stepID),
             unsatPC,
             getTreeAlias(si2.state->stepID),
           }
@@ -1147,11 +1162,9 @@ klee::ref<CoqLemma> OptimizedProofGenerator::createLemmaForSubtree(StateInfo &st
         new Block({new Apply("UNSAT_" + to_string(axiomID))}),
       }
     );
-
-    return createLemma(stateInfo.stepID, t);
   }
 
-  return ProofGenerator::createLemmaForSubtree(stateInfo, si1, si2);
+  return nullptr;
 }
 
 klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForStep(StateInfo &stateInfo,
