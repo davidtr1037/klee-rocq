@@ -1375,6 +1375,76 @@ Proof.
   reflexivity.
 Qed.
 
+Lemma safe_subtree_ret : forall ic cid rtype e pbid ls ls' ic' pbid' v stk gs syms pc mdl se d c' cs' t,
+  let s_init :=
+    (mk_sym_state
+      ic
+      (CMD_Term cid (TERM_Ret (rtype, e)))
+      []
+      pbid
+      ls
+      ((Sym_Frame ls' ic' pbid' (Some v)) :: stk)
+      gs
+      syms
+      pc
+      mdl
+    ) in
+  (sym_eval_exp ls gs (Some rtype) e) = Some se ->
+  (find_function mdl (ic_fid ic')) = Some d ->
+  (get_trailing_cmds d ic') = Some (c' :: cs') ->
+  (root t =
+    (mk_sym_state
+      ic'
+      c'
+      cs'
+      pbid'
+      (v !-> Some se; ls')
+      stk
+      gs
+      syms
+      pc
+      mdl
+    )
+  ) ->
+  (safe_et_opt t) ->
+  (safe_et_opt (t_subtree s_init [t])).
+Proof.
+  intros ic cid rtype e pbid ls ls' ic' pbid' v stk gs syms pc mdl se d c' cs' t.
+  intros s_init Heval Hd Hcs Ht Hsafe.
+  apply Safe_Subtree.
+  {
+    apply not_error_ret.
+  }
+  {
+    intros s' Hstep.
+    left.
+    exists t.
+    split.
+    { apply in_list_0. }
+    {
+      split.
+      { assumption. }
+      {
+        apply inversion_ret in Hstep.
+        destruct Hstep as [se' [d' [c'' [cs'' [Heval' [Hd' [Hcs' Hs]]]]]]].
+        rewrite Hs.
+        rewrite Ht.
+        rewrite Hd' in Hd.
+        inversion Hd; subst.
+        rewrite Hcs' in Hcs.
+        inversion Hcs; subst.
+        rewrite Heval' in Heval.
+        inversion Heval; subst.
+        apply EquivSymState.
+        { apply equiv_smt_store_refl. }
+        { apply equiv_sym_stack_refl. }
+        { apply equiv_smt_store_refl. }
+        { apply equiv_smt_expr_refl. }
+      }
+    }
+  }
+Qed.
+
 Lemma inversion_ret_void : forall ic cid pbid ls ls' ic' pbid' stk gs syms pc mdl s,
   sym_step
     (mk_sym_state
@@ -1412,4 +1482,71 @@ Proof.
   split; try assumption.
   split; try assumption.
   reflexivity.
+Qed.
+
+Lemma safe_subtree_ret_void : forall ic cid pbid ls ls' ic' pbid' stk gs syms pc mdl d c' cs' t,
+  let s_init :=
+    (mk_sym_state
+      ic
+      (CMD_Term cid (TERM_RetVoid))
+      []
+      pbid
+      ls
+      ((Sym_Frame ls' ic' pbid' None) :: stk)
+      gs
+      syms
+      pc
+      mdl
+    ) in
+  (find_function mdl (ic_fid ic')) = Some d ->
+  (get_trailing_cmds d ic') = Some (c' :: cs') ->
+  (root t =
+    (mk_sym_state
+      ic'
+      c'
+      cs'
+      pbid'
+      ls'
+      stk
+      gs
+      syms
+      pc
+      mdl
+    )
+  ) ->
+  (safe_et_opt t) ->
+  (safe_et_opt (t_subtree s_init [t])).
+Proof.
+  intros ic cid pbid ls ls' ic' pbid' stk gs syms pc mdl d c' cs' t.
+  intros s_init Hd Hcs Ht Hsafe.
+  apply Safe_Subtree.
+  {
+    apply not_error_ret_void.
+  }
+  {
+    intros s' Hstep.
+    left.
+    exists t.
+    split.
+    { apply in_list_0. }
+    {
+      split.
+      { assumption. }
+      {
+        apply inversion_ret_void in Hstep.
+        destruct Hstep as [d' [c'' [cs'' [Hd' [Hcs' Hs]]]]].
+        rewrite Hs.
+        rewrite Ht.
+        rewrite Hd' in Hd.
+        inversion Hd; subst.
+        rewrite Hcs' in Hcs.
+        inversion Hcs; subst.
+        apply EquivSymState.
+        { apply equiv_smt_store_refl. }
+        { apply equiv_sym_stack_refl. }
+        { apply equiv_smt_store_refl. }
+        { apply equiv_smt_expr_refl. }
+      }
+    }
+  }
 Qed.
