@@ -477,9 +477,9 @@ Proof.
   reflexivity.
 Qed.
 
-Lemma equiv_sym_state_instr_op : forall ic cid v e c cs pbid ls stk gs syms pc mdl ls_opt s,
+Lemma safe_subtree_instr_op : forall ic cid v e c cs pbid ls stk gs syms pc mdl ls_opt t,
   equiv_smt_store (v !-> (sym_eval_exp ls gs None e); ls) ls_opt ->
-  sym_step
+  let s_init :=
     (mk_sym_state
       ic
       (CMD_Inst cid (INSTR_Op v e))
@@ -491,33 +491,53 @@ Lemma equiv_sym_state_instr_op : forall ic cid v e c cs pbid ls stk gs syms pc m
       syms
       pc
       mdl
+    ) in
+  (root t =
+    (mk_sym_state
+      (next_inst_counter ic c)
+      c
+      cs
+      pbid
+      ls_opt
+      stk
+      gs
+      syms
+      pc
+      mdl
     )
-    s ->
-    equiv_sym_state
-      s
-      (mk_sym_state
-        (next_inst_counter ic c)
-        c
-        cs
-        pbid
-        ls_opt
-        stk
-        gs
-        syms
-        pc
-        mdl
-      ).
+  ) ->
+  (safe_et_opt t) ->
+  (safe_et_opt (t_subtree s_init [t])).
 Proof.
-  intros ic cid v e c cs pbid ls stk gs syms pc mdl ls_opt s Heq Hstep.
-  apply inversion_instr_op in Hstep.
-  destruct Hstep as [se' [Heval' Hs]].
-  subst.
-  rewrite Heval' in Heq.
-  apply EquivSymState.
-  { assumption. }
-  { apply equiv_sym_stack_refl. }
-  { apply equiv_smt_store_refl. }
-  { apply equiv_smt_expr_refl. }
+  intros ic cid v e c cs pbid ls stk gs syms pc mdl ls_opt t.
+  intros Heq s_init Ht Hsafe.
+  apply Safe_Subtree.
+  { apply not_error_instr_op. }
+  {
+    intros s' Hstep.
+    left.
+    exists t.
+    split.
+    { apply in_list_0. }
+    {
+      split.
+      { assumption. }
+      {
+        apply inversion_instr_op in Hstep.
+        destruct Hstep as [se [Heval Hs]].
+        rewrite Hs.
+        rewrite Ht.
+        apply EquivSymState.
+        {
+          rewrite <- Heval.
+          assumption.
+        }
+        { apply equiv_sym_stack_refl. }
+        { apply equiv_smt_store_refl. }
+        { apply equiv_smt_expr_refl. }
+      }
+    }
+  }
 Qed.
 
 Lemma inversion_phi : forall ic cid v t args c cs pbid ls stk gs syms pc mdl s,

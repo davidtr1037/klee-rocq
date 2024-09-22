@@ -224,7 +224,7 @@ void OptimizedProofGenerator::decomposeBasicBlock(BasicBlock &bb,
 
 klee::ref<CoqLemma> OptimizedProofGenerator::createLemmaForSubtree(StateInfo &si,
                                                                    ExecutionState &successor) {
-  ref<CoqTactic> t = createTacticForSubtree(si, successor);
+  ref<CoqTactic> t = getTacticForSubtree(si, successor);
   if (t) {
     return createLemma(si.stepID, t);
   }
@@ -232,17 +232,93 @@ klee::ref<CoqLemma> OptimizedProofGenerator::createLemmaForSubtree(StateInfo &si
   return ProofGenerator::createLemmaForSubtree(si, successor);
 }
 
-klee::ref<CoqTactic> OptimizedProofGenerator::createTacticForSubtree(StateInfo &si,
-                                                                    ExecutionState &successor) {
+klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtree(StateInfo &si,
+                                                                  ExecutionState &successor) {
+  if (isa<BinaryOperator>(si.inst) || isa<CmpInst>(si.inst)) {
+    return getTacticForSubtreeAssignment(si, successor);
+  }
   if (isa<BranchInst>(si.inst)) {
-    return createTacticForSubtreeBranch(si, successor);
+    return getTacticForSubtreeBranch(si, successor);
   }
 
   return nullptr;
 }
 
-klee::ref<CoqTactic> OptimizedProofGenerator::createTacticForSubtreeBranch(StateInfo &si,
-                                                                          ExecutionState &successor) {
+klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtreeAssignment(StateInfo &si,
+                                                                            ExecutionState &successor) {
+  ref<CoqTactic> t;
+  if (si.wasRegisterUpdated) {
+    t = new Block(
+      {
+        new Apply(
+          "equiv_smt_store_on_optimized_update",
+          {
+            createPlaceHolder(),
+            createPlaceHolder(),
+            createPlaceHolder(),
+            createPlaceHolder(),
+            createPlaceHolder(),
+            createSuffixUpdates(si.suffix),
+          }
+        ),
+        new Apply("equiv_smt_expr_normalize_simplify"),
+      }
+    );
+  } else {
+    t = new Block(
+      {
+        new Apply("equiv_smt_store_on_update"),
+        new Apply("equiv_smt_expr_normalize_simplify"),
+      }
+    );
+  }
+
+  ref<CoqExpr> var = nullptr;
+  ref<CoqExpr> expr = nullptr;
+  if (isa<BinaryOperator>(si.inst)) {
+    BinaryOperator *bo = cast<BinaryOperator>(si.inst);
+    var = moduleTranslator->translateBinaryOperatorName(bo);
+    expr = moduleTranslator->translateBinaryOperatorExpr(bo);
+  }
+
+  if (isa<CmpInst>(si.inst)) {
+    CmpInst *ci = cast<CmpInst>(si.inst);
+    var = moduleTranslator->translateCmpInstName(ci);
+    expr = moduleTranslator->translateCmpInstExpr(ci);
+  }
+
+  assert(var && expr);
+  return new Block(
+    {
+      new Apply(
+        "safe_subtree_instr_op",
+        {
+          getICAlias(si.stepID),
+          createNat(moduleTranslator->getInstID(si.inst)),
+          var,
+          expr,
+          createPlaceHolder(),
+          createPlaceHolder(),
+          getPrevBIDAlias(si.stepID),
+          getLocalStoreAlias(si.stepID),
+          getStackAlias(si.stepID),
+          createGlobalStore(),
+          getSymbolicsAlias(si.stepID),
+          getPCAlias(si.stepID),
+          createModule(),
+          getLocalStoreAlias(successor.stepID),
+          getTreeAlias(successor.stepID),
+        }
+      ),
+      t,
+      new Block({new Reflexivity()}),
+      new Block({new Apply("L_" + to_string(successor.stepID))}),
+    }
+  );
+}
+
+klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtreeBranch(StateInfo &si,
+                                                                        ExecutionState &successor) {
   BranchInst *bi = cast<BranchInst>(si.inst);
   assert(bi && !bi->isConditional());
   BasicBlock *bb = bi->getParent();

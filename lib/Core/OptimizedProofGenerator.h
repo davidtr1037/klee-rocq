@@ -52,11 +52,14 @@ public:
   ref<CoqLemma> createLemmaForSubtree(StateInfo &si,
                                       ExecutionState &successor);
 
-  ref<CoqTactic> createTacticForSubtree(StateInfo &si,
-                                       ExecutionState &successor);
+  ref<CoqTactic> getTacticForSubtree(StateInfo &si,
+                                     ExecutionState &successor);
 
-  ref<CoqTactic> createTacticForSubtreeBranch(StateInfo &si,
-                                             ExecutionState &successor);
+  ref<CoqTactic> getTacticForSubtreeAssignment(StateInfo &si,
+                                               ExecutionState &successor);
+
+  ref<CoqTactic> getTacticForSubtreeBranch(StateInfo &si,
+                                           ExecutionState &successor);
 
   ref<CoqTactic> getTacticForEquivAssignment(StateInfo &si,
                                              ExecutionState &successor);
