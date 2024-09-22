@@ -1072,6 +1072,26 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtree(StateInfo &sta
     Instruction *targetInst = si1.state->pc->inst;
     BasicBlock *targetBB = targetInst->getParent();
 
+    ref<CoqTactic> t;
+    if (!isa<ConstantExpr>(stateInfo.branchCondition)) {
+      t = new Block(
+        {
+          new Apply(
+            "implied_condition",
+            {
+              createPlaceHolder(),
+              createPlaceHolder(),
+              unsatPC,
+            }
+          ),
+          new Block({new Apply("equiv_smt_expr_normalize_simplify")}),
+          new Block({new Apply("UNSAT_" + to_string(axiomID))}),
+        }
+      );
+    } else {
+      t = new Block({new Apply("equiv_smt_expr_normalize_simplify")});
+    }
+
     return new Block(
       {
         new Apply(
@@ -1105,7 +1125,7 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtree(StateInfo &sta
         new Block({new Reflexivity()}),
         new Block({new Reflexivity()}),
         new Block({new Apply("L_" + to_string(si1.state->stepID))}),
-        new Block({new Apply("equiv_smt_expr_normalize_simplify")}),
+        t,
         new Block({new Apply("equiv_smt_expr_normalize_simplify")}),
         new Block({new Apply("UNSAT_" + to_string(axiomID))}),
       }
@@ -1123,6 +1143,26 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtree(StateInfo &sta
 
     Instruction *targetInst = si2.state->pc->inst;
     BasicBlock *targetBB = targetInst->getParent();
+
+    ref<CoqTactic> t;
+    if (!isa<ConstantExpr>(stateInfo.branchCondition)) {
+      t = new Block(
+        {
+          new Apply(
+            "implied_negated_condition",
+            {
+              createPlaceHolder(),
+              createPlaceHolder(),
+              unsatPC,
+            }
+          ),
+          new Block({new Apply("equiv_smt_expr_normalize_simplify")}),
+          new Block({new Apply("UNSAT_" + to_string(axiomID))}),
+        }
+      );
+    } else {
+      t = new Block({new Apply("equiv_smt_expr_normalize_simplify")});
+    }
 
     return new Block(
       {
@@ -1157,7 +1197,7 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtree(StateInfo &sta
         new Block({new Reflexivity()}),
         new Block({new Reflexivity()}),
         new Block({new Apply("L_" + to_string(si2.state->stepID))}),
-        new Block({new Apply("equiv_smt_expr_normalize_simplify")}),
+        t,
         new Block({new Apply("equiv_smt_expr_normalize_simplify")}),
         new Block({new Apply("UNSAT_" + to_string(axiomID))}),
       }
