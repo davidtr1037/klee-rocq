@@ -75,23 +75,6 @@ public:
   ref<CoqTactic> getTacticForSubtreeReturn(StateInfo &si,
                                            ExecutionState &successor);
 
-  ref<CoqTactic> getTacticForEquivAssignment(StateInfo &si,
-                                             ExecutionState &successor);
-
-  ref<CoqTactic> getTacticForEquivPHI(StateInfo &si,
-                                      ExecutionState &successor);
-
-  ref<CoqTactic> getTacticForEquivBranch(StateInfo &si,
-                                         ExecutionState &successor,
-                                         ProofHint *hint);
-
-  ref<CoqTactic> getTacticForEquivSimpleCall(StateInfo &si,
-                                             ExecutionState &successor);
-
-  ref<CoqTactic> getTacticForEquivReturn(StateInfo &si,
-                                         ExecutionState &successor);
-
-
   ref<CoqTactic> getTacticForStep(StateInfo &stateInfo,
                                   SuccessorInfo &si1,
                                   SuccessorInfo &si2);
