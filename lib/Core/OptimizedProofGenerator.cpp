@@ -1204,7 +1204,56 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtree(StateInfo &sta
     );
   }
 
-  return nullptr;
+  Instruction *inst1 = si1.state->pc->inst;
+  BasicBlock *bb1 = inst1->getParent();
+  Instruction *inst2 = si2.state->pc->inst;
+  BasicBlock *bb2 = inst2->getParent();
+
+  return new Block(
+    {
+      new Apply(
+        "safe_subtree_br_fork",
+        {
+          getICAlias(stateInfo.stepID),
+          createNat(moduleTranslator->getInstID(bi)),
+          moduleTranslator->translateBranchInstExpr(bi),
+          moduleTranslator->translateBranchInstBid(bi, 0),
+          moduleTranslator->translateBranchInstBid(bi, 1),
+          getPrevBIDAlias(stateInfo.stepID),
+          getLocalStoreAlias(stateInfo.stepID),
+          getStackAlias(stateInfo.stepID),
+          createGlobalStore(),
+          getSymbolicsAlias(stateInfo.stepID),
+          getPCAlias(stateInfo.stepID),
+          createModule(),
+          cond,
+          moduleTranslator->translateFunctionCached(*f),
+          moduleTranslator->translateBasicBlockCached(*bb1),
+          getCommandAlias(si1.state->stepID),
+          getCommandsAlias(si1.state->stepID),
+          getPCAlias(si1.state->stepID),
+          moduleTranslator->translateBasicBlockCached(*bb2),
+          getCommandAlias(si2.state->stepID),
+          getCommandsAlias(si2.state->stepID),
+          getPCAlias(si2.state->stepID),
+          getTreeAlias(si1.state->stepID),
+          getTreeAlias(si2.state->stepID),
+        }
+      ),
+      new Block({new Reflexivity()}),
+      new Block({new Reflexivity()}),
+      new Block({new Reflexivity()}),
+      new Block({new Reflexivity()}),
+      new Block({new Reflexivity()}),
+      new Block({new Reflexivity()}),
+      new Block({new Reflexivity()}),
+      new Block({new Apply("L_" + to_string(si1.state->stepID))}),
+      new Block({new Apply("equiv_smt_expr_normalize_simplify")}),
+      new Block({new Reflexivity()}),
+      new Block({new Apply("L_" + to_string(si2.state->stepID))}),
+      new Block({new Apply("equiv_smt_expr_normalize_simplify")}),
+    }
+  );
 }
 
 klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForStep(StateInfo &stateInfo,
