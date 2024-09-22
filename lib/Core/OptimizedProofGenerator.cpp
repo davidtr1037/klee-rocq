@@ -222,6 +222,51 @@ void OptimizedProofGenerator::decomposeBasicBlock(BasicBlock &bb,
   }
 }
 
+klee::ref<CoqLemma> OptimizedProofGenerator::createLemmaForSubtree(StateInfo &si,
+                                                                   ExecutionState &successor) {
+  if (isa<BranchInst>(si.inst)) {
+    BranchInst *bi = cast<BranchInst>(si.inst);
+    assert(!bi->isConditional());
+    BasicBlock *bb = bi->getParent();
+    Function *f = bb->getParent();
+    BasicBlock *targetBB = bi->getSuccessor(0);
+
+    ref<CoqTactic> t = new Block(
+      {
+        new Apply(
+          "safe_subtree_unconditional_br",
+          {
+            getICAlias(si.stepID),
+            createNat(moduleTranslator->getInstID(bi)),
+            moduleTranslator->translateBranchInstBid(bi, 0),
+            getPrevBIDAlias(si.stepID),
+            getLocalStoreAlias(si.stepID),
+            getStackAlias(si.stepID),
+            createGlobalStore(),
+            getSymbolicsAlias(si.stepID),
+            getPCAlias(si.stepID),
+            createModule(),
+            moduleTranslator->translateFunctionCached(*f),
+            moduleTranslator->translateBasicBlockCached(*targetBB),
+            getCommandAlias(successor.stepID),
+            getCommandsAlias(successor.stepID),
+            getTreeAlias(successor.stepID),
+          }
+        ),
+        new Block({new Reflexivity()}),
+        new Block({new Reflexivity()}),
+        new Block({new Reflexivity()}),
+        new Block({new Reflexivity()}),
+        new Block({new Apply("L_" + to_string(successor.stepID))}),
+      }
+    );
+
+    return createLemma(si.stepID, t);
+  }
+
+  return ProofGenerator::createLemmaForSubtree(si, successor);
+}
+
 klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForEquivAssignment(StateInfo &si,
                                                                           ExecutionState &successor) {
   ref<CoqTactic> t;
@@ -655,11 +700,7 @@ klee::ref<CoqLemma> OptimizedProofGenerator::createLemmaForSubtree(StateInfo &st
                                                                    SuccessorInfo &si1,
                                                                    SuccessorInfo &si2) {
   BranchInst *bi = dyn_cast<BranchInst>(stateInfo.inst);
-  assert(bi);
-
-  if (!bi->isConditional()) {
-    return ProofGenerator::createLemmaForSubtree(stateInfo, si1, si2);
-  }
+  assert(bi && bi->isConditional());
 
   BasicBlock *bb = bi->getParent();
   Function *f = bb->getParent();
@@ -694,7 +735,7 @@ klee::ref<CoqLemma> OptimizedProofGenerator::createLemmaForSubtree(StateInfo &st
     ref<CoqTactic> t = new Block(
       {
         new Apply(
-          "equiv_sym_state_br_sat_unsat",
+          "safe_subtree_br_sat_unsat",
           {
             getICAlias(stateInfo.stepID),
             createNat(moduleTranslator->getInstID(bi)),
@@ -748,7 +789,7 @@ klee::ref<CoqLemma> OptimizedProofGenerator::createLemmaForSubtree(StateInfo &st
     ref<CoqTactic> t = new Block(
       {
         new Apply(
-          "equiv_sym_state_br_unsat_sat",
+          "safe_subtree_br_unsat_sat",
           {
             getICAlias(stateInfo.stepID),
             createNat(moduleTranslator->getInstID(bi)),

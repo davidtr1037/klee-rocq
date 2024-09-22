@@ -49,6 +49,9 @@ public:
                            ref<CoqExpr> &head,
                            std::vector<ref<CoqExpr>> &tail);
 
+  ref<CoqLemma> createLemmaForSubtree(StateInfo &si,
+                                      ExecutionState &successor);
+
   ref<CoqTactic> getTacticForEquivAssignment(StateInfo &si,
                                              ExecutionState &successor);
 

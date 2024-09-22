@@ -139,8 +139,8 @@ public:
 
   void handleStep(StateInfo &si, ExecutionState &successor);
 
-  ref<CoqLemma> createLemmaForSubtree(StateInfo &si,
-                                      ExecutionState &successor);
+  virtual ref<CoqLemma> createLemmaForSubtree(StateInfo &si,
+                                              ExecutionState &successor);
 
   ref<CoqTactic> getTacticForSafety(StateInfo &si);
 
