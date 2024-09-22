@@ -761,6 +761,114 @@ Proof.
   }
 Qed.
 
+Definition extract_ast (se : option smt_expr) : (smt_ast Sort_BV1) :=
+  match se with
+  | Some se =>
+      match se with
+      | Expr Sort_BV1 ast => ast
+      | _ => smt_ast_false
+      end
+  | None => smt_ast_false
+  end
+.
+
+Lemma equiv_sym_state_br_sat_unsat : forall ic cid e bid1 bid2 pbid ls stk gs syms pc mdl cond d b1 c1 cs1 pc1 pc2 t,
+  (sym_eval_exp ls gs (Some (TYPE_I 1)) e) = Some (Expr Sort_BV1 cond) ->
+  (find_function mdl (ic_fid ic)) = Some d ->
+  (fetch_block d bid1) = Some b1 ->
+  (blk_cmds b1) = c1 :: cs1 ->
+  let s_init :=
+    (mk_sym_state
+      ic
+      (CMD_Term cid (TERM_Br ((TYPE_I 1), e) bid1 bid2))
+      []
+      pbid
+      ls
+      stk
+      gs
+      syms
+      pc
+      mdl
+    ) in
+  (root t =
+    (mk_sym_state
+      (mk_inst_counter (ic_fid ic) bid1 (get_cmd_id c1))
+      c1
+      cs1
+      (Some (ic_bid ic))
+      ls
+      stk
+      gs
+      syms
+      pc1
+      mdl
+    )
+  ) ->
+  (safe_et_opt t) ->
+  (equiv_smt_expr
+    (Expr Sort_BV1 (AST_BinOp Sort_BV1 SMT_And pc cond))
+    (Expr Sort_BV1 pc1)
+  ) ->
+  (equiv_smt_expr
+    (Expr Sort_BV1 (AST_BinOp Sort_BV1 SMT_And pc (AST_Not Sort_BV1 cond)))
+    (Expr Sort_BV1 pc2)
+  ) ->
+  unsat pc2 ->
+  (safe_et_opt (t_subtree s_init [t])).
+Proof.
+  intros ic cid e bid1 bid2 pbid ls stk gs syms pc mdl cond d b1 c1 cs1 pc1 pc2 t.
+  intros Heval Hd Hb1 Hcs1 s_init Ht Hsafe Heq1 Heq2 Hunsat2.
+  apply Safe_Subtree.
+  { apply not_error_br. }
+  {
+    intros s' Hstep.
+    apply inversion_br in Hstep.
+    destruct Hstep as [cond' [d' [b' [c' [cs' [Heval' [Hd' H]]]]]]].
+    rewrite Heval' in Heval.
+    apply injection_some in Heval.
+    apply injection_expr in Heval.
+    subst.
+    rewrite Hd' in Hd.
+    inversion Hd; subst.
+    destruct H as [H | H].
+    {
+      left.
+      destruct H as [Hb' [Hcs' Hs]].
+      rewrite Hb' in Hb1.
+      inversion Hb1; subst.
+      rewrite Hcs' in Hcs1.
+      inversion Hcs1; subst.
+      exists t.
+      split.
+      { apply in_list_0. }
+      {
+        split.
+        { assumption. }
+        {
+          rewrite Ht.
+          apply EquivSymState.
+          { apply equiv_smt_store_refl. }
+          { apply equiv_sym_stack_refl. }
+          { apply equiv_smt_store_refl. }
+          { assumption. }
+        }
+      }
+    }
+    {
+      right.
+      destruct H as [Hb' [Hcs' Hs]].
+      rewrite Hs.
+      apply Unsat_State.
+      apply equiv_smt_expr_unsat with (ast1 := pc2).
+      {
+        apply equiv_smt_expr_symmetry.
+        assumption.
+      }
+      { assumption. }
+    }
+  }
+Qed.
+
 Lemma inversion_call : forall ic cid v t f args anns c cs pbid ls stk gs syms pc mdl d s,
   (find_function_by_exp mdl f) = Some d ->
   sym_step
