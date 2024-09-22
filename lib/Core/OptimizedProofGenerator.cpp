@@ -477,7 +477,48 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtreeCall(StateInfo 
   decomposeBasicBlock(*bb, head, tail);
 
   if (callInst->getFunctionType()->getReturnType()->isVoidTy()) {
-    return nullptr;
+    return new Block(
+      {
+        new Apply(
+          "safe_subtree_void_call",
+          {
+            getICAlias(si.stepID),
+            createNat(moduleTranslator->getInstID(callInst)),
+            createPlaceHolder(),
+            createPlaceHolder(),
+            createPlaceHolder(),
+            createPlaceHolder(),
+            createPlaceHolder(),
+            getPrevBIDAlias(si.stepID),
+            getLocalStoreAlias(si.stepID),
+            getStackAlias(si.stepID),
+            createGlobalStore(),
+            getSymbolicsAlias(si.stepID),
+            getPCAlias(si.stepID),
+            createModule(),
+            moduleTranslator->translateFunctionCached(*f),
+            moduleTranslator->translateBasicBlockCached(*bb),
+            head,
+            new CoqList(tail),
+            getLocalStoreAlias(successor.stepID),
+            getTreeAlias(successor.stepID),
+          }
+        ),
+        new Block(
+          {
+            new Intros({"H"}),
+            new Discriminate("H"),
+          }
+        ),
+        new Block({new Reflexivity()}),
+        new Block({new Reflexivity()}),
+        new Block({new Reflexivity()}),
+        new Block({new Reflexivity()}),
+        new Block({new Reflexivity()}),
+        new Block({new Reflexivity()}),
+        new Block({new Apply("L_" + to_string(successor.stepID))}),
+      }
+    );
   } else {
     return new Block(
       {
@@ -592,7 +633,35 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtreeReturn(StateInf
       }
     );
   } else {
-    return nullptr;
+    return new Block(
+      {
+        new Apply(
+          "safe_subtree_ret_void",
+          {
+            getICAlias(si.stepID),
+            createNat(moduleTranslator->getInstID(returnInst)),
+            getPrevBIDAlias(si.stepID),
+            getLocalStoreAlias(si.stepID),
+            createPlaceHolder(),
+            createPlaceHolder(),
+            createPlaceHolder(),
+            createPlaceHolder(), /* TODO: pass stack */
+            createGlobalStore(),
+            getSymbolicsAlias(si.stepID),
+            getPCAlias(si.stepID),
+            createModule(),
+            moduleTranslator->translateFunctionCached(*f),
+            head,
+            new CoqList(tail),
+            getTreeAlias(successor.stepID),
+          }
+        ),
+        new Block({new Reflexivity()}),
+        new Block({new Reflexivity()}),
+        new Block({new Reflexivity()}),
+        new Block({new Apply("L_" + to_string(successor.stepID))}),
+      }
+    );
   }
 }
 
