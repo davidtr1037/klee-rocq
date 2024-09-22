@@ -224,47 +224,60 @@ void OptimizedProofGenerator::decomposeBasicBlock(BasicBlock &bb,
 
 klee::ref<CoqLemma> OptimizedProofGenerator::createLemmaForSubtree(StateInfo &si,
                                                                    ExecutionState &successor) {
-  if (isa<BranchInst>(si.inst)) {
-    BranchInst *bi = cast<BranchInst>(si.inst);
-    assert(!bi->isConditional());
-    BasicBlock *bb = bi->getParent();
-    Function *f = bb->getParent();
-    BasicBlock *targetBB = bi->getSuccessor(0);
-
-    ref<CoqTactic> t = new Block(
-      {
-        new Apply(
-          "safe_subtree_unconditional_br",
-          {
-            getICAlias(si.stepID),
-            createNat(moduleTranslator->getInstID(bi)),
-            moduleTranslator->translateBranchInstBid(bi, 0),
-            getPrevBIDAlias(si.stepID),
-            getLocalStoreAlias(si.stepID),
-            getStackAlias(si.stepID),
-            createGlobalStore(),
-            getSymbolicsAlias(si.stepID),
-            getPCAlias(si.stepID),
-            createModule(),
-            moduleTranslator->translateFunctionCached(*f),
-            moduleTranslator->translateBasicBlockCached(*targetBB),
-            getCommandAlias(successor.stepID),
-            getCommandsAlias(successor.stepID),
-            getTreeAlias(successor.stepID),
-          }
-        ),
-        new Block({new Reflexivity()}),
-        new Block({new Reflexivity()}),
-        new Block({new Reflexivity()}),
-        new Block({new Reflexivity()}),
-        new Block({new Apply("L_" + to_string(successor.stepID))}),
-      }
-    );
-
+  ref<CoqTactic> t = createTacticForSubtree(si, successor);
+  if (t) {
     return createLemma(si.stepID, t);
   }
 
   return ProofGenerator::createLemmaForSubtree(si, successor);
+}
+
+klee::ref<CoqTactic> OptimizedProofGenerator::createTacticForSubtree(StateInfo &si,
+                                                                    ExecutionState &successor) {
+  if (isa<BranchInst>(si.inst)) {
+    return createTacticForSubtreeBranch(si, successor);
+  }
+
+  return nullptr;
+}
+
+klee::ref<CoqTactic> OptimizedProofGenerator::createTacticForSubtreeBranch(StateInfo &si,
+                                                                          ExecutionState &successor) {
+  BranchInst *bi = cast<BranchInst>(si.inst);
+  assert(bi && !bi->isConditional());
+  BasicBlock *bb = bi->getParent();
+  Function *f = bb->getParent();
+  BasicBlock *targetBB = bi->getSuccessor(0);
+
+  return new Block(
+    {
+      new Apply(
+        "safe_subtree_unconditional_br",
+        {
+          getICAlias(si.stepID),
+          createNat(moduleTranslator->getInstID(bi)),
+          moduleTranslator->translateBranchInstBid(bi, 0),
+          getPrevBIDAlias(si.stepID),
+          getLocalStoreAlias(si.stepID),
+          getStackAlias(si.stepID),
+          createGlobalStore(),
+          getSymbolicsAlias(si.stepID),
+          getPCAlias(si.stepID),
+          createModule(),
+          moduleTranslator->translateFunctionCached(*f),
+          moduleTranslator->translateBasicBlockCached(*targetBB),
+          getCommandAlias(successor.stepID),
+          getCommandsAlias(successor.stepID),
+          getTreeAlias(successor.stepID),
+        }
+      ),
+      new Block({new Reflexivity()}),
+      new Block({new Reflexivity()}),
+      new Block({new Reflexivity()}),
+      new Block({new Reflexivity()}),
+      new Block({new Apply("L_" + to_string(successor.stepID))}),
+    }
+  );
 }
 
 klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForEquivAssignment(StateInfo &si,
