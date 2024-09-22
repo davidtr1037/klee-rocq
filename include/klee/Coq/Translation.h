@@ -101,6 +101,10 @@ public:
 
   ref<CoqExpr> translateBranchInst(llvm::BranchInst *inst);
 
+  ref<CoqExpr> translateBranchInstExpr(llvm::BranchInst *inst);
+
+  ref<CoqExpr> translateBranchInstBid(llvm::BranchInst *inst, unsigned i);
+
   ref<CoqExpr> translatePHINode(llvm::PHINode *inst);
 
   ref<CoqExpr> translatePHINodeName(llvm::PHINode *inst);
