@@ -497,10 +497,10 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtreeCall(StateInfo 
             new Discriminate("H"),
           }
         ),
-        new Block({new Reflexivity()}),
-        new Block({new Reflexivity()}),
-        new Block({new Reflexivity()}),
-        new Block({new Reflexivity()}),
+        new Block({new Apply(getFunctionLemmaName(*f))}),
+        new Block({new Reflexivity()}), /* TODO: optimize? */
+        new Block({new Apply(getBasicBlockEntryLemmaName(*bb))}),
+        new Block({new Apply(getBasicBlockDecompositionLemmaName(*bb))}),
         new Block({new Reflexivity()}),
         new Block({new Reflexivity()}),
         new Block({new Apply("L_" + to_string(successor.stepID))}),
@@ -536,10 +536,10 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtreeCall(StateInfo 
             getTreeAlias(successor.stepID),
           }
         ),
-        new Block({new Reflexivity()}),
-        new Block({new Reflexivity()}),
-        new Block({new Reflexivity()}),
-        new Block({new Reflexivity()}),
+        new Block({new Apply(getFunctionLemmaName(*f))}),
+        new Block({new Reflexivity()}), /* TODO: optimize? */
+        new Block({new Apply(getBasicBlockEntryLemmaName(*bb))}),
+        new Block({new Apply(getBasicBlockDecompositionLemmaName(*bb))}),
         new Block({new Reflexivity()}),
         new Block({new Reflexivity()}),
         new Block({new Apply("L_" + to_string(successor.stepID))}),
