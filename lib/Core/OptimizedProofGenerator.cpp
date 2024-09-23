@@ -613,8 +613,8 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtreeReturn(StateInf
           }
         ),
         t,
-        new Block({new Reflexivity()}),
-        new Block({new Reflexivity()}),
+        new Block({new Apply(getFunctionLemmaName(*f))}),
+        new Block({new Reflexivity()}), /* TODO: define lemma */
         new Block({new Reflexivity()}),
         new Block({new Apply("L_" + to_string(successor.stepID))}),
       }
@@ -643,8 +643,8 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtreeReturn(StateInf
             getTreeAlias(successor.stepID),
           }
         ),
-        new Block({new Reflexivity()}),
-        new Block({new Reflexivity()}),
+        new Block({new Apply(getFunctionLemmaName(*f))}),
+        new Block({new Reflexivity()}), /* TODO: define lemma */
         new Block({new Reflexivity()}),
         new Block({new Apply("L_" + to_string(successor.stepID))}),
       }
