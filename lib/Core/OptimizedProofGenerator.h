@@ -75,10 +75,6 @@ public:
   ref<CoqTactic> getTacticForSubtreeReturn(StateInfo &si,
                                            ExecutionState &successor);
 
-  ref<CoqTactic> getTacticForStep(StateInfo &stateInfo,
-                                  SuccessorInfo &si1,
-                                  SuccessorInfo &si2);
-
   ref<CoqLemma> createLemmaForSubtree(StateInfo &stateInfo,
                                       SuccessorInfo &successor1,
                                       SuccessorInfo &successor2);
@@ -86,8 +82,6 @@ public:
   ref<CoqTactic> getTacticForSubtree(StateInfo &stateInfo,
                                      SuccessorInfo &successor1,
                                      SuccessorInfo &successor2);
-
-  ref<CoqTactic> getTacticForUnsat(ref<CoqExpr> pc, uint64_t axiomID);
 
 };
 
