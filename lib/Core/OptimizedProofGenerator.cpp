@@ -62,102 +62,72 @@ void OptimizedProofGenerator::generateModuleLemmas() {
 }
 
 klee::ref<CoqLemma> OptimizedProofGenerator::getFunctionLemma(Function &f) {
-  ref<CoqExpr> body = new CoqImply(
-    new CoqEq(
-      new CoqApplication(
-        new CoqVariable("find_function"),
-        {
-          new CoqVariable("mdl"),
-          moduleTranslator->createName(f.getName().str()),
-        }
-      ),
-      createSome(new CoqVariable("d"))
+  ref<CoqExpr> body = new CoqEq(
+    new CoqApplication(
+      new CoqVariable("find_function"),
+      {
+        new CoqVariable("mdl"),
+        moduleTranslator->createName(f.getName().str()),
+      }
     ),
-    new CoqEq(
-      new CoqVariable("d"),
-      moduleTranslator->translateFunctionCached(f)
-    )
+    createSome(moduleTranslator->translateFunctionCached(f))
   );
 
   ref<CoqTactic> proof = new Block(
     {
-      new Intros({"d", "H"}),
-      new Inversion("H"),
-      new Subst(),
       new Reflexivity(),
     }
   );
 
   return new CoqLemma(
     "L_" + f.getName().str(),
-    {"d"},
     body,
     proof
   );
 }
 
 klee::ref<CoqLemma> OptimizedProofGenerator::getBasicBlockLemma(BasicBlock &bb) {
-  ref<CoqExpr> body = new CoqImply(
-    new CoqEq(
-      new CoqApplication(
-        new CoqVariable("fetch_block"),
-        {
-          moduleTranslator->translateFunctionCached(*bb.getParent()),
-          moduleTranslator->createName(bb.getName().str()),
-        }
-      ),
-      createSome(new CoqVariable("b"))
+  ref<CoqExpr> body = new CoqEq(
+    new CoqApplication(
+      new CoqVariable("fetch_block"),
+      {
+        moduleTranslator->translateFunctionCached(*bb.getParent()),
+        moduleTranslator->createName(bb.getName().str()),
+      }
     ),
-    new CoqEq(
-      new CoqVariable("b"),
-      moduleTranslator->translateBasicBlockCached(bb)
-    )
+    createSome(moduleTranslator->translateBasicBlockCached(bb))
   );
 
   ref<CoqTactic> proof = new Block(
     {
-      new Intros({"b", "H"}),
-      new Inversion("H"),
-      new Subst(),
       new Reflexivity(),
     }
   );
 
   return new CoqLemma(
     "L_bb_" + to_string(moduleTranslator->getBasicBlockID(bb)),
-    {"b"},
     body,
     proof
   );
 }
 
 klee::ref<CoqLemma> OptimizedProofGenerator::getBasicBlockEntryLemma(BasicBlock &bb) {
-  ref<CoqExpr> body = new CoqImply(
-    new CoqEq(
-      new CoqApplication(
-        new CoqVariable("entry_block"),
-        {moduleTranslator->translateFunctionCached(*bb.getParent())}
-      ),
-      createSome(new CoqVariable("b"))
+  ref<CoqExpr> body = new CoqEq(
+    new CoqApplication(
+      new CoqVariable("entry_block"),
+      {moduleTranslator->translateFunctionCached(*bb.getParent())}
     ),
-    new CoqEq(
-      new CoqVariable("b"),
-      moduleTranslator->translateBasicBlockCached(bb)
-    )
+    createSome(moduleTranslator->translateBasicBlockCached(bb))
   );
 
   ref<CoqTactic> proof = new Block(
     {
-      new Intros({"b", "H"}),
-      new Inversion("H"),
-      new Subst(),
       new Reflexivity(),
     }
   );
 
   return new CoqLemma(
     "L_entry_bb_" + to_string(moduleTranslator->getBasicBlockID(bb)),
-    {"b"},
     body,
     proof
   );
@@ -168,36 +138,29 @@ klee::ref<CoqLemma> OptimizedProofGenerator::getBasicBlockDecompositionLemma(Bas
   std::vector<ref<CoqExpr>> tail;
   decomposeBasicBlock(bb, head, tail);
 
-  ref<CoqExpr> body = new CoqImply(
-    new CoqEq(
-      new CoqApplication(
-        new CoqVariable("blk_cmds"),
-        {moduleTranslator->translateBasicBlockCached(bb)}
-      ),
-      /* TODO: ... */
-      new CoqVariable("c :: cs")
+  ref<CoqExpr> body = new CoqEq(
+    new CoqApplication(
+      new CoqVariable("blk_cmds"),
+      {moduleTranslator->translateBasicBlockCached(bb)}
     ),
-    new CoqAnd(
-      new CoqEq(new CoqVariable("c"), head),
-      new CoqEq(new CoqVariable("cs"), new CoqList(tail))
+    /* TODO: add a specific constructor? */
+    new CoqApplication(
+      new CoqVariable("cons"),
+      {
+        head,
+        new CoqList(tail),
+      }
     )
   );
 
   ref<CoqTactic> proof = new Block(
     {
-      new Intros({"c", "cs", "H"}),
-      new Inversion("H"),
-      new Subst(),
-      new Split(
-        new Block({new Reflexivity()}),
-        new Block({new Reflexivity()})
-      ),
+      new Block({new Reflexivity()}),
     }
   );
 
   return new CoqLemma(
     "L_decompose_bb_" + to_string(moduleTranslator->getBasicBlockID(bb)),
-    {"c", "cs"},
     body,
     proof
   );
@@ -428,6 +391,15 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtreeBranch(StateInf
   Function *f = bb->getParent();
   BasicBlock *targetBB = bi->getSuccessor(0);
 
+  assert(functionLemmas.find(f) != functionLemmas.end());
+  string functionLemma = functionLemmas[f];
+
+  assert(bbLemmas.find(targetBB) != bbLemmas.end());
+  string bbLemma = bbLemmas[targetBB];
+
+  assert(bbDecompositionLemmas.find(targetBB) != bbDecompositionLemmas.end());
+  string bbDecompositionLemma = bbDecompositionLemmas[targetBB];
+
   return new Block(
     {
       new Apply(
@@ -450,9 +422,9 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtreeBranch(StateInf
           getTreeAlias(successor.stepID),
         }
       ),
-      new Block({new Reflexivity()}),
-      new Block({new Reflexivity()}),
-      new Block({new Reflexivity()}),
+      new Block({new Apply(functionLemma)}),
+      new Block({new Apply(bbLemma)}),
+      new Block({new Apply(bbDecompositionLemma)}),
       new Block({new Reflexivity()}),
       new Block({new Apply("L_" + to_string(successor.stepID))}),
     }
