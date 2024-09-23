@@ -86,6 +86,12 @@ klee::ref<CoqLemma> OptimizedProofGenerator::getFunctionLemma(Function &f) {
   );
 }
 
+string OptimizedProofGenerator::getFunctionLemmaName(Function &f) {
+  auto i = functionLemmas.find(&f);
+  assert(i != functionLemmas.end());
+  return i->second;
+}
+
 klee::ref<CoqLemma> OptimizedProofGenerator::getBasicBlockLemma(BasicBlock &bb) {
   ref<CoqExpr> body = new CoqEq(
     new CoqApplication(
@@ -111,6 +117,12 @@ klee::ref<CoqLemma> OptimizedProofGenerator::getBasicBlockLemma(BasicBlock &bb) 
   );
 }
 
+string OptimizedProofGenerator::getBasicBlockLemmaName(BasicBlock &bb) {
+  auto i = bbLemmas.find(&bb);
+  assert(i != bbLemmas.end());
+  return i->second;
+}
+
 klee::ref<CoqLemma> OptimizedProofGenerator::getBasicBlockEntryLemma(BasicBlock &bb) {
   ref<CoqExpr> body = new CoqEq(
     new CoqApplication(
@@ -131,6 +143,12 @@ klee::ref<CoqLemma> OptimizedProofGenerator::getBasicBlockEntryLemma(BasicBlock 
     body,
     proof
   );
+}
+
+string OptimizedProofGenerator::getBasicBlockEntryLemmaName(BasicBlock &bb) {
+  auto i = bbEntryLemmas.find(&bb);
+  assert(i != bbEntryLemmas.end());
+  return i->second;
 }
 
 klee::ref<CoqLemma> OptimizedProofGenerator::getBasicBlockDecompositionLemma(BasicBlock &bb) {
@@ -164,6 +182,12 @@ klee::ref<CoqLemma> OptimizedProofGenerator::getBasicBlockDecompositionLemma(Bas
     body,
     proof
   );
+}
+
+string OptimizedProofGenerator::getBasicBlockDecompositionLemmaName(BasicBlock &bb) {
+  auto i = bbDecompositionLemmas.find(&bb);
+  assert(i != bbDecompositionLemmas.end());
+  return i->second;
 }
 
 void OptimizedProofGenerator::decomposeBasicBlock(BasicBlock &bb,
@@ -391,15 +415,6 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtreeBranch(StateInf
   Function *f = bb->getParent();
   BasicBlock *targetBB = bi->getSuccessor(0);
 
-  assert(functionLemmas.find(f) != functionLemmas.end());
-  string functionLemma = functionLemmas[f];
-
-  assert(bbLemmas.find(targetBB) != bbLemmas.end());
-  string bbLemma = bbLemmas[targetBB];
-
-  assert(bbDecompositionLemmas.find(targetBB) != bbDecompositionLemmas.end());
-  string bbDecompositionLemma = bbDecompositionLemmas[targetBB];
-
   return new Block(
     {
       new Apply(
@@ -422,9 +437,9 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtreeBranch(StateInf
           getTreeAlias(successor.stepID),
         }
       ),
-      new Block({new Apply(functionLemma)}),
-      new Block({new Apply(bbLemma)}),
-      new Block({new Apply(bbDecompositionLemma)}),
+      new Block({new Apply(getFunctionLemmaName(*f))}),
+      new Block({new Apply(getBasicBlockLemmaName(*targetBB))}),
+      new Block({new Apply(getBasicBlockDecompositionLemmaName(*targetBB))}),
       new Block({new Reflexivity()}),
       new Block({new Apply("L_" + to_string(successor.stepID))}),
     }
@@ -656,6 +671,9 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtree(StateInfo &sta
 
   BasicBlock *bb = bi->getParent();
   Function *f = bb->getParent();
+
+  assert(functionLemmas.find(f) != functionLemmas.end());
+  string functionLemma = functionLemmas[f];
 
   ref<CoqExpr> cond = new CoqApplication(
     new CoqVariable("extract_ast"),

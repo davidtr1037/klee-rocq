@@ -39,11 +39,19 @@ public:
 
   ref<CoqLemma> getFunctionLemma(llvm::Function &f);
 
+  std::string getFunctionLemmaName(llvm::Function &f);
+
   ref<CoqLemma> getBasicBlockLemma(llvm::BasicBlock &bb);
+
+  std::string getBasicBlockLemmaName(llvm::BasicBlock &bb);
 
   ref<CoqLemma> getBasicBlockEntryLemma(llvm::BasicBlock &bb);
 
+  std::string getBasicBlockEntryLemmaName(llvm::BasicBlock &bb);
+
   ref<CoqLemma> getBasicBlockDecompositionLemma(llvm::BasicBlock &bb);
+
+  std::string getBasicBlockDecompositionLemmaName(llvm::BasicBlock &bb);
 
   void decomposeBasicBlock(llvm::BasicBlock &bb,
                            ref<CoqExpr> &head,
