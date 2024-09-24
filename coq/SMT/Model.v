@@ -2,6 +2,8 @@ From Coq Require Import Logic.Eqdep.
 From Coq Require Import Strings.String.
 From Coq Require Import ZArith.
 
+Require Import Coq.Program.Equality.
+
 From SE Require Import BitVectors.
 From SE Require Import DynamicValue.
 
@@ -337,6 +339,130 @@ Proof.
   rewrite H1.
   reflexivity.
 Qed.
+
+Lemma equiv_smt_expr_add_comm : forall s (ast1 ast2 : smt_ast s),
+  equiv_smt_expr
+    (Expr s (AST_BinOp s SMT_Add ast1 ast2))
+    (Expr s (AST_BinOp s SMT_Add ast2 ast1)).
+Proof.
+Admitted.
+
+(* TODO: make generic *)
+Lemma equiv_smt_expr_sub_add : forall (n : int32) (ast : smt_ast Sort_BV32),
+  equiv_smt_expr
+    (Expr Sort_BV32 (AST_BinOp Sort_BV32 SMT_Sub ast (AST_Const Sort_BV32 n)))
+    (Expr
+      Sort_BV32
+      (AST_BinOp Sort_BV32 SMT_Add (AST_Const Sort_BV32 (repr (unsigned (sub zero n)))) ast)).
+Proof.
+Admitted.
+
+Lemma equiv_smt_expr_normalize_binop : forall s op (ast1 ast2 ast3 ast4 : smt_ast s),
+  equiv_smt_expr (Expr s ast1) (Expr s ast2) ->
+  equiv_smt_expr (Expr s ast3) (Expr s ast4) ->
+  equiv_smt_expr
+    (Expr s (normalize_binop op s ast1 ast3))
+    (Expr s (normalize_binop op s ast2 ast4)).
+Proof.
+  Admitted.
+
+Lemma equiv_smt_expr_normalize_binop2 : forall s op (ast1 ast2 : smt_ast s),
+  equiv_smt_expr (Expr s ast1) (Expr s (normalize s ast1)) ->
+  equiv_smt_expr (Expr s ast2) (Expr s (normalize s ast2)) ->
+  equiv_smt_expr
+    (Expr s (AST_BinOp s op ast1 ast2))
+    (Expr
+       s
+       (normalize_binop op s ast1 ast2)) ->
+  equiv_smt_expr
+    (Expr s (AST_BinOp s op ast1 ast2))
+    (Expr
+       s
+       (normalize_binop op s (normalize s ast1) (normalize s ast2))).
+Proof.
+  intros s op ast1 ast2 H1 H2 H3.
+  apply equiv_smt_expr_transitivity with
+    (e2 := (Expr s (normalize_binop op s ast1 ast2))).
+  { assumption. }
+  { apply equiv_smt_expr_normalize_binop; assumption. }
+Qed.
+
+Lemma equiv_smt_expr_normalize: forall (sort : smt_sort) (ast : smt_ast sort),
+  equiv_smt_expr
+    (Expr sort ast)
+    (Expr sort (normalize sort ast)).
+Proof.
+  intros sort ast.
+  induction ast; simpl.
+  { apply equiv_smt_expr_refl. }
+  { apply equiv_smt_expr_refl. }
+  {
+    destruct s.
+    {
+      simpl.
+      unfold normalize_binop_bv1.
+      apply equiv_smt_expr_binop with (ast1 := ast1) (ast3 := ast2); assumption.
+    }
+    {
+      simpl.
+      unfold normalize_binop_bv8.
+      apply equiv_smt_expr_binop with (ast1 := ast1) (ast3 := ast2); assumption.
+    }
+    {
+      simpl.
+      unfold normalize_binop_bv16.
+      apply equiv_smt_expr_binop with (ast1 := ast1) (ast3 := ast2); assumption.
+    }
+    {
+      dependent destruction ast1; dependent destruction ast2; destruct op;
+      (* trivial cases *)
+      try (
+        apply equiv_smt_expr_normalize_binop2;
+        try assumption;
+        apply equiv_smt_expr_refl
+      );
+      try (
+        apply equiv_smt_expr_normalize_binop2;
+        try assumption;
+        apply equiv_smt_expr_add_comm
+      );
+      try (
+        apply equiv_smt_expr_normalize_binop2;
+        try assumption;
+        apply equiv_smt_expr_sub_add
+      ).
+      {
+        apply equiv_smt_expr_normalize_binop2.
+        { assumption. }
+        { assumption. }
+        {
+          destruct op0;
+          try apply equiv_smt_expr_add_comm.
+          dependent destruction ast1_1;
+          try apply equiv_smt_expr_add_comm.
+          simpl.
+          admit. (* easy *)
+        }
+      }
+      {
+        apply equiv_smt_expr_normalize_binop2.
+        { assumption. }
+        { assumption. }
+        {
+          destruct op0;
+          try apply equiv_smt_expr_sub_add.
+          dependent destruction ast1_1;
+          try apply equiv_smt_expr_sub_add.
+          simpl.
+          admit. (* easy *)
+        }
+      }
+    }
+    {
+      apply equiv_smt_expr_binop with (ast1 := ast1) (ast3 := ast2); assumption.
+    }
+  }
+Admitted.
 
 Lemma equiv_smt_expr_normalize_simplify: forall (sort : smt_sort) (ast : smt_ast sort),
   equiv_smt_expr
