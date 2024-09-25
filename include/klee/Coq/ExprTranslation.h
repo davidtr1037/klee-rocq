@@ -23,28 +23,30 @@ public:
   ExprTranslator();
 
   ref<CoqExpr> translateAsSMTExprCached(ref<Expr> e,
-                                        ArrayTranslation *m);
+                                        ArrayTranslation *m,
+                                        bool useCache,
+                                        std::vector<ref<CoqExpr>> &defs);
 
   ref<CoqExpr> translateAsSMTExpr(ref<Expr> e,
                                   ArrayTranslation *m);
 
   ref<CoqExpr> translateCached(ref<Expr> e,
                                ArrayTranslation *m,
+                               bool useCache,
                                std::vector<ref<CoqExpr>> &defs);
-
-  ref<CoqExpr> translateCached(ref<Expr> e,
-                               ArrayTranslation *m);
 
   /* TODO: is the default argument necessary? */
   ref<CoqExpr> translate(ref<Expr> e,
-                         ArrayTranslation *m);
+                         ArrayTranslation *m,
+                         bool useCache = false);
 
   ref<CoqExpr> translateConstantExpr(ref<ConstantExpr> e);
 
   ref<CoqExpr> createSMTBinOp(std::string constructor,
                               ref<Expr> left,
                               ref<Expr> right,
-                              ArrayTranslation *m);
+                              ArrayTranslation *m,
+                              bool useCache);
 
   ref<CoqExpr> translateCmpExpr(ref<CmpExpr> e,
                                 ArrayTranslation *m);

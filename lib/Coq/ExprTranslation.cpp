@@ -14,8 +14,10 @@ ExprTranslator::ExprTranslator() {
 }
 
 ref<CoqExpr> ExprTranslator::translateAsSMTExprCached(ref<Expr> e,
-                                                      ArrayTranslation *m) {
-  ref<CoqExpr> coqAST = translateCached(e, m);
+                                                      ArrayTranslation *m,
+                                                      bool useCache,
+                                                      std::vector<ref<CoqExpr>> &defs) {
+  ref<CoqExpr> coqAST = translateCached(e, m, useCache, defs);
   if (coqAST.isNull()) {
     return nullptr;
   }
@@ -49,13 +51,14 @@ ref<CoqExpr> ExprTranslator::translateAsSMTExpr(ref<Expr> e,
 
 ref<CoqExpr> ExprTranslator::translateCached(ref<Expr> e,
                                              ArrayTranslation *m,
+                                             bool useCache,
                                              std::vector<ref<CoqExpr>> &defs) {
   auto i = exprCache.find(e);
   if (i != exprCache.end()) {
     return i->second;
   }
 
-  ref<CoqExpr> coqExpr = translate(e, m);
+  ref<CoqExpr> coqExpr = translate(e, m, useCache);
   std::string aliasName = allocateAliasName();
   ref<CoqExpr> def = new CoqDefinition(aliasName, coqExpr);
   defs.push_back(def);
@@ -65,18 +68,16 @@ ref<CoqExpr> ExprTranslator::translateCached(ref<Expr> e,
   return alias;
 }
 
-ref<CoqExpr> ExprTranslator::translateCached(ref<Expr> e,
-                                             ArrayTranslation *m) {
-  auto i = exprCache.find(e);
-  if (i != exprCache.end()) {
-    return i->second;
+ref<CoqExpr> ExprTranslator::translate(ref<Expr> e,
+                                       ArrayTranslation *m,
+                                       bool useCache) {
+  if (useCache) {
+    auto i = exprCache.find(e);
+    if (i != exprCache.end()) {
+      return i->second;
+    }
   }
 
-  return translate(e, m);
-}
-
-ref<CoqExpr> ExprTranslator::translate(ref<Expr> e,
-                                       ArrayTranslation *m) {
   if (isa<ConstantExpr>(e)) {
     return translateConstantExpr(dyn_cast<ConstantExpr>(e));
   }
@@ -90,16 +91,16 @@ ref<CoqExpr> ExprTranslator::translate(ref<Expr> e,
     ref<Expr> left = be->left;
     ref<Expr> right = be->right;
     if (isa<AddExpr>(e)) {
-      return createSMTBinOp("SMT_Add", left, right, m);
+      return createSMTBinOp("SMT_Add", left, right, m, useCache);
     }
     if (isa<SubExpr>(e)) {
-      return createSMTBinOp("SMT_Sub", left, right, m);
+      return createSMTBinOp("SMT_Sub", left, right, m, useCache);
     }
     if (isa<MulExpr>(e)) {
-      return createSMTBinOp("SMT_Mul", left, right, m);
+      return createSMTBinOp("SMT_Mul", left, right, m, useCache);
     }
     if (isa<AndExpr>(e)) {
-      return createSMTBinOp("SMT_And", left, right, m);
+      return createSMTBinOp("SMT_And", left, right, m, useCache);
     }
   }
 
@@ -153,13 +154,14 @@ ref<CoqExpr> ExprTranslator::translateConstantExpr(ref<ConstantExpr> e) {
 ref<CoqExpr> ExprTranslator::createSMTBinOp(std::string op,
                                             ref<Expr> left,
                                             ref<Expr> right,
-                                            ArrayTranslation *m) {
-  ref<CoqExpr> coqLeft = translate(left, m);
+                                            ArrayTranslation *m,
+                                            bool useCache) {
+  ref<CoqExpr> coqLeft = translate(left, m, useCache);
   if (!coqLeft) {
     return nullptr;
   }
 
-  ref<CoqExpr> coqRight = translate(right, m);
+  ref<CoqExpr> coqRight = translate(right, m, useCache);
   if (!coqRight) {
     return nullptr;
   }

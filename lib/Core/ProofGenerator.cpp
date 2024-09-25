@@ -386,7 +386,7 @@ klee::ref<CoqExpr> ProofGenerator::createPC(ExecutionState &es, vector<ref<CoqEx
     pc = AndExpr::create(pc, e);
   }
   if (CacheCoqExpr) {
-    return exprTranslator->translateCached(pc, &es.arrayTranslation, defs);
+    return exprTranslator->translateCached(pc, &es.arrayTranslation, true, defs);
   } else {
     return exprTranslator->translate(pc, &es.arrayTranslation);
   }
