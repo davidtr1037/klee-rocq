@@ -2300,9 +2300,9 @@ void Executor::executeInstruction(ExecutionState &state, KInstruction *ki) {
         }
 
         ref<Expr> pc1 = AndExpr::create(pc, cond);
-        SuccessorInfo si1 = branches.first ? SuccessorInfo(branches.first, pc1) : SuccessorInfo(pc1);
+        SuccessorInfo si1 = branches.first ? SuccessorInfo(branches.first) : SuccessorInfo(pc1);
         ref<Expr> pc2 = AndExpr::create(pc, Expr::createIsZero(cond));
-        SuccessorInfo si2 = branches.second ? SuccessorInfo(branches.second, pc2) : SuccessorInfo(pc2);
+        SuccessorInfo si2 = branches.second ? SuccessorInfo(branches.second) : SuccessorInfo(pc2);
         proofGenerator->handleStep(stateInfo, si1, si2);
       }
     }

@@ -691,8 +691,6 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtree(StateInfo &sta
   );
 
   if (si1.isSat && !si2.isSat) {
-    ref<CoqExpr> satPC = exprTranslator->translate(si1.satPC,
-                                                   &si1.state->arrayTranslation);
     ref<CoqExpr> unsatPC = exprTranslator->translate(si2.unsatPC,
                                                      &si1.state->arrayTranslation);
     uint64_t axiomID = allocateAxiomID();
@@ -763,8 +761,6 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtree(StateInfo &sta
   }
 
   if (!si1.isSat && si2.isSat) {
-    ref<CoqExpr> satPC = exprTranslator->translate(si2.satPC,
-                                                   &si2.state->arrayTranslation);
     ref<CoqExpr> unsatPC = exprTranslator->translate(si1.unsatPC,
                                                      &si2.state->arrayTranslation);
     uint64_t axiomID = allocateAxiomID();
