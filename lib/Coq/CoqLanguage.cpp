@@ -219,15 +219,29 @@ CoqDefinition::CoqDefinition(const string &name,
 
 }
 
+CoqDefinition::CoqDefinition(const string &name,
+                             const ref<CoqExpr> &body) :
+  name(name), body(body) {
+
+}
+
 string CoqDefinition::dump() const {
   ostringstream os;
-  os << "Definition " << name << " : " << type << " := " << body->dump() << ".\n";
+  os << "Definition " << name;
+  if (!type.empty()) {
+    os << " : " << type;
+  }
+  os << " := " << body->dump() << ".\n";
   return os.str();
 }
 
 string CoqDefinition::pretty_dump(int indent) const {
   ostringstream os;
-  os << "Definition " << name << " : " << type << " :=\n";
+  os << "Definition " << name;
+  if (!type.empty()) {
+    os << " : " << type;
+  }
+  os << " :=\n";
   os << body->pretty_dump(indent + 1) << ".\n";
   return os.str();
 }

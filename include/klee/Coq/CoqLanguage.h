@@ -191,6 +191,8 @@ public:
 
     CoqDefinition(const std::string &name, const std::string &type, const ref<CoqExpr> &body);
 
+    CoqDefinition(const std::string &name, const ref<CoqExpr> &body);
+
     std::string dump() const;
 
     std::string pretty_dump(int indent = 0) const;
