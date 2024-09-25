@@ -123,7 +123,7 @@ public:
 
   ref<CoqExpr> getSymbolicNames(unsigned index);
 
-  ref<CoqExpr> createPC(ExecutionState &es);
+  ref<CoqExpr> createPC(ExecutionState &es, std::vector<ref<CoqExpr>> &defs);
 
   ref<CoqExpr> createModule();
 

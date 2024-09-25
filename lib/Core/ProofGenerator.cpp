@@ -18,7 +18,14 @@ using namespace klee;
 cl::opt<bool> DecomposeState(
   "decompose-state",
   cl::init(false),
-  cl::desc(""));
+  cl::desc("")
+);
+
+cl::opt<bool> CacheCoqExpr(
+  "cache-coq-expr",
+  cl::init(false),
+  cl::desc("")
+);
 
 /* TODO: decide how to handle assertions */
 /* TODO: add a function for generating names of axioms and lemmas (L_, UNSAT_, etc.) */
@@ -133,7 +140,7 @@ klee::ref<CoqExpr> ProofGenerator::translateState(ExecutionState &es,
         createStack(es),
         createGlobalStore(),
         createSymbolics(es),
-        createPC(es),
+        createPC(es, defs),
         createModule(),
       }
     );
@@ -192,7 +199,7 @@ klee::ref<CoqExpr> ProofGenerator::translateState(ExecutionState &es,
     new CoqDefinition(
       getPCAliasName(es.stepID),
       "smt_ast_bool",
-      createPC(es)
+      createPC(es, defs)
     )
   );
 
@@ -372,12 +379,17 @@ klee::ref<CoqExpr> ProofGenerator::getSymbolicNames(unsigned index) {
   );
 }
 
-klee::ref<CoqExpr> ProofGenerator::createPC(ExecutionState &es) {
+klee::ref<CoqExpr> ProofGenerator::createPC(ExecutionState &es, vector<ref<CoqExpr>> &defs) {
+  /* TODO: add a method to ExecutionState */
   ref<Expr> pc = ConstantExpr::create(1, Expr::Bool);
   for (ref<Expr> e : es.constraints) {
     pc = AndExpr::create(pc, e);
   }
-  return exprTranslator->translate(pc, &es.arrayTranslation);
+  if (CacheCoqExpr) {
+    return exprTranslator->translateCached(pc, &es.arrayTranslation, defs);
+  } else {
+    return exprTranslator->translate(pc, &es.arrayTranslation);
+  }
 }
 
 klee::ref<CoqExpr> ProofGenerator::createModule() {

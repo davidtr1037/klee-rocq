@@ -6,22 +6,38 @@
 #include "klee/Coq/CoqLanguage.h"
 
 #include <map>
+#include <vector>
 
 namespace klee {
 
 typedef std::map<const Array *, ref<CoqExpr>> ArrayTranslation;
 
+typedef std::map<ref<Expr>, ref<CoqExpr>> ExprCache;
+
 class ExprTranslator {
 
 public:
 
+  ExprCache exprCache;
+
   ExprTranslator();
 
-  ref<CoqExpr> translateAsSMTExpr(ref<Expr> e,
-                                  ArrayTranslation *m = nullptr);
+  ref<CoqExpr> translateAsSMTExprCached(ref<Expr> e,
+                                        ArrayTranslation *m);
 
+  ref<CoqExpr> translateAsSMTExpr(ref<Expr> e,
+                                  ArrayTranslation *m);
+
+  ref<CoqExpr> translateCached(ref<Expr> e,
+                               ArrayTranslation *m,
+                               std::vector<ref<CoqExpr>> &defs);
+
+  ref<CoqExpr> translateCached(ref<Expr> e,
+                               ArrayTranslation *m);
+
+  /* TODO: is the default argument necessary? */
   ref<CoqExpr> translate(ref<Expr> e,
-                         ArrayTranslation *m = nullptr);
+                         ArrayTranslation *m);
 
   ref<CoqExpr> translateConstantExpr(ref<ConstantExpr> e);
 
@@ -40,6 +56,8 @@ public:
                             ref<CoqExpr> name);
 
   ref<CoqExpr> createBVSort(Expr::Width w);
+
+  std::string allocateAliasName();
 
   ~ExprTranslator();
 };

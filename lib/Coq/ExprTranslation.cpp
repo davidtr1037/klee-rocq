@@ -13,13 +13,14 @@ ExprTranslator::ExprTranslator() {
 
 }
 
-ref<CoqExpr> ExprTranslator::translateAsSMTExpr(ref<Expr> e,
-                                                ArrayTranslation *m) {
-  ref<CoqExpr> coqAST = translate(e, m);
+ref<CoqExpr> ExprTranslator::translateAsSMTExprCached(ref<Expr> e,
+                                                      ArrayTranslation *m) {
+  ref<CoqExpr> coqAST = translateCached(e, m);
   if (coqAST.isNull()) {
     return nullptr;
   }
 
+  /* TODO: create a method */
   return new CoqApplication(
     new CoqVariable("Expr"),
     {
@@ -27,6 +28,51 @@ ref<CoqExpr> ExprTranslator::translateAsSMTExpr(ref<Expr> e,
       coqAST,
     }
   );
+}
+
+ref<CoqExpr> ExprTranslator::translateAsSMTExpr(ref<Expr> e,
+                                                ArrayTranslation *m) {
+  ref<CoqExpr> coqAST = translate(e, m);
+  if (coqAST.isNull()) {
+    return nullptr;
+  }
+
+  /* TODO: create a method */
+  return new CoqApplication(
+    new CoqVariable("Expr"),
+    {
+      createBVSort(e->getWidth()),
+      coqAST,
+    }
+  );
+}
+
+ref<CoqExpr> ExprTranslator::translateCached(ref<Expr> e,
+                                             ArrayTranslation *m,
+                                             std::vector<ref<CoqExpr>> &defs) {
+  auto i = exprCache.find(e);
+  if (i != exprCache.end()) {
+    return i->second;
+  }
+
+  ref<CoqExpr> coqExpr = translate(e, m);
+  std::string aliasName = allocateAliasName();
+  ref<CoqExpr> def = new CoqDefinition(aliasName, coqExpr);
+  defs.push_back(def);
+  ref<CoqExpr> alias = new CoqVariable(aliasName);
+  exprCache.insert(std::make_pair(e, alias));
+
+  return alias;
+}
+
+ref<CoqExpr> ExprTranslator::translateCached(ref<Expr> e,
+                                             ArrayTranslation *m) {
+  auto i = exprCache.find(e);
+  if (i != exprCache.end()) {
+    return i->second;
+  }
+
+  return translate(e, m);
 }
 
 ref<CoqExpr> ExprTranslator::translate(ref<Expr> e,
@@ -300,6 +346,12 @@ ref<CoqExpr> ExprTranslator::createBVSort(Expr::Width w) {
   }
 
   assert(false);
+}
+
+static uint64_t exprID;
+
+std::string ExprTranslator::allocateAliasName() {
+  return "expr_" + std::to_string(exprID++);
 }
 
 ExprTranslator::~ExprTranslator() {
