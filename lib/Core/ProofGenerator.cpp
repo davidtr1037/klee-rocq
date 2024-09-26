@@ -82,6 +82,10 @@ void ProofGenerator::generateModule() {
 
   moduleTranslator->translateModuleCached();
 
+  for (ref<CoqExpr> def : moduleTranslator->nameDefs) {
+    requiredDefs.push_back(def);
+  }
+
   for (ref<CoqExpr> def : moduleTranslator->instDefs) {
     requiredDefs.push_back(def);
   }

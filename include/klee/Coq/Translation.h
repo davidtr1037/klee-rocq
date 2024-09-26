@@ -21,6 +21,10 @@ public:
 
   llvm::Module &m;
 
+  std::map<std::string, ref<CoqExpr>> nameCache;
+
+  std::vector<ref<CoqExpr>> nameDefs;
+
   std::map<llvm::Instruction*, uint64_t> instIds;
 
   std::map<llvm::Instruction*, ref<CoqExpr>> instCache;

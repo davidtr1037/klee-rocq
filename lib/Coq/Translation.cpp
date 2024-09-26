@@ -792,10 +792,21 @@ ref<CoqExpr> ModuleTranslator::createGlobalID(const std::string &name) {
 }
 
 ref<CoqExpr> ModuleTranslator::createName(const std::string &name) {
-  return new CoqApplication(
+  auto i = nameCache.find(name);
+  if (i != nameCache.end()) {
+    return i->second;
+  }
+
+  ref<CoqExpr> coqName = new CoqApplication(
     new CoqVariable("Name"),
     { new CoqString(name), }
   );
+  std::string aliasName = "name_" + std::to_string(nameCache.size());
+  ref<CoqExpr> alias = new CoqVariable(aliasName);
+  nameCache.insert(std::make_pair(name, alias));
+  ref<CoqExpr> def = new CoqDefinition(aliasName, "raw_id", coqName);
+  nameDefs.push_back(def);
+  return alias;
 }
 
 bool ModuleTranslator::isSupportedFunction(Function &f) {
