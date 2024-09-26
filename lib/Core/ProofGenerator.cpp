@@ -1155,6 +1155,7 @@ klee::ref<CoqList> ProofGenerator::createSuffixUpdates(list<RegisterUpdate> &upd
   for (RegisterUpdate &ru : updates) {
     ref<CoqExpr> pair = new CoqPair(
       moduleTranslator->createName(ru.name),
+      /* TODO: pass an argument (cached?) */
       createPlaceHolder()
     );
     pairs.push_back(pair);
