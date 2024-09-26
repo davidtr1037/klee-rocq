@@ -317,35 +317,43 @@ klee::ref<CoqExpr> ProofGenerator::createStack(ExecutionState &es, vector<ref<Co
   vector<ref<CoqExpr>> frames;
 
   for (int i = es.stack.size() - 2; i >= 0; i--) {
-    StackFrame &sf = es.stack[i];
-    StackFrame &next_sf = es.stack[i + 1];
-
-    KInstruction *ki = next_sf.caller;
-    assert(ki);
-    CallInst *callInst = dyn_cast<CallInst>(ki->inst);
-    assert(callInst);
-    ref<CoqExpr> v;
-    if (callInst->getFunctionType()->getReturnType()->isVoidTy()) {
-      v = createNone();
-    } else {
-      v = createSome(moduleTranslator->createName(callInst->getName().str()));
-    }
-
-    Instruction *next = callInst->getNextNode();
-    assert(next);
-
-    ref<CoqExpr> e = new CoqApplication(
-      new CoqVariable("Sym_Frame"),
-      {
-        translateRegisterUpdates(es, sf.updates, defs),
-        createInstCounter(next),
-        createPrevBID(sf),
-        v,
-      }
-    );
-    frames.push_back(e);
+    ref<CoqExpr> frame = createFrame(es, i, defs);
+    frames.push_back(frame);
   }
+
   return new CoqList(frames);
+}
+
+klee::ref<CoqExpr> ProofGenerator::createFrame(ExecutionState &es,
+                                               unsigned index,
+                                               vector<ref<CoqExpr>> &defs) {
+  assert(es.stack.size() != 0 && index < es.stack.size() - 1);
+  StackFrame &sf = es.stack[index];
+  StackFrame &next_sf = es.stack[index + 1];
+
+  KInstruction *ki = next_sf.caller;
+  assert(ki);
+  CallInst *callInst = dyn_cast<CallInst>(ki->inst);
+  assert(callInst);
+  ref<CoqExpr> v;
+  if (callInst->getFunctionType()->getReturnType()->isVoidTy()) {
+    v = createNone();
+  } else {
+    v = createSome(moduleTranslator->createName(callInst->getName().str()));
+  }
+
+  Instruction *next = callInst->getNextNode();
+  assert(next);
+
+  return new CoqApplication(
+    new CoqVariable("Sym_Frame"),
+    {
+      translateRegisterUpdates(es, sf.updates, defs),
+      createInstCounter(next),
+      createPrevBID(sf),
+      v,
+    }
+  );
 }
 
 /* TODO: check if was set? */

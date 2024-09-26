@@ -117,6 +117,10 @@ public:
   ref<CoqExpr> createStack(ExecutionState &es,
                            std::vector<ref<CoqExpr>> &defs);
 
+  ref<CoqExpr> createFrame(ExecutionState &es,
+                           unsigned inex,
+                           std::vector<ref<CoqExpr>> &defs);
+
   ref<CoqExpr> createGlobalStore();
 
   ref<CoqExpr> createSymbolics(ExecutionState &es);
