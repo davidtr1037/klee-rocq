@@ -320,6 +320,18 @@ Definition normalize_binop op (s : smt_sort) (ast1 ast2 : smt_ast s) : smt_ast s
   f op ast1 ast2
 .
 
+Definition normalize_cmpop op (s : smt_sort) (ast1 ast2 : smt_ast s) : smt_ast Sort_BV1 :=
+  match op with
+  | SMT_Sge => AST_CmpOp s SMT_Sle ast2 ast1
+  | SMT_Sgt => AST_CmpOp s SMT_Slt ast2 ast1
+  | SMT_Uge => AST_CmpOp s SMT_Ule ast2 ast1
+  | SMT_Ugt => AST_CmpOp s SMT_Ult ast2 ast1
+  | SMT_Ne =>
+      AST_CmpOp Sort_BV1 SMT_Eq (AST_Const Sort_BV1 zero) (AST_CmpOp s SMT_Eq ast1 ast2)
+  | _ => AST_CmpOp s op ast1 ast2
+  end
+.
+
 Fixpoint normalize (s : smt_sort) (ast : smt_ast s) : smt_ast s :=
   match ast with
   | AST_Const sort n => AST_Const sort n
@@ -327,15 +339,7 @@ Fixpoint normalize (s : smt_sort) (ast : smt_ast s) : smt_ast s :=
   | AST_BinOp sort op ast1 ast2 =>
       normalize_binop op sort (normalize sort ast1) (normalize sort ast2)
   | AST_CmpOp sort op ast1 ast2 =>
-      match op with
-      | SMT_Sge => AST_CmpOp sort SMT_Sle (normalize sort ast2) (normalize sort ast1)
-      | SMT_Sgt => AST_CmpOp sort SMT_Slt (normalize sort ast2) (normalize sort ast1)
-      | SMT_Uge => AST_CmpOp sort SMT_Ule (normalize sort ast2) (normalize sort ast1)
-      | SMT_Ugt => AST_CmpOp sort SMT_Ult (normalize sort ast2) (normalize sort ast1)
-      | SMT_Ne =>
-          AST_CmpOp Sort_BV1 SMT_Eq (AST_Const Sort_BV1 zero) (AST_CmpOp sort SMT_Eq ast1 ast2)
-      | _ => AST_CmpOp sort op (normalize sort ast1) (normalize sort ast2)
-      end
+      normalize_cmpop op sort (normalize sort ast1) (normalize sort ast2)
   | AST_Not sort ast =>
       let f :=
       match sort with

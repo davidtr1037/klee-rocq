@@ -357,6 +357,32 @@ Lemma equiv_smt_expr_sub_add : forall (n : int32) (ast : smt_ast Sort_BV32),
 Proof.
 Admitted.
 
+(* TODO: make generic *)
+Lemma equiv_smt_expr_add_consts : forall (ast : smt_ast Sort_BV32) (n1 n2 : int32),
+  equiv_smt_expr
+    (Expr Sort_BV32
+       (AST_BinOp Sort_BV32 SMT_Add
+          (AST_BinOp Sort_BV32 SMT_Add (AST_Const Sort_BV32 n1) ast)
+          (AST_Const Sort_BV32 n2)))
+    (Expr Sort_BV32
+       (AST_BinOp Sort_BV32 SMT_Add (AST_Const Sort_BV32 (Int32.add n1 n2)) ast)).
+Proof.
+Admitted.
+
+(* TODO: make generic *)
+Lemma equiv_smt_expr_sub_consts : forall (ast : smt_ast Sort_BV32) (n1 n2 : int32),
+  equiv_smt_expr
+    (Expr Sort_BV32
+       (AST_BinOp Sort_BV32 SMT_Sub
+          (AST_BinOp Sort_BV32 SMT_Add (AST_Const Sort_BV32 n1) ast)
+          (AST_Const Sort_BV32 n2)))
+    (Expr Sort_BV32
+       (AST_BinOp Sort_BV32 SMT_Add
+          (AST_Const Sort_BV32 (Int32.repr (Int32.unsigned (Int32.sub n1 n2))))
+          ast)).
+Proof.
+Admitted.
+
 Lemma equiv_smt_expr_normalize_binop : forall s op (ast1 ast2 ast3 ast4 : smt_ast s),
   equiv_smt_expr (Expr s ast1) (Expr s ast2) ->
   equiv_smt_expr (Expr s ast3) (Expr s ast4) ->
@@ -364,9 +390,9 @@ Lemma equiv_smt_expr_normalize_binop : forall s op (ast1 ast2 ast3 ast4 : smt_as
     (Expr s (normalize_binop op s ast1 ast3))
     (Expr s (normalize_binop op s ast2 ast4)).
 Proof.
-  Admitted.
+Admitted.
 
-Lemma equiv_smt_expr_normalize_binop2 : forall s op (ast1 ast2 : smt_ast s),
+Lemma equiv_smt_expr_normalize_binop_args : forall s op (ast1 ast2 : smt_ast s),
   equiv_smt_expr (Expr s ast1) (Expr s (normalize s ast1)) ->
   equiv_smt_expr (Expr s ast2) (Expr s (normalize s ast2)) ->
   equiv_smt_expr
@@ -386,6 +412,60 @@ Proof.
   { assumption. }
   { apply equiv_smt_expr_normalize_binop; assumption. }
 Qed.
+
+Lemma equiv_smt_expr_normalize_cmpop : forall s op (ast1 ast2 ast3 ast4 : smt_ast s),
+  equiv_smt_expr (Expr s ast1) (Expr s ast2) ->
+  equiv_smt_expr (Expr s ast3) (Expr s ast4) ->
+  equiv_smt_expr
+    (Expr Sort_BV1 (normalize_cmpop op s ast1 ast3))
+    (Expr Sort_BV1 (normalize_cmpop op s ast2 ast4)).
+Proof.
+Admitted.
+
+Lemma equiv_smt_expr_normalize_cmpop_args : forall s op (ast1 ast2 : smt_ast s),
+  equiv_smt_expr (Expr s ast1) (Expr s (normalize s ast1)) ->
+  equiv_smt_expr (Expr s ast2) (Expr s (normalize s ast2)) ->
+  equiv_smt_expr
+    (Expr Sort_BV1 (AST_CmpOp s op ast1 ast2))
+    (Expr Sort_BV1 (normalize_cmpop op s ast1 ast2)) ->
+  equiv_smt_expr
+    (Expr Sort_BV1 (AST_CmpOp s op ast1 ast2))
+    (Expr Sort_BV1 (normalize_cmpop op s (normalize s ast1) (normalize s ast2))).
+Proof.
+  intros s op ast1 ast2 H1 H2 H3.
+  apply equiv_smt_expr_transitivity with
+    (e2 := (Expr Sort_BV1 (normalize_cmpop op s ast1 ast2))).
+  { assumption. }
+  { apply equiv_smt_expr_normalize_cmpop; assumption. }
+Qed.
+
+Lemma equiv_smt_expr_ugt_ult : forall s (ast1 ast2 : smt_ast s),
+  equiv_smt_expr
+    (Expr Sort_BV1 (AST_CmpOp s SMT_Ugt ast1 ast2))
+    (Expr Sort_BV1 (AST_CmpOp s SMT_Ult ast2 ast1)).
+Proof.
+Admitted.
+
+Lemma equiv_smt_expr_uge_ule : forall s (ast1 ast2 : smt_ast s),
+  equiv_smt_expr
+    (Expr Sort_BV1 (AST_CmpOp s SMT_Uge ast1 ast2))
+    (Expr Sort_BV1 (AST_CmpOp s SMT_Ule ast2 ast1)).
+Proof.
+Admitted.
+
+Lemma equiv_smt_expr_sgt_slt : forall s (ast1 ast2 : smt_ast s),
+  equiv_smt_expr
+    (Expr Sort_BV1 (AST_CmpOp s SMT_Sgt ast1 ast2))
+    (Expr Sort_BV1 (AST_CmpOp s SMT_Slt ast2 ast1)).
+Proof.
+Admitted.
+
+Lemma equiv_smt_expr_sge_sle : forall s (ast1 ast2 : smt_ast s),
+  equiv_smt_expr
+    (Expr Sort_BV1 (AST_CmpOp s SMT_Sge ast1 ast2))
+    (Expr Sort_BV1 (AST_CmpOp s SMT_Sle ast2 ast1)).
+Proof.
+Admitted.
 
 Lemma equiv_smt_expr_normalize: forall (sort : smt_sort) (ast : smt_ast sort),
   equiv_smt_expr
@@ -417,22 +497,22 @@ Proof.
       dependent destruction ast1; dependent destruction ast2; destruct op;
       (* trivial cases *)
       try (
-        apply equiv_smt_expr_normalize_binop2;
+        apply equiv_smt_expr_normalize_binop_args;
         try assumption;
         apply equiv_smt_expr_refl
       );
       try (
-        apply equiv_smt_expr_normalize_binop2;
+        apply equiv_smt_expr_normalize_binop_args;
         try assumption;
         apply equiv_smt_expr_add_comm
       );
       try (
-        apply equiv_smt_expr_normalize_binop2;
+        apply equiv_smt_expr_normalize_binop_args;
         try assumption;
         apply equiv_smt_expr_sub_add
       ).
       {
-        apply equiv_smt_expr_normalize_binop2.
+        apply equiv_smt_expr_normalize_binop_args.
         { assumption. }
         { assumption. }
         {
@@ -441,11 +521,11 @@ Proof.
           dependent destruction ast1_1;
           try apply equiv_smt_expr_add_comm.
           simpl.
-          admit. (* easy *)
+          apply equiv_smt_expr_add_consts.
         }
       }
       {
-        apply equiv_smt_expr_normalize_binop2.
+        apply equiv_smt_expr_normalize_binop_args.
         { assumption. }
         { assumption. }
         {
@@ -454,7 +534,7 @@ Proof.
           dependent destruction ast1_1;
           try apply equiv_smt_expr_sub_add.
           simpl.
-          admit. (* easy *)
+          apply equiv_smt_expr_sub_consts.
         }
       }
     }
@@ -462,6 +542,40 @@ Proof.
       apply equiv_smt_expr_binop with (ast1 := ast1) (ast3 := ast2); assumption.
     }
   }
+  {
+    destruct op;
+    try (
+      apply equiv_smt_expr_normalize_cmpop_args;
+      try assumption;
+      apply equiv_smt_expr_refl
+    ).
+    { admit. }
+    {
+      apply equiv_smt_expr_normalize_cmpop_args;
+      try assumption.
+      simpl.
+      apply equiv_smt_expr_ugt_ult.
+    }
+    {
+      apply equiv_smt_expr_normalize_cmpop_args;
+      try assumption.
+      simpl.
+      apply equiv_smt_expr_uge_ule.
+    }
+    {
+      apply equiv_smt_expr_normalize_cmpop_args;
+      try assumption.
+      simpl.
+      apply equiv_smt_expr_sgt_slt.
+    }
+    {
+      apply equiv_smt_expr_normalize_cmpop_args;
+      try assumption.
+      simpl.
+      apply equiv_smt_expr_sge_sle.
+    }
+  }
+  { admit. }
 Admitted.
 
 Lemma equiv_smt_expr_normalize_simplify: forall (sort : smt_sort) (ast : smt_ast sort),
