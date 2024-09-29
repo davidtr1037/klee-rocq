@@ -19,6 +19,7 @@ Numeric/Integers.v
 Numeric/Zbits.v
 SMT/Expr.v
 SMT/Model.v
+SMT/Simplification.v
 Soundness.v
 Relation.v
 Utilities.v
