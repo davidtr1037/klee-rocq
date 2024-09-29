@@ -3674,8 +3674,16 @@ void Executor::run(ExecutionState &initialState) {
   /* TODO: move os somewhere else */
   std::unique_ptr<raw_fd_ostream> os;
   if (GenerateProof) {
+    std::string proofOutputPath;
     std::string error;
-    os = klee_open_output_file(ProofOutputPath, error);
+
+    if (ProofOutputPath.empty()) {
+      proofOutputPath = interpreterHandler->getOutputFilename("proof.v");
+    } else {
+      proofOutputPath = ProofOutputPath;
+    }
+
+    os = klee_open_output_file(proofOutputPath, error);
     if (!os) {
       klee_error("failed to open file '%s' error '%s'", ProofOutputPath.c_str(), error.c_str());
     }
