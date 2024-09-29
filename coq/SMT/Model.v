@@ -65,6 +65,21 @@ Definition smt_eval_binop_by_sort op s (x y : (smt_sort_to_int_type s)) : (smt_s
   f op x y
 .
 
+Definition smt_cmpop_to_comparison (op : smt_cmpop) : comparison :=
+  match op with
+  | SMT_Eq => Ceq
+  | SMT_Ne => Cne
+  | SMT_Ugt => Cgt
+  | SMT_Uge => Cge
+  | SMT_Ult => Clt
+  | SMT_Ule => Cle
+  | SMT_Sgt => Cgt
+  | SMT_Sge => Cge
+  | SMT_Slt => Clt
+  | SMT_Sle => Cle
+  end
+.
+
 Definition smt_eval_cmpop_generic {Int} `{VInt Int} (op : smt_cmpop) (x y : Int) : bool :=
   cmp (smt_cmpop_to_comparison op) x y
 .
