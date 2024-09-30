@@ -449,6 +449,39 @@ Admitted.
         }
 *)
 
+Lemma L_2 : forall ast1 ast2 ast3,
+  (normalize_binop_bv32 SMT_Add ast1 ast2) = AST_BinOp Sort_BV32 SMT_Add ast1 ast2 ->
+  equiv_smt_expr (Expr Sort_BV32 ast2) (Expr Sort_BV32 ast3) ->
+  equiv_smt_expr
+    (Expr Sort_BV32 (normalize_binop_bv32 SMT_Add ast1 ast2))
+    (Expr Sort_BV32 (normalize_binop_bv32 SMT_Add ast1 ast3)).
+Proof.
+Admitted.
+(*
+{
+  remember ast3 as a3.
+  dependent destruction ast3;
+  (* ast3 : !const *)
+  try (
+    rewrite Heqa3 in *;
+    simpl;
+    apply equiv_smt_expr_binop;
+    [
+      apply equiv_smt_expr_refl |
+      assumption
+    ]
+  ).
+  (* ast3 : const *)
+  {
+    rewrite Heqa3 in *.
+    apply equiv_smt_expr_symmetry.
+    apply L_1.
+    { reflexivity. }
+    { apply equiv_smt_expr_symmetry. assumption. }
+  }
+}
+*)
+
 Lemma equiv_smt_expr_normalize_binop_right : forall s op (ast1 ast2 ast3 : smt_ast s),
   equiv_smt_expr (Expr s ast2) (Expr s ast3) ->
   equiv_smt_expr
@@ -472,7 +505,15 @@ Proof.
     try (assumption)
   ).
   {
-    dependent destruction ast2.
+    dependent destruction ast2;
+    (* ast2 : !const *)
+    try (
+      apply L_2;
+      [
+        reflexivity |
+        assumption
+      ]
+    ).
     (* ast2 : const *)
     {
       remember ast3 as a3.
@@ -486,77 +527,6 @@ Proof.
       ).
       (* ast3 : const *)
       { admit. }
-    }
-    (* ast2 : var *)
-    {
-      remember ast3 as a3.
-      dependent destruction ast3;
-      (* ast3 : !const *)
-      try (
-        rewrite Heqa3 in *;
-        simpl;
-        apply equiv_smt_expr_binop;
-        [
-          apply equiv_smt_expr_refl |
-          assumption
-        ]
-      ).
-      (* ast3 : const *)
-      {
-        rewrite Heqa3 in *.
-        apply equiv_smt_expr_symmetry.
-        apply L_1.
-        { reflexivity. }
-        { apply equiv_smt_expr_symmetry. assumption. }
-      }
-    }
-    (* TODO: duplicate case *)
-    (* ast2 : binop *)
-    {
-      remember ast3 as a3.
-      dependent destruction ast3;
-      (* ast3 : !const *)
-      try (
-        rewrite Heqa3 in *;
-        simpl;
-        apply equiv_smt_expr_binop;
-        [
-          apply equiv_smt_expr_refl |
-          assumption
-        ]
-      ).
-      (* ast3 : const *)
-      {
-        rewrite Heqa3 in *.
-        apply equiv_smt_expr_symmetry.
-        apply L_1.
-        { reflexivity. }
-        { apply equiv_smt_expr_symmetry. assumption. }
-      }
-    }
-    (* TODO: duplicate case *)
-    (* ast2 : not *)
-    {
-      remember ast3 as a3.
-      dependent destruction ast3;
-      (* ast3 : !const *)
-      try (
-        rewrite Heqa3 in *;
-        simpl;
-        apply equiv_smt_expr_binop;
-        [
-          apply equiv_smt_expr_refl |
-          assumption
-        ]
-      ).
-      (* ast3 : const *)
-      {
-        rewrite Heqa3 in *.
-        apply equiv_smt_expr_symmetry.
-        apply L_1.
-        { reflexivity. }
-        { apply equiv_smt_expr_symmetry. assumption. }
-      }
     }
   }
   { admit. } (* sub *)
