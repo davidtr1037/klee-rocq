@@ -631,6 +631,14 @@ Proof.
   { admit. } (* sub *)
 Admitted.
 
+Lemma equiv_smt_expr_normalize_binop_left : forall s op (ast1 ast2 ast3 : smt_ast s),
+  equiv_smt_expr (Expr s ast2) (Expr s ast3) ->
+  equiv_smt_expr
+    (Expr s (normalize_binop op s ast2 ast1))
+    (Expr s (normalize_binop op s ast3 ast1)).
+Proof.
+Admitted.
+
 Lemma equiv_smt_expr_normalize_binop : forall s op (ast1 ast2 ast3 ast4 : smt_ast s),
   equiv_smt_expr (Expr s ast1) (Expr s ast2) ->
   equiv_smt_expr (Expr s ast3) (Expr s ast4) ->
@@ -639,42 +647,16 @@ Lemma equiv_smt_expr_normalize_binop : forall s op (ast1 ast2 ast3 ast4 : smt_as
     (Expr s (normalize_binop op s ast2 ast4)).
 Proof.
   intros s op ast1 ast2 ast3 ast4 Heq1 Heq2.
-  destruct s; destruct op;
-  try (apply equiv_smt_expr_binop; assumption).
+  eapply equiv_smt_expr_transitivity.
   {
-    dependent destruction ast1;
-    dependent destruction ast2;
-    dependent destruction ast3;
-    dependent destruction ast4;
-    try (apply equiv_smt_expr_binop; assumption);
-    try (
-      simpl;
-      eapply equiv_smt_expr_transitivity;
-      (try eapply equiv_smt_expr_add_comm);
-      (try apply equiv_smt_expr_binop; assumption)
-    ).
-    {
-      destruct op;
-      try (
-        eapply equiv_smt_expr_transitivity;
-        try (eapply equiv_smt_expr_add_comm);
-        try (apply equiv_smt_expr_binop; assumption)
-      ).
-      dependent destruction ast2_1;
-      (* no change *)
-      try (apply equiv_smt_expr_binop; assumption).
-      {
-        simpl.
-        eapply equiv_smt_expr_transitivity.
-        { apply equiv_smt_expr_binop; eassumption. }
-        {
-          eapply equiv_smt_expr_transitivity.
-          { eapply equiv_smt_expr_add_comm. }
-          { apply equiv_smt_expr_add_consts. }
-        }
-      }
-    }
-Admitted.
+    apply equiv_smt_expr_normalize_binop_right.
+    eassumption.
+  }
+  {
+    apply equiv_smt_expr_normalize_binop_left.
+    assumption.
+  }
+Qed.
 
 Lemma equiv_smt_expr_normalize_binop_args : forall s op (ast1 ast2 : smt_ast s),
   equiv_smt_expr (Expr s ast1) (Expr s (normalize s ast1)) ->
