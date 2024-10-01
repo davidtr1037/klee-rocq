@@ -364,6 +364,20 @@ Lemma equiv_smt_expr_sub_consts : forall (ast : smt_ast Sort_BV32) (n1 n2 : int3
 Proof.
 Admitted.
 
+Lemma L_injection_consts : forall s (n1 n2 : smt_sort_to_int_type s),
+  equiv_smt_expr (Expr s (AST_Const s n1)) (Expr s (AST_Const s n2)) ->
+  n1 = n2.
+Proof.
+  intros s n1 n2 Heq.
+  inversion Heq; subst.
+  apply inj_pair2 in H1.
+  apply inj_pair2 in H2.
+  rewrite H1, H2 in *.
+  specialize (H0 default_model).
+  simpl in H0.
+  assumption.
+Qed.
+
 Lemma L_add_4 : forall n1 n2 n3 n4,
   equiv_smt_expr
     (Expr Sort_BV32 (AST_Const Sort_BV32 n1))
@@ -376,24 +390,10 @@ Lemma L_add_4 : forall n1 n2 n3 n4,
     (Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.add n2 n4))).
 Proof.
   intros n1 n2 n3 n4 Heq1 Heq2.
-  apply EquivExpr.
-  intros m.
-  simpl.
-  inversion Heq1; subst.
-  apply inj_pair2 in H1.
-  apply inj_pair2 in H2.
-  rewrite H1, H2 in *.
-  specialize (H0 m).
-  simpl in H0.
-  rewrite H0.
-  inversion Heq2; subst.
-  apply inj_pair2 in H4.
-  apply inj_pair2 in H5.
-  rewrite H4, H5 in *.
-  specialize (H3 m).
-  simpl in H3.
-  rewrite H3.
-  reflexivity.
+  apply L_injection_consts in Heq1.
+  apply L_injection_consts in Heq2.
+  subst.
+  apply equiv_smt_expr_refl.
 Qed.
 
 (*
@@ -642,24 +642,10 @@ Lemma L_sub_4 : forall n1 n2 n3 n4,
     (Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.sub n2 n4))).
 Proof.
   intros n1 n2 n3 n4 Heq1 Heq2.
-  apply EquivExpr.
-  intros m.
-  simpl.
-  inversion Heq1; subst.
-  apply inj_pair2 in H1.
-  apply inj_pair2 in H2.
-  rewrite H1, H2 in *.
-  specialize (H0 m).
-  simpl in H0.
-  rewrite H0.
-  inversion Heq2; subst.
-  apply inj_pair2 in H4.
-  apply inj_pair2 in H5.
-  rewrite H4, H5 in *.
-  specialize (H3 m).
-  simpl in H3.
-  rewrite H3.
-  reflexivity.
+  apply L_injection_consts in Heq1.
+  apply L_injection_consts in Heq2.
+  subst.
+  apply equiv_smt_expr_refl.
 Qed.
 
 Lemma L_sub_3 : forall ast1 ast2 ast3 n,
