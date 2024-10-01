@@ -369,7 +369,7 @@ Lemma equiv_smt_expr_sub_consts : forall (ast : smt_ast Sort_BV32) (n1 n2 : int3
 Proof.
 Admitted.
 
-Lemma L_4 : forall n1 n2 n3 n4,
+Lemma L_add_4 : forall n1 n2 n3 n4,
   equiv_smt_expr
     (Expr Sort_BV32 (AST_Const Sort_BV32 n1))
     (Expr Sort_BV32 (AST_Const Sort_BV32 n2)) ->
@@ -405,7 +405,7 @@ Qed.
    - (normalize (a1 + a2) c), (normalize (a1 + a2) a3)
   where (normalize (a1 + a2) a3) does nothing
 *)
-Lemma L_3 : forall ast1 ast2 ast3 n,
+Lemma L_add_3 : forall ast1 ast2 ast3 n,
   (normalize_binop_bv32
     SMT_Add
     (AST_BinOp Sort_BV32 SMT_Add ast1 ast2)
@@ -440,7 +440,7 @@ Qed.
   - (normalize a1 c) ~ (normalize a1 a2)
   where (normalize a1 a2) does nothing
 *)
-Lemma L_2 : forall n ast1 ast2,
+Lemma L_add_2 : forall n ast1 ast2,
   (normalize_binop_bv32 SMT_Add ast1 ast2) = AST_BinOp Sort_BV32 SMT_Add ast1 ast2 ->
   equiv_smt_expr (Expr Sort_BV32 (AST_Const Sort_BV32 n)) (Expr Sort_BV32 ast2) ->
   equiv_smt_expr
@@ -487,7 +487,7 @@ Proof.
       dependent destruction ast1_1;
       (* a1 : !const *)
       try (
-        apply L_3;
+        apply L_add_3;
         [
           rewrite Heqa1_1; simpl; reflexivity |
           assumption
@@ -522,7 +522,7 @@ Qed.
   - (normalize a1 a2) ~ (normalize a1 a3)
   where (normalize a1 a2) does nothing
 *)
-Lemma L_1 : forall ast1 ast2 ast3,
+Lemma L_add_1 : forall ast1 ast2 ast3,
   (normalize_binop_bv32 SMT_Add ast1 ast2) = AST_BinOp Sort_BV32 SMT_Add ast1 ast2 ->
   equiv_smt_expr (Expr Sort_BV32 ast2) (Expr Sort_BV32 ast3) ->
   equiv_smt_expr
@@ -544,7 +544,7 @@ Proof.
   (* ast3 : const *)
   {
     apply equiv_smt_expr_symmetry.
-    apply L_2.
+    apply L_add_2.
     { assumption. }
     { apply equiv_smt_expr_symmetry. assumption. }
   }
@@ -576,7 +576,7 @@ Proof.
     dependent destruction ast2;
     (* ast2 : !const *)
     try (
-      apply L_1;
+      apply L_add_1;
       [
         reflexivity |
         assumption
@@ -586,7 +586,7 @@ Proof.
     {
       dependent destruction ast3;
       try (
-        apply L_2;
+        apply L_add_2;
         [
           reflexivity |
           assumption
@@ -618,7 +618,7 @@ Proof.
             simpl.
             apply equiv_smt_expr_binop.
             {
-              apply L_4.
+              apply L_add_4.
               { apply equiv_smt_expr_refl. }
               { assumption. }
             }
