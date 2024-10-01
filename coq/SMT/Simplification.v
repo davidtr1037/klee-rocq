@@ -379,7 +379,26 @@ Lemma L_4 : forall n1 n2 n3 n4,
   equiv_smt_expr (Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.add n1 n3)))
     (Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.add n2 n4))).
 Proof.
-Admitted.
+  intros n1 n2 n3 n4 Heq1 Heq2.
+  apply EquivExpr.
+  intros m.
+  simpl.
+  inversion Heq1; subst.
+  apply inj_pair2 in H1.
+  apply inj_pair2 in H2.
+  rewrite H1, H2 in *.
+  specialize (H0 m).
+  simpl in H0.
+  rewrite H0.
+  inversion Heq2; subst.
+  apply inj_pair2 in H4.
+  apply inj_pair2 in H5.
+  rewrite H4, H5 in *.
+  specialize (H3 m).
+  simpl in H3.
+  rewrite H3.
+  reflexivity.
+Qed.
 
 (*
   all the cases:
