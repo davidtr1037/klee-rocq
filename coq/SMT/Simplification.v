@@ -617,17 +617,9 @@ Lemma L_repr_unsigned : forall n1 n2,
     (Expr Sort_BV32 (AST_Const Sort_BV32 (repr (unsigned n2)))).
 Proof.
   intros n1 n2 Heq.
-  apply EquivExpr.
-  intros m.
-  simpl.
-  inversion Heq; subst.
-  apply inj_pair2 in H1.
-  apply inj_pair2 in H2.
-  rewrite H1, H2 in *.
-  specialize (H0 m).
-  simpl in H0.
+  apply L_injection_consts in Heq.
   subst.
-  reflexivity.
+  apply equiv_smt_expr_refl.
 Qed.
 
 Lemma L_sub_4 : forall n1 n2 n3 n4,
@@ -896,13 +888,55 @@ Proof.
   }
 Qed.
 
+Lemma equiv_smt_expr_normalize_binop_left_add : forall (ast1 ast2 ast3 : smt_ast Sort_BV32),
+  equiv_smt_expr (Expr Sort_BV32 ast2) (Expr Sort_BV32 ast3) ->
+  equiv_smt_expr
+    (Expr Sort_BV32 (normalize_binop SMT_Add Sort_BV32 ast2 ast1))
+    (Expr Sort_BV32 (normalize_binop SMT_Add Sort_BV32 ast3 ast1)).
+Proof.
+Admitted.
+
+Lemma equiv_smt_expr_normalize_binop_left_sub : forall (ast1 ast2 ast3 : smt_ast Sort_BV32),
+  equiv_smt_expr (Expr Sort_BV32 ast2) (Expr Sort_BV32 ast3) ->
+  equiv_smt_expr
+    (Expr Sort_BV32 (normalize_binop SMT_Sub Sort_BV32 ast2 ast1))
+    (Expr Sort_BV32 (normalize_binop SMT_Sub Sort_BV32 ast3 ast1)).
+Proof.
+Admitted.
+
 Lemma equiv_smt_expr_normalize_binop_left : forall s op (ast1 ast2 ast3 : smt_ast s),
   equiv_smt_expr (Expr s ast2) (Expr s ast3) ->
   equiv_smt_expr
     (Expr s (normalize_binop op s ast2 ast1))
     (Expr s (normalize_binop op s ast3 ast1)).
 Proof.
-Admitted.
+  intros s op ast1 ast2 ast3 Heq.
+  destruct s;
+  (* bv1, bv8, bv16, bv64 *)
+  try (
+    apply equiv_smt_expr_binop;
+    try (apply equiv_smt_expr_refl);
+    try (assumption)
+  ).
+  simpl.
+  destruct op;
+  (* all ops except for add/sub *)
+  try (
+    apply equiv_smt_expr_binop;
+    try (apply equiv_smt_expr_refl);
+    try (assumption)
+  ).
+  (* add *)
+  {
+    apply equiv_smt_expr_normalize_binop_left_add.
+    assumption.
+  }
+  (* sub *)
+  {
+    apply equiv_smt_expr_normalize_binop_left_sub.
+    assumption.
+  }
+Qed.
 
 Lemma equiv_smt_expr_normalize_binop : forall s op (ast1 ast2 ast3 ast4 : smt_ast s),
   equiv_smt_expr (Expr s ast1) (Expr s ast2) ->
