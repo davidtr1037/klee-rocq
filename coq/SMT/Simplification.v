@@ -621,18 +621,18 @@ Proof.
   destruct s; reflexivity.
 Qed.
 
-Lemma equiv_smt_expr_not_to_eq : forall (ast : smt_ast Sort_BV1),
-  equiv_smt_expr
-    (Expr Sort_BV1 (AST_Not Sort_BV1 ast))
-    (Expr Sort_BV1 (AST_CmpOp Sort_BV1 SMT_Eq smt_ast_false (normalize Sort_BV1 ast))).
-Proof.
-Admitted.
-
 Lemma equiv_smt_expr_ne_to_eq : forall s (ast1 ast2 : smt_ast s),
   equiv_smt_expr (Expr Sort_BV1 (AST_CmpOp s SMT_Ne ast1 ast2))
     (Expr Sort_BV1
        (AST_CmpOp Sort_BV1 SMT_Eq (AST_Const Sort_BV1 Int1.zero)
           (AST_CmpOp s SMT_Eq ast1 ast2))).
+Proof.
+Admitted.
+
+Lemma equiv_smt_expr_not_to_eq : forall (ast : smt_ast Sort_BV1),
+  equiv_smt_expr
+    (Expr Sort_BV1 (AST_Not Sort_BV1 ast))
+    (Expr Sort_BV1 (AST_CmpOp Sort_BV1 SMT_Eq smt_ast_false (normalize Sort_BV1 ast))).
 Proof.
 Admitted.
 
@@ -760,9 +760,74 @@ Proof.
   }
 Qed.
 
-Lemma equiv_smt_expr_normalize_simplify: forall (sort : smt_sort) (ast : smt_ast sort),
+Lemma equiv_smt_expr_simplify_binop : forall s op (ast1 ast2 : smt_ast s),
   equiv_smt_expr
-    (Expr sort ast)
-    (Expr sort (simplify sort (normalize sort ast))).
+    (Expr s (simplify_binop op s ast1 ast2))
+    (Expr s (AST_BinOp s op ast1 ast2)).
 Proof.
+  intros s op ast1 ast2.
+  destruct s.
+  { admit. }
+  { admit. }
+  { admit. }
+  { admit. }
+  { admit. }
 Admitted.
+
+Lemma equiv_smt_expr_simplify_cmpop : forall s op (ast1 ast2 : smt_ast s),
+  equiv_smt_expr
+    (Expr Sort_BV1 (simplify_cmpop op s ast1 ast2))
+    (Expr Sort_BV1 (AST_CmpOp s op ast1 ast2)).
+Proof.
+  intros s op ast1 ast2.
+  destruct s.
+  { admit. }
+  { admit. }
+  { admit. }
+  { admit. }
+  { admit. }
+Admitted.
+
+Lemma equiv_smt_expr_simplify: forall s (ast : smt_ast s),
+  equiv_smt_expr
+    (Expr s ast)
+    (Expr s (simplify s ast)).
+Proof.
+  intros s ast.
+  induction ast; simpl.
+  { apply equiv_smt_expr_refl. }
+  { apply equiv_smt_expr_refl. }
+  {
+    apply equiv_smt_expr_symmetry.
+    eapply equiv_smt_expr_transitivity.
+    { apply equiv_smt_expr_simplify_binop. }
+    {
+      apply equiv_smt_expr_binop;
+      apply equiv_smt_expr_symmetry; assumption.
+    }
+  }
+  {
+    apply equiv_smt_expr_symmetry.
+    eapply equiv_smt_expr_transitivity.
+    { apply equiv_smt_expr_simplify_cmpop. }
+    {
+      apply equiv_smt_expr_cmpop;
+      apply equiv_smt_expr_symmetry; assumption.
+    }
+  }
+  {
+    apply equiv_smt_expr_not.
+    assumption.
+  }
+Admitted.
+
+Lemma equiv_smt_expr_normalize_simplify: forall s (ast : smt_ast s),
+  equiv_smt_expr
+    (Expr s ast)
+    (Expr s (simplify s (normalize s ast))).
+Proof.
+  intros s ast.
+  eapply equiv_smt_expr_transitivity.
+  { apply equiv_smt_expr_normalize. }
+  { apply equiv_smt_expr_simplify. }
+Qed.
