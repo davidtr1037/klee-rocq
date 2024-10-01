@@ -43,22 +43,17 @@ Definition normalize_binop_bv32 op (ast1 ast2 : smt_ast Sort_BV32) :=
         end
     | _ => AST_BinOp Sort_BV32 op ast1 ast2
     end
-  (* TOOD: rewrite as above *)
   | SMT_Sub =>
-    match ast1, ast2 with
-    | AST_Const Sort_BV32 n1, AST_Const Sort_BV32 n2 =>
-        AST_BinOp Sort_BV32 op ast1 ast2
-    | ast1, AST_Const Sort_BV32 n2 =>
+    match ast2 with
+    | AST_Const Sort_BV32 n2 =>
         match ast1 with
+        | AST_Const Sort_BV32 n1 => AST_BinOp Sort_BV32 op ast1 ast2
         | AST_BinOp Sort_BV32 SMT_Add (AST_Const Sort_BV32 n1) ast =>
-            (* (c1 + x) - c2 ~ (c1 - c2) + x *)
             AST_BinOp Sort_BV32 SMT_Add (AST_Const Sort_BV32 (repr (unsigned (sub n1 n2)))) ast
         | _ =>
-            (* (x - c1) ~ ((-c1) + x) *)
             AST_BinOp Sort_BV32 SMT_Add (AST_Const Sort_BV32 (repr (unsigned (sub zero n2)))) ast1
         end
-    | _, _ =>
-        AST_BinOp Sort_BV32 op ast1 ast2
+    | _ => AST_BinOp Sort_BV32 op ast1 ast2
     end
   | _ =>
     AST_BinOp Sort_BV32 op ast1 ast2
