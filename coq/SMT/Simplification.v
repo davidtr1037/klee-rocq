@@ -369,6 +369,18 @@ Lemma equiv_smt_expr_sub_consts : forall (ast : smt_ast Sort_BV32) (n1 n2 : int3
 Proof.
 Admitted.
 
+Lemma L_4 : forall n1 n2 n3 n4,
+  equiv_smt_expr
+    (Expr Sort_BV32 (AST_Const Sort_BV32 n1))
+    (Expr Sort_BV32 (AST_Const Sort_BV32 n2)) ->
+  equiv_smt_expr
+    (Expr Sort_BV32 (AST_Const Sort_BV32 n3))
+    (Expr Sort_BV32 (AST_Const Sort_BV32 n4)) ->
+  equiv_smt_expr (Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.add n1 n3)))
+    (Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.add n2 n4))).
+Proof.
+Admitted.
+
 (*
   all the cases:
    - (normalize (a1 + a2) c), (normalize (a1 + a2) a3)
@@ -450,9 +462,11 @@ Proof.
         )
       ]
     ).
+    (* normalize (a1 + a2) c ~ (a1 + a2) + a3 *)
     {
       remember ast1_1 as a1_1.
       dependent destruction ast1_1;
+      (* a1 : !const *)
       try (
         apply L_3;
         [
@@ -560,7 +574,39 @@ Proof.
         ]
       ).
       (* ast3 : const *)
-      { admit. }
+      {
+        dependent destruction ast1;
+        try (
+          apply equiv_smt_expr_binop;
+          try (apply equiv_smt_expr_refl);
+          try (assumption)
+        ).
+        destruct op;
+        (* op : !add *)
+        try (
+          apply equiv_smt_expr_binop;
+          try (apply equiv_smt_expr_refl);
+          try (assumption)
+        ).
+        (* op : add *)
+        {
+          dependent destruction ast1_1;
+          try (
+            apply equiv_smt_expr_binop;
+            [ assumption | apply equiv_smt_expr_refl ]
+          ).
+          {
+            simpl.
+            apply equiv_smt_expr_binop.
+            {
+              apply L_4.
+              { apply equiv_smt_expr_refl. }
+              { assumption. }
+            }
+            { apply equiv_smt_expr_refl. }
+          }
+        }
+      }
     }
   }
   { admit. } (* sub *)
