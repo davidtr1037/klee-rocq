@@ -545,6 +545,86 @@ Proof.
   }
 Qed.
 
+Lemma equiv_smt_expr_normalize_binop_right_add : forall (ast1 ast2 ast3 : smt_ast Sort_BV32),
+  equiv_smt_expr (Expr Sort_BV32 ast2) (Expr Sort_BV32 ast3) ->
+  equiv_smt_expr
+    (Expr Sort_BV32 (normalize_binop SMT_Add Sort_BV32 ast1 ast2))
+    (Expr Sort_BV32 (normalize_binop SMT_Add Sort_BV32 ast1 ast3)).
+Proof.
+  intros ast1 ast2 ast3 Hequiv.
+  dependent destruction ast2;
+  (* ast2 : !const *)
+  try (
+    apply L_add_1;
+    [
+      reflexivity |
+      assumption
+    ]
+  ).
+  (* ast2 : const *)
+  {
+    dependent destruction ast3;
+    try (
+      apply L_add_2;
+      [
+        reflexivity |
+        assumption
+      ]
+    ).
+    (* ast3 : const *)
+    {
+      dependent destruction ast1;
+      try (
+        apply equiv_smt_expr_binop;
+        try (apply equiv_smt_expr_refl);
+        try (assumption)
+      ).
+      destruct op;
+      (* op : !add *)
+      try (
+        apply equiv_smt_expr_binop;
+        try (apply equiv_smt_expr_refl);
+        try (assumption)
+      ).
+      (* op : add *)
+      {
+        dependent destruction ast1_1;
+        try (
+          apply equiv_smt_expr_binop;
+          [ assumption | apply equiv_smt_expr_refl ]
+        ).
+        {
+          simpl.
+          apply equiv_smt_expr_binop.
+          {
+            apply L_add_4.
+            { apply equiv_smt_expr_refl. }
+            { assumption. }
+          }
+          { apply equiv_smt_expr_refl. }
+        }
+      }
+    }
+  }
+Qed.
+
+Lemma L_sub_1 : forall ast1 ast2 ast3,
+  (normalize_binop_bv32 SMT_Sub ast1 ast2) = AST_BinOp Sort_BV32 SMT_Sub ast1 ast2 ->
+  equiv_smt_expr (Expr Sort_BV32 ast2) (Expr Sort_BV32 ast3) ->
+  equiv_smt_expr
+    (Expr Sort_BV32 (normalize_binop_bv32 SMT_Sub ast1 ast2))
+    (Expr Sort_BV32 (normalize_binop_bv32 SMT_Sub ast1 ast3)).
+Proof.
+Admitted.
+
+Lemma equiv_smt_expr_normalize_binop_right_sub : forall (ast1 ast2 ast3 : smt_ast Sort_BV32),
+  equiv_smt_expr (Expr Sort_BV32 ast2) (Expr Sort_BV32 ast3) ->
+  equiv_smt_expr
+    (Expr Sort_BV32 (normalize_binop SMT_Sub Sort_BV32 ast1 ast2))
+    (Expr Sort_BV32 (normalize_binop SMT_Sub Sort_BV32 ast1 ast3)).
+Proof.
+Admitted.
+
 Lemma equiv_smt_expr_normalize_binop_right : forall s op (ast1 ast2 ast3 : smt_ast s),
   equiv_smt_expr (Expr s ast2) (Expr s ast3) ->
   equiv_smt_expr
@@ -567,64 +647,17 @@ Proof.
     try (apply equiv_smt_expr_refl);
     try (assumption)
   ).
+  (* add *)
   {
-    dependent destruction ast2;
-    (* ast2 : !const *)
-    try (
-      apply L_add_1;
-      [
-        reflexivity |
-        assumption
-      ]
-    ).
-    (* ast2 : const *)
-    {
-      dependent destruction ast3;
-      try (
-        apply L_add_2;
-        [
-          reflexivity |
-          assumption
-        ]
-      ).
-      (* ast3 : const *)
-      {
-        dependent destruction ast1;
-        try (
-          apply equiv_smt_expr_binop;
-          try (apply equiv_smt_expr_refl);
-          try (assumption)
-        ).
-        destruct op;
-        (* op : !add *)
-        try (
-          apply equiv_smt_expr_binop;
-          try (apply equiv_smt_expr_refl);
-          try (assumption)
-        ).
-        (* op : add *)
-        {
-          dependent destruction ast1_1;
-          try (
-            apply equiv_smt_expr_binop;
-            [ assumption | apply equiv_smt_expr_refl ]
-          ).
-          {
-            simpl.
-            apply equiv_smt_expr_binop.
-            {
-              apply L_add_4.
-              { apply equiv_smt_expr_refl. }
-              { assumption. }
-            }
-            { apply equiv_smt_expr_refl. }
-          }
-        }
-      }
-    }
+    apply equiv_smt_expr_normalize_binop_right_add.
+    assumption.
   }
-  { admit. } (* sub *)
-Admitted.
+  (* sub *)
+  {
+    apply equiv_smt_expr_normalize_binop_right_sub.
+    assumption.
+  }
+Qed.
 
 Lemma equiv_smt_expr_normalize_binop_left : forall s op (ast1 ast2 ast3 : smt_ast s),
   equiv_smt_expr (Expr s ast2) (Expr s ast3) ->
