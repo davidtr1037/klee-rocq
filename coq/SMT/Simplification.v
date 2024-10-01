@@ -406,19 +406,17 @@ Lemma L_add_3 : forall ast1 ast2 ast3 n,
     SMT_Add
     (AST_BinOp Sort_BV32 SMT_Add ast1 ast2)
     (AST_Const Sort_BV32 n)) =
-  (AST_BinOp
-    Sort_BV32
-    SMT_Add
+  (AST_BinOp Sort_BV32 SMT_Add
     (AST_Const Sort_BV32 n)
     (AST_BinOp Sort_BV32 SMT_Add ast1 ast2)) ->
   equiv_smt_expr (Expr Sort_BV32 (AST_Const Sort_BV32 n)) (Expr Sort_BV32 ast3) ->
   equiv_smt_expr
     (Expr Sort_BV32
-       (normalize_binop_bv32 SMT_Add (AST_BinOp Sort_BV32 SMT_Add ast1 ast2)
-          (AST_Const Sort_BV32 n)))
-    (Expr Sort_BV32
-       (AST_BinOp Sort_BV32 SMT_Add (AST_BinOp Sort_BV32 SMT_Add ast1 ast2)
-          ast3)).
+      (normalize_binop_bv32
+        SMT_Add
+        (AST_BinOp Sort_BV32 SMT_Add ast1 ast2)
+        (AST_Const Sort_BV32 n)))
+    (Expr Sort_BV32 (AST_BinOp Sort_BV32 SMT_Add (AST_BinOp Sort_BV32 SMT_Add ast1 ast2) ast3)).
 Proof.
   intros ast1 ast2 ast3 n Heq Hequiv.
   rewrite Heq.
@@ -618,7 +616,19 @@ Lemma L_repr_unsigned : forall n1 n2,
     (Expr Sort_BV32 (AST_Const Sort_BV32 (repr (unsigned n1))))
     (Expr Sort_BV32 (AST_Const Sort_BV32 (repr (unsigned n2)))).
 Proof.
-Admitted.
+  intros n1 n2 Heq.
+  apply EquivExpr.
+  intros m.
+  simpl.
+  inversion Heq; subst.
+  apply inj_pair2 in H1.
+  apply inj_pair2 in H2.
+  rewrite H1, H2 in *.
+  specialize (H0 m).
+  simpl in H0.
+  subst.
+  reflexivity.
+Qed.
 
 Lemma L_sub_4 : forall n1 n2 n3 n4,
   equiv_smt_expr
@@ -631,7 +641,57 @@ Lemma L_sub_4 : forall n1 n2 n3 n4,
     (Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.sub n1 n3)))
     (Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.sub n2 n4))).
 Proof.
-Admitted.
+  intros n1 n2 n3 n4 Heq1 Heq2.
+  apply EquivExpr.
+  intros m.
+  simpl.
+  inversion Heq1; subst.
+  apply inj_pair2 in H1.
+  apply inj_pair2 in H2.
+  rewrite H1, H2 in *.
+  specialize (H0 m).
+  simpl in H0.
+  rewrite H0.
+  inversion Heq2; subst.
+  apply inj_pair2 in H4.
+  apply inj_pair2 in H5.
+  rewrite H4, H5 in *.
+  specialize (H3 m).
+  simpl in H3.
+  rewrite H3.
+  reflexivity.
+Qed.
+
+Lemma L_sub_3 : forall ast1 ast2 ast3 n,
+  (normalize_binop_bv32
+    SMT_Sub
+    (AST_BinOp Sort_BV32 SMT_Add ast1 ast2)
+    (AST_Const Sort_BV32 n)) =
+  (AST_BinOp Sort_BV32 SMT_Add
+    (AST_Const Sort_BV32 (repr (unsigned (sub zero n))))
+    (AST_BinOp Sort_BV32 SMT_Add ast1 ast2)) ->
+  equiv_smt_expr (Expr Sort_BV32 (AST_Const Sort_BV32 n)) (Expr Sort_BV32 ast3) ->
+  equiv_smt_expr
+    (Expr Sort_BV32
+      (normalize_binop_bv32
+        SMT_Sub
+        (AST_BinOp Sort_BV32 SMT_Add ast1 ast2)
+        (AST_Const Sort_BV32 n)))
+    (Expr Sort_BV32 (AST_BinOp Sort_BV32 SMT_Sub (AST_BinOp Sort_BV32 SMT_Add ast1 ast2) ast3)).
+Proof.
+  intros ast1 ast2 ast3 n Heq Hequiv.
+  rewrite Heq.
+  eapply equiv_smt_expr_transitivity.
+  {
+    apply equiv_smt_expr_symmetry.
+    apply equiv_smt_expr_sub_add.
+  }
+  {
+    apply equiv_smt_expr_binop.
+    { apply equiv_smt_expr_refl. }
+    { assumption. }
+  }
+Qed.
 
 Lemma L_sub_2 : forall n ast1 ast2,
   (normalize_binop_bv32 SMT_Sub ast1 ast2) = AST_BinOp Sort_BV32 SMT_Sub ast1 ast2 ->
@@ -640,7 +700,71 @@ Lemma L_sub_2 : forall n ast1 ast2,
     (Expr Sort_BV32 (normalize_binop_bv32 SMT_Sub ast1 (AST_Const Sort_BV32 n)))
     (Expr Sort_BV32 (normalize_binop_bv32 SMT_Sub ast1 ast2)).
 Proof.
-Admitted.
+  intros n ast1 ast2 Heq Hequiv.
+  rewrite Heq.
+  dependent destruction ast1;
+  (* var, not *)
+  try (
+    simpl;
+    eapply equiv_smt_expr_transitivity;
+    [
+      apply equiv_smt_expr_symmetry;
+      apply equiv_smt_expr_sub_add |
+      apply equiv_smt_expr_binop;
+      [ apply equiv_smt_expr_refl | assumption ]
+    ]
+  ).
+  (* const *)
+  {
+    simpl.
+    apply equiv_smt_expr_binop.
+    { apply equiv_smt_expr_refl. }
+    { assumption. }
+  }
+  (* binop *)
+  {
+    destruct op;
+    (* op : !add *)
+    try (
+      simpl;
+      eapply equiv_smt_expr_transitivity;
+      [
+        apply equiv_smt_expr_symmetry;
+        apply equiv_smt_expr_sub_add |
+        apply equiv_smt_expr_binop;
+        [ apply equiv_smt_expr_refl | assumption ]
+      ]
+    ).
+    (* normalize (a1 + a2) c ~ (a1 + a2) - a3 *)
+    {
+      remember ast1_1 as a1_1.
+      dependent destruction ast1_1;
+      (* a1 : !const *)
+      try (
+        apply L_sub_3;
+        [
+          rewrite Heqa1_1; simpl; reflexivity |
+          assumption
+        ]
+      ).
+      (* normalize (c1 + a1) c2 ~ (c1 + a1) - a2 *)
+      {
+        rewrite Heqa1_1.
+        simpl.
+        eapply equiv_smt_expr_transitivity.
+        {
+          apply equiv_smt_expr_symmetry.
+          apply equiv_smt_expr_sub_consts.
+        }
+        {
+          apply equiv_smt_expr_binop.
+          { apply equiv_smt_expr_refl. }
+          { assumption. }
+        }
+      }
+    }
+  }
+Qed.
 
 Lemma L_sub_1 : forall ast1 ast2 ast3,
   (normalize_binop_bv32 SMT_Sub ast1 ast2) = AST_BinOp Sort_BV32 SMT_Sub ast1 ast2 ->
@@ -649,7 +773,26 @@ Lemma L_sub_1 : forall ast1 ast2 ast3,
     (Expr Sort_BV32 (normalize_binop_bv32 SMT_Sub ast1 ast2))
     (Expr Sort_BV32 (normalize_binop_bv32 SMT_Sub ast1 ast3)).
 Proof.
-Admitted.
+  intros ast1 ast2 ast3 Heq Hequiv.
+  dependent destruction ast3;
+  (* ast3 : !const *)
+  try (
+    rewrite Heq in *;
+    simpl;
+    apply equiv_smt_expr_binop;
+    [
+      apply equiv_smt_expr_refl |
+      assumption
+    ]
+  ).
+  (* ast3 : const *)
+  {
+    apply equiv_smt_expr_symmetry.
+    apply L_sub_2.
+    { assumption. }
+    { apply equiv_smt_expr_symmetry. assumption. }
+  }
+Qed.
 
 Lemma equiv_smt_expr_normalize_binop_right_sub : forall (ast1 ast2 ast3 : smt_ast Sort_BV32),
   equiv_smt_expr (Expr Sort_BV32 ast2) (Expr Sort_BV32 ast3) ->
