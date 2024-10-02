@@ -748,7 +748,66 @@ Lemma equiv_smt_expr_simplify_cmpop_bv1 : forall op (ast1 ast2 : smt_ast Sort_BV
     (Expr Sort_BV1 (simplify_cmpop_bv1 op ast1 ast2))
     (Expr Sort_BV1 (AST_CmpOp Sort_BV1 op ast1 ast2)).
 Proof.
-Admitted.
+  intros op ast1 ast2.
+  dependent destruction ast1; dependent destruction ast2;
+  try apply equiv_smt_expr_refl.
+  {
+    simpl.
+    apply EquivExpr.
+    intros m.
+    simpl.
+    unfold smt_eval_cmpop_by_sort.
+    remember (smt_eval_cmpop_generic op n n0) as b.
+    destruct op;
+    try (
+      simpl in *;
+      unfold smt_eval_cmpop_by_sort;
+      simpl;
+      destruct b;
+      (rewrite <- Heqb; reflexivity)
+    ).
+  }
+  {
+    destruct op0;
+    try (destruct s; apply equiv_smt_expr_refl).
+    {
+      dependent destruction ast2_1;
+      try (destruct s; apply equiv_smt_expr_refl).
+      {
+        destruct op;
+        try (destruct s; apply equiv_smt_expr_refl).
+        {
+          simpl.
+          destruct s;
+          try apply equiv_smt_expr_refl.
+          {
+            simpl.
+            apply EquivExpr.
+            intros m.
+            remember (Int1.eq n Int1.zero) as b1.
+            remember (Int1.eq n0 Int1.zero) as b2.
+            destruct b1, b2; symmetry in Heqb1, Heqb2;
+            try reflexivity.
+            {
+              apply int1_eqb_eq in Heqb1, Heqb2.
+              subst.
+              simpl.
+              unfold smt_eval_cmpop_by_sort.
+              unfold smt_eval_cmpop_generic.
+              simpl.
+              remember (smt_eval_ast m Sort_BV1 ast2_2) as n.
+              assert(L: n = Int1.zero \/ n = Int1.one).
+              { apply int1_destruct. }
+              destruct L as [L | L].
+              { rewrite L. simpl. reflexivity. }
+              { rewrite L. simpl. reflexivity. }
+            }
+          }
+        }
+      }
+    }
+  }
+Qed.
 
 Lemma equiv_smt_expr_simplify_cmpop_bv32 : forall op (ast1 ast2 : smt_ast Sort_BV32),
   equiv_smt_expr
