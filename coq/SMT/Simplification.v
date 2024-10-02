@@ -140,29 +140,11 @@ Definition simplify_binop_bv1 op (ast1 ast2 : smt_ast Sort_BV1) :=
 .
 
 Definition simplify_binop_bv8 op (ast1 ast2 : smt_ast Sort_BV8) :=
-  match ast1, ast2 with
-  | AST_Const Sort_BV8 n1, AST_Const Sort_BV8 n2 =>
-      match op with
-      | SMT_Add => AST_Const Sort_BV8 (add n1 n2)
-      | SMT_Sub => AST_Const Sort_BV8 (sub n1 n2)
-      | SMT_Mul => AST_Const Sort_BV8 (mul n1 n2)
-      | _ => AST_BinOp Sort_BV8 op ast1 ast2
-      end
-  | _, _ => AST_BinOp Sort_BV8 op ast1 ast2
-  end
+  AST_BinOp Sort_BV8 op ast1 ast2
 .
 
 Definition simplify_binop_bv16 op (ast1 ast2 : smt_ast Sort_BV16) :=
-  match ast1, ast2 with
-  | AST_Const Sort_BV16 n1, AST_Const Sort_BV16 n2 =>
-      match op with
-      | SMT_Add => AST_Const Sort_BV16 (add n1 n2)
-      | SMT_Sub => AST_Const Sort_BV16 (sub n1 n2)
-      | SMT_Mul => AST_Const Sort_BV16 (mul n1 n2)
-      | _ => AST_BinOp Sort_BV16 op ast1 ast2
-      end
-  | _, _ => AST_BinOp Sort_BV16 op ast1 ast2
-  end
+  AST_BinOp Sort_BV16 op ast1 ast2
 .
 
 Definition simplify_binop_bv32 op (ast1 ast2 : smt_ast Sort_BV32) :=
@@ -188,16 +170,7 @@ Definition simplify_binop_bv32 op (ast1 ast2 : smt_ast Sort_BV32) :=
 .
 
 Definition simplify_binop_bv64 op (ast1 ast2 : smt_ast Sort_BV64) :=
-  match ast1, ast2 with
-  | AST_Const Sort_BV64 n1, AST_Const Sort_BV64 n2 =>
-      match op with
-      | SMT_Add => AST_Const Sort_BV64 (add n1 n2)
-      | SMT_Sub => AST_Const Sort_BV64 (sub n1 n2)
-      | SMT_Mul => AST_Const Sort_BV64 (mul n1 n2)
-      | _ => AST_BinOp Sort_BV64 op ast1 ast2
-      end
-  | _, _ => AST_BinOp Sort_BV64 op ast1 ast2
-  end
+  AST_BinOp Sort_BV64 op ast1 ast2
 .
 
 Definition simplify_binop op (s : smt_sort) (ast1 ast2 : smt_ast s) : smt_ast s :=
@@ -912,6 +885,54 @@ Proof.
   { admit. } (* same *)
 Admitted.
 
+Lemma equiv_smt_expr_simplify_binop_bv32 : forall op (ast1 ast2 : smt_ast Sort_BV32),
+  equiv_smt_expr
+    (Expr Sort_BV32 (simplify_binop_bv32 op ast1 ast2))
+    (Expr Sort_BV32 (AST_BinOp Sort_BV32 op ast1 ast2)).
+Proof.
+  intros op ast1 ast2.
+  dependent destruction ast1.
+  {
+    dependent destruction ast2.
+    {
+      simpl.
+      destruct op;
+      try apply equiv_smt_expr_refl.
+      { apply equiv_smt_expr_add_fold_consts. }
+      { apply equiv_smt_expr_sub_fold_consts. }
+      { apply equiv_smt_expr_mul_fold_consts. }
+    }
+    {
+      destruct op;
+      try apply equiv_smt_expr_refl.
+      {
+        simpl.
+        apply EquivExpr.
+        intros m.
+        simpl.
+        remember (Int32.eq n Int32.zero) as b.
+        destruct b; symmetry in Heqb.
+        {
+          apply int32_eqb_eq in Heqb.
+          rewrite Heqb.
+          simpl.
+          rewrite Int32.add_zero_l.
+          reflexivity.
+        }
+        {
+          simpl.
+          reflexivity.
+        }
+      }
+    }
+    { admit. } (* same *)
+    { admit. } (* same *)
+  }
+  { admit. } (* same *)
+  { admit. } (* same *)
+  { admit. } (* same *)
+Admitted.
+
 Lemma equiv_smt_expr_simplify_binop : forall s op (ast1 ast2 : smt_ast s),
   equiv_smt_expr
     (Expr s (simplify_binop op s ast1 ast2))
@@ -919,12 +940,12 @@ Lemma equiv_smt_expr_simplify_binop : forall s op (ast1 ast2 : smt_ast s),
 Proof.
   intros s op ast1 ast2.
   destruct s.
-  { admit. }
-  { admit. }
-  { admit. }
-  { admit. }
-  { admit. }
-Admitted.
+  { apply equiv_smt_expr_simplify_binop_bv1. }
+  { apply equiv_smt_expr_refl. }
+  { apply equiv_smt_expr_refl. }
+  { apply equiv_smt_expr_simplify_binop_bv32. }
+  { apply equiv_smt_expr_refl. }
+Qed.
 
 Lemma equiv_smt_expr_simplify_cmpop_bv1 : forall op (ast1 ast2 : smt_ast Sort_BV1),
   equiv_smt_expr
