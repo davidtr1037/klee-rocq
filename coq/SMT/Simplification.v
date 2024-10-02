@@ -567,7 +567,32 @@ Lemma equiv_smt_expr_ne_to_eq : forall s (ast1 ast2 : smt_ast s),
        (AST_CmpOp Sort_BV1 SMT_Eq (AST_Const Sort_BV1 Int1.zero)
           (AST_CmpOp s SMT_Eq ast1 ast2))).
 Proof.
-Admitted.
+  intros s ast1 ast2.
+  apply EquivExpr.
+  intros m.
+  simpl.
+  destruct s; unfold smt_eval_cmpop_by_sort; unfold smt_eval_cmpop_generic; simpl.
+  {
+    remember (Int1.eq (smt_eval_ast m Sort_BV1 ast1) (smt_eval_ast m Sort_BV1 ast2)) as b.
+    destruct b; reflexivity.
+  }
+  {
+    remember (Int8.eq (smt_eval_ast m Sort_BV8 ast1) (smt_eval_ast m Sort_BV8 ast2)) as b.
+    destruct b; reflexivity.
+  }
+  {
+    remember (Int16.eq (smt_eval_ast m Sort_BV16 ast1) (smt_eval_ast m Sort_BV16 ast2)) as b.
+    destruct b; reflexivity.
+  }
+  {
+    remember (Int32.eq (smt_eval_ast m Sort_BV32 ast1) (smt_eval_ast m Sort_BV32 ast2)) as b.
+    destruct b; reflexivity.
+  }
+  {
+    remember (Int64.eq (smt_eval_ast m Sort_BV64 ast1) (smt_eval_ast m Sort_BV64 ast2)) as b.
+    destruct b; reflexivity.
+  }
+Qed.
 
 Lemma equiv_smt_expr_normalize_not : forall s (ast : smt_ast s),
   equiv_smt_expr
@@ -594,14 +619,6 @@ Proof.
     ).
   }
 Qed.
-
-(* TODO: fix lemma *)
-Lemma equiv_smt_expr_not_to_eq : forall (ast : smt_ast Sort_BV1),
-  equiv_smt_expr
-    (Expr Sort_BV1 (AST_Not Sort_BV1 ast))
-    (Expr Sort_BV1 (AST_CmpOp Sort_BV1 SMT_Eq smt_ast_false (normalize Sort_BV1 ast))).
-Proof.
-Admitted.
 
 Lemma equiv_smt_expr_normalize: forall (sort : smt_sort) (ast : smt_ast sort),
   equiv_smt_expr
