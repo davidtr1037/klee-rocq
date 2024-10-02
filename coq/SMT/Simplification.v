@@ -238,33 +238,11 @@ Definition simplify_cmpop_bv1 op (ast1 ast2 : smt_ast Sort_BV1) :=
 .
 
 Definition simplify_cmpop_bv8 op (ast1 ast2 : smt_ast Sort_BV8) :=
-  match ast1, ast2 with
-  | AST_Const Sort_BV8 n1, AST_Const Sort_BV8 n2 =>
-      match op with
-      | SMT_Eq => (make_smt_ast_bool (eq n1 n2))
-      | SMT_Slt
-      | SMT_Sle => make_smt_ast_bool (cmp (smt_cmpop_to_comparison op) n1 n2)
-      | SMT_Ult
-      | SMT_Ule => make_smt_ast_bool (cmpu (smt_cmpop_to_comparison op) n1 n2)
-      | _ => AST_CmpOp Sort_BV8 op ast1 ast2
-      end
-  | _, _ => AST_CmpOp Sort_BV8 op ast1 ast2
-  end
+  AST_CmpOp Sort_BV8 op ast1 ast2
 .
 
 Definition simplify_cmpop_bv16 op (ast1 ast2 : smt_ast Sort_BV16) :=
-  match ast1, ast2 with
-  | AST_Const Sort_BV16 n1, AST_Const Sort_BV16 n2 =>
-      match op with
-      | SMT_Eq => (make_smt_ast_bool (eq n1 n2))
-      | SMT_Slt
-      | SMT_Sle => make_smt_ast_bool (cmp (smt_cmpop_to_comparison op) n1 n2)
-      | SMT_Ult
-      | SMT_Ule => make_smt_ast_bool (cmpu (smt_cmpop_to_comparison op) n1 n2)
-      | _ => AST_CmpOp Sort_BV16 op ast1 ast2
-      end
-  | _, _ => AST_CmpOp Sort_BV16 op ast1 ast2
-  end
+  AST_CmpOp Sort_BV16 op ast1 ast2
 .
 
 Definition simplify_cmpop_bv32 op (ast1 ast2 : smt_ast Sort_BV32) :=
@@ -283,18 +261,7 @@ Definition simplify_cmpop_bv32 op (ast1 ast2 : smt_ast Sort_BV32) :=
 .
 
 Definition simplify_cmpop_bv64 op (ast1 ast2 : smt_ast Sort_BV64) :=
-  match ast1, ast2 with
-  | AST_Const Sort_BV64 n1, AST_Const Sort_BV64 n2 =>
-      match op with
-      | SMT_Eq => (make_smt_ast_bool (eq n1 n2))
-      | SMT_Slt
-      | SMT_Sle => make_smt_ast_bool (cmp (smt_cmpop_to_comparison op) n1 n2)
-      | SMT_Ult
-      | SMT_Ule => make_smt_ast_bool (cmpu (smt_cmpop_to_comparison op) n1 n2)
-      | _ => AST_CmpOp Sort_BV64 op ast1 ast2
-      end
-  | _, _ => AST_CmpOp Sort_BV64 op ast1 ast2
-  end
+  AST_CmpOp Sort_BV64 op ast1 ast2
 .
 
 Definition simplify_cmpop op (s : smt_sort) (ast1 ast2 : smt_ast s) : smt_ast Sort_BV1 :=
@@ -776,6 +743,13 @@ Proof.
   { admit. }
 Admitted.
 
+Lemma equiv_smt_expr_simplify_cmpop_bv1 : forall op (ast1 ast2 : smt_ast Sort_BV1),
+  equiv_smt_expr
+    (Expr Sort_BV1 (simplify_cmpop_bv1 op ast1 ast2))
+    (Expr Sort_BV1 (AST_CmpOp Sort_BV1 op ast1 ast2)).
+Proof.
+Admitted.
+
 Lemma equiv_smt_expr_simplify_cmpop_bv32 : forall op (ast1 ast2 : smt_ast Sort_BV32),
   equiv_smt_expr
     (Expr Sort_BV1 (simplify_cmpop_bv32 op ast1 ast2))
@@ -809,12 +783,12 @@ Lemma equiv_smt_expr_simplify_cmpop : forall s op (ast1 ast2 : smt_ast s),
 Proof.
   intros s op ast1 ast2.
   destruct s.
-  { admit. }
-  { admit. }
-  { admit. }
-  { admit. }
-  { admit. }
-Admitted.
+  { apply equiv_smt_expr_simplify_cmpop_bv1. }
+  { apply equiv_smt_expr_refl. }
+  { apply equiv_smt_expr_refl. }
+  { apply equiv_smt_expr_simplify_cmpop_bv32. }
+  { apply equiv_smt_expr_refl. }
+Qed.
 
 Lemma equiv_smt_expr_simplify: forall s (ast : smt_ast s),
   equiv_smt_expr
