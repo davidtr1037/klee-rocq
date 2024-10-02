@@ -105,17 +105,25 @@ Proof.
             simpl.
             unfold smt_eval_cmpop_by_sort.
             unfold smt_eval_cmpop_generic.
+            unfold eval_cmp_result.
             simpl.
             replace
               (smt_cmpop_to_comparison (icmp_to_smt_cmpop op)) with (icmp_to_comparison op).
             {
+              remember (
+                Int1.cmpu
+                  (icmp_to_comparison op)
+                  (smt_eval_ast m Sort_BV1 ast1)
+                  (smt_eval_ast m Sort_BV1 ast2)
+              ) as bu.
               remember (
                 Int1.cmp
                   (icmp_to_comparison op)
                   (smt_eval_ast m Sort_BV1 ast1)
                   (smt_eval_ast m Sort_BV1 ast2)
               ) as b.
-              destruct b; reflexivity.
+              destruct op;
+              (simpl; destruct bu; destruct b; reflexivity).
             }
             { destruct op; reflexivity. }
           }
@@ -127,17 +135,25 @@ Proof.
             simpl.
             unfold smt_eval_cmpop_by_sort.
             unfold smt_eval_cmpop_generic.
+            unfold eval_cmp_result.
             simpl.
             replace
               (smt_cmpop_to_comparison (icmp_to_smt_cmpop op)) with (icmp_to_comparison op).
             {
+              remember (
+                Int8.cmpu
+                  (icmp_to_comparison op)
+                  (smt_eval_ast m Sort_BV8 ast1)
+                  (smt_eval_ast m Sort_BV8 ast2)
+              ) as bu.
               remember (
                 Int8.cmp
                   (icmp_to_comparison op)
                   (smt_eval_ast m Sort_BV8 ast1)
                   (smt_eval_ast m Sort_BV8 ast2)
               ) as b.
-              destruct b; reflexivity.
+              destruct op;
+              (simpl; destruct bu; destruct b; reflexivity).
             }
             { destruct op; reflexivity. }
           }
@@ -149,17 +165,25 @@ Proof.
             simpl.
             unfold smt_eval_cmpop_by_sort.
             unfold smt_eval_cmpop_generic.
+            unfold eval_cmp_result.
             simpl.
             replace
               (smt_cmpop_to_comparison (icmp_to_smt_cmpop op)) with (icmp_to_comparison op).
             {
+              remember (
+                Int16.cmpu
+                  (icmp_to_comparison op)
+                  (smt_eval_ast m Sort_BV16 ast1)
+                  (smt_eval_ast m Sort_BV16 ast2)
+              ) as bu.
               remember (
                 Int16.cmp
                   (icmp_to_comparison op)
                   (smt_eval_ast m Sort_BV16 ast1)
                   (smt_eval_ast m Sort_BV16 ast2)
               ) as b.
-              destruct b; reflexivity.
+              destruct op;
+              (simpl; destruct bu; destruct b; reflexivity).
             }
             { destruct op; reflexivity. }
           }
@@ -171,17 +195,25 @@ Proof.
             simpl.
             unfold smt_eval_cmpop_by_sort.
             unfold smt_eval_cmpop_generic.
+            unfold eval_cmp_result.
             simpl.
             replace
               (smt_cmpop_to_comparison (icmp_to_smt_cmpop op)) with (icmp_to_comparison op).
             {
+              remember (
+                Int32.cmpu
+                  (icmp_to_comparison op)
+                  (smt_eval_ast m Sort_BV32 ast1)
+                  (smt_eval_ast m Sort_BV32 ast2)
+              ) as bu.
               remember (
                 Int32.cmp
                   (icmp_to_comparison op)
                   (smt_eval_ast m Sort_BV32 ast1)
                   (smt_eval_ast m Sort_BV32 ast2)
               ) as b.
-              destruct b; reflexivity.
+              destruct op;
+              (simpl; destruct bu; destruct b; reflexivity).
             }
             { destruct op; reflexivity. }
           }
@@ -193,17 +225,25 @@ Proof.
             simpl.
             unfold smt_eval_cmpop_by_sort.
             unfold smt_eval_cmpop_generic.
+            unfold eval_cmp_result.
             simpl.
             replace
               (smt_cmpop_to_comparison (icmp_to_smt_cmpop op)) with (icmp_to_comparison op).
             {
+              remember (
+                Int64.cmpu
+                  (icmp_to_comparison op)
+                  (smt_eval_ast m Sort_BV64 ast1)
+                  (smt_eval_ast m Sort_BV64 ast2)
+              ) as bu.
               remember (
                 Int64.cmp
                   (icmp_to_comparison op)
                   (smt_eval_ast m Sort_BV64 ast1)
                   (smt_eval_ast m Sort_BV64 ast2)
               ) as b.
-              destruct b; reflexivity.
+              destruct op;
+              (simpl; destruct bu; destruct b; reflexivity).
             }
             { destruct op; reflexivity. }
           }

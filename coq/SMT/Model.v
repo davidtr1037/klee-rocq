@@ -81,7 +81,15 @@ Definition smt_cmpop_to_comparison (op : smt_cmpop) : comparison :=
 .
 
 Definition smt_eval_cmpop_generic {Int} `{VInt Int} (op : smt_cmpop) (x y : Int) : bool :=
-  cmp (smt_cmpop_to_comparison op) x y
+  match op with
+  | SMT_Ugt
+  | SMT_Uge
+  | SMT_Ult
+  | SMT_Ule =>
+    cmpu (smt_cmpop_to_comparison op) x y
+  |_ =>
+    cmp (smt_cmpop_to_comparison op) x y
+  end
 .
 
 Definition cmpop_predicate (s : smt_sort) :=

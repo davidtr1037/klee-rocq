@@ -165,7 +165,15 @@ Definition icmp_to_comparison (op : icmp) : comparison :=
 .
 
 Definition eval_cmp_result {Int} `{VInt Int} (op : icmp) (x y : Int) : bool :=
-  cmp (icmp_to_comparison op) x y
+  match op with
+  | Ugt
+  | Uge
+  | Ult
+  | Ule =>
+    cmpu (icmp_to_comparison op) x y
+  |_ =>
+    cmp (icmp_to_comparison op) x y
+  end
 .
 
 (* TODO: compare with the latest version *)
