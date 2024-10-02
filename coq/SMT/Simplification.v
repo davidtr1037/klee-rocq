@@ -569,6 +569,32 @@ Lemma equiv_smt_expr_ne_to_eq : forall s (ast1 ast2 : smt_ast s),
 Proof.
 Admitted.
 
+Lemma equiv_smt_expr_normalize_not : forall s (ast : smt_ast s),
+  equiv_smt_expr
+    (Expr s (normalize_not s ast))
+    (Expr s (AST_Not s ast)).
+Proof.
+  intros s ast.
+  destruct s;
+  try apply equiv_smt_expr_refl.
+  {
+    simpl.
+    apply EquivExpr.
+    intros m.
+    simpl.
+    remember (smt_eval_ast m Sort_BV1 ast) as n.
+    assert(L: n = Int1.zero \/ n = Int1.one).
+    { apply int1_destruct. }
+    destruct L as [L | L];
+    (
+      rewrite L;
+      unfold smt_eval_cmpop_by_sort;
+      unfold smt_eval_cmpop_generic;
+      reflexivity
+    ).
+  }
+Qed.
+
 (* TODO: fix lemma *)
 Lemma equiv_smt_expr_not_to_eq : forall (ast : smt_ast Sort_BV1),
   equiv_smt_expr
@@ -691,14 +717,24 @@ Proof.
     }
   }
   {
-    (* TODO: add a lemma similar to equiv_smt_expr_normalize_binop *)
     destruct s;
     try (
       simpl;
       apply equiv_smt_expr_not;
       assumption
     ).
-    apply equiv_smt_expr_not_to_eq.
+    {
+      eapply equiv_smt_expr_transitivity.
+      {
+        apply equiv_smt_expr_symmetry.
+        apply equiv_smt_expr_normalize_not.
+      }
+      {
+        apply equiv_smt_expr_cmpop.
+        { apply equiv_smt_expr_refl. }
+        { assumption. }
+      }
+    }
   }
 Qed.
 

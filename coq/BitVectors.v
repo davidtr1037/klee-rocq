@@ -378,6 +378,16 @@ Proof.
   { assumption. }
 Qed.
 
+Lemma int32_eqb_eq : forall (x y : Int32.int),
+  Int32.eq x y = true -> x = y.
+Proof.
+  intros x y H.
+  assert(L : if Int32.eq x y then x = y else x <> y).
+  { apply Int32.eq_spec. }
+  rewrite H in L.
+  assumption.
+Qed.
+
 Lemma int32_sub_add : forall (n1 n2 : int32),
   sub n1 n2 = add n1 (repr (unsigned (sub zero n2))).
 Proof.
