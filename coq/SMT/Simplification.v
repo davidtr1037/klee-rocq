@@ -739,13 +739,85 @@ Definition sort_to_add s : (smt_sort_to_int_type s) -> (smt_sort_to_int_type s) 
   end
 .
 
+Definition sort_to_sub s : (smt_sort_to_int_type s) -> (smt_sort_to_int_type s) -> (smt_sort_to_int_type s) :=
+  match s with
+  | Sort_BV1 => Int1.sub
+  | Sort_BV8 => Int8.sub
+  | Sort_BV16 => Int16.sub
+  | Sort_BV32 => Int32.sub
+  | Sort_BV64 => Int64.sub
+  end
+.
+
+Definition sort_to_mul s : (smt_sort_to_int_type s) -> (smt_sort_to_int_type s) -> (smt_sort_to_int_type s) :=
+  match s with
+  | Sort_BV1 => Int1.mul
+  | Sort_BV8 => Int8.mul
+  | Sort_BV16 => Int16.mul
+  | Sort_BV32 => Int32.mul
+  | Sort_BV64 => Int64.mul
+  end
+.
+
+Definition sort_to_and s : (smt_sort_to_int_type s) -> (smt_sort_to_int_type s) -> (smt_sort_to_int_type s) :=
+  match s with
+  | Sort_BV1 => Int1.and
+  | Sort_BV8 => Int8.and
+  | Sort_BV16 => Int16.and
+  | Sort_BV32 => Int32.and
+  | Sort_BV64 => Int64.and
+  end
+.
+
 Lemma equiv_smt_expr_add_fold_consts : forall s (n1 n2 : smt_sort_to_int_type s),
   equiv_smt_expr
     (Expr s (AST_Const s ((sort_to_add s) n1 n2)))
-    (Expr
-      s
-      (AST_BinOp s SMT_Add (AST_Const s n1)
-      (AST_Const s n2))).
+    (Expr s (AST_BinOp s SMT_Add (AST_Const s n1) (AST_Const s n2))).
+Proof.
+  intros s n1 n2.
+  destruct s;
+  try (
+    apply EquivExpr;
+    intros m;
+    simpl;
+    reflexivity
+  ).
+Qed.
+
+Lemma equiv_smt_expr_sub_fold_consts : forall s (n1 n2 : smt_sort_to_int_type s),
+  equiv_smt_expr
+    (Expr s (AST_Const s ((sort_to_sub s) n1 n2)))
+    (Expr s (AST_BinOp s SMT_Sub (AST_Const s n1) (AST_Const s n2))).
+Proof.
+  intros s n1 n2.
+  destruct s;
+  try (
+    apply EquivExpr;
+    intros m;
+    simpl;
+    reflexivity
+  ).
+Qed.
+
+Lemma equiv_smt_expr_mul_fold_consts : forall s (n1 n2 : smt_sort_to_int_type s),
+  equiv_smt_expr
+    (Expr s (AST_Const s ((sort_to_mul s) n1 n2)))
+    (Expr s (AST_BinOp s SMT_Mul (AST_Const s n1) (AST_Const s n2))).
+Proof.
+  intros s n1 n2.
+  destruct s;
+  try (
+    apply EquivExpr;
+    intros m;
+    simpl;
+    reflexivity
+  ).
+Qed.
+
+Lemma equiv_smt_expr_and_fold_consts : forall s (n1 n2 : smt_sort_to_int_type s),
+  equiv_smt_expr
+    (Expr s (AST_Const s ((sort_to_and s) n1 n2)))
+    (Expr s (AST_BinOp s SMT_And (AST_Const s n1) (AST_Const s n2))).
 Proof.
   intros s n1 n2.
   destruct s;
@@ -771,9 +843,9 @@ Proof.
       destruct op;
       try apply equiv_smt_expr_refl.
       { apply equiv_smt_expr_add_fold_consts. }
-      { admit. }
-      { admit. }
-      { admit. }
+      { apply equiv_smt_expr_sub_fold_consts. }
+      { apply equiv_smt_expr_mul_fold_consts. }
+      { apply equiv_smt_expr_and_fold_consts. }
     }
     {
       destruct op;
