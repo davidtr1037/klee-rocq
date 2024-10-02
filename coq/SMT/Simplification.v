@@ -786,19 +786,21 @@ Proof.
   try apply equiv_smt_expr_refl.
   {
     simpl.
+    apply EquivExpr.
+    intros m.
+    simpl.
+    unfold smt_eval_cmpop_by_sort.
+    remember (smt_eval_cmpop_generic op n n0) as b.
     destruct op;
-    try apply equiv_smt_expr_refl.
-    { admit. }
-    { simpl.
-      apply EquivExpr.
-      intros m.
-      simpl.
-      unfold smt_eval_cmpop_by_sort.
-      simpl.
-      unfold make_smt_ast_bool.
-      admit.
-    }
-Admitted.
+    try (
+      simpl in *;
+      unfold smt_eval_cmpop_by_sort;
+      simpl;
+      destruct b;
+      (rewrite <- Heqb; reflexivity)
+    ).
+  }
+Qed.
 
 Lemma equiv_smt_expr_simplify_cmpop : forall s op (ast1 ast2 : smt_ast s),
   equiv_smt_expr
