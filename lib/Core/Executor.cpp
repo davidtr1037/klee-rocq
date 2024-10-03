@@ -4767,7 +4767,7 @@ void Executor::executeMakeSymbolic(ExecutionState &state,
     /* TODO: must happen before calling addSymbolic */
     if (isInProofMode()) {
       unsigned index = state.symbolics.size();
-      ref<CoqExpr> coqName = proofGenerator->getSymbolicName(index);
+      ref<CoqExpr> coqName = proofGenerator->createSymbolicName(index);
       ref<CoqExpr> coqSMTVar = \
         proofGenerator->exprTranslator->createSMTVar(array->size * 8, coqName);
       state.addArrayTranslation(array, coqSMTVar);
