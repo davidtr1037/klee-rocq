@@ -636,6 +636,7 @@ Proof.
   destruct s; reflexivity.
 Qed.
 
+(* TODO: make generic *)
 Lemma equiv_smt_expr_normalize_cmpop_bv1 : forall op (ast1 ast2 : smt_ast Sort_BV1),
   equiv_smt_expr
     (Expr Sort_BV1 (normalize_cmpop op Sort_BV1 ast1 ast2))
@@ -643,34 +644,19 @@ Lemma equiv_smt_expr_normalize_cmpop_bv1 : forall op (ast1 ast2 : smt_ast Sort_B
 Proof.
   intros op ast1 ast2.
   destruct op;
-  try apply equiv_smt_expr_refl.
-  {
-    simpl.
-    apply equiv_smt_expr_symmetry.
-    apply equiv_smt_expr_ne_to_eq.
-  }
-  {
-    simpl.
-    apply equiv_smt_expr_symmetry.
-    apply equiv_smt_expr_ugt_ult.
-  }
-  {
-    simpl.
-    apply equiv_smt_expr_symmetry.
-    apply equiv_smt_expr_uge_ule.
-  }
-  {
-    simpl.
-    apply equiv_smt_expr_symmetry.
-    apply equiv_smt_expr_sgt_slt.
-  }
-  {
-    simpl.
-    apply equiv_smt_expr_symmetry.
-    apply equiv_smt_expr_sge_sle.
-  }
+  try apply equiv_smt_expr_refl;
+  (
+    simpl;
+    apply equiv_smt_expr_symmetry;
+    try apply equiv_smt_expr_ne_to_eq;
+    try apply equiv_smt_expr_ugt_ult;
+    try apply equiv_smt_expr_uge_ule;
+    try apply equiv_smt_expr_sgt_slt;
+    try apply equiv_smt_expr_sge_sle
+  ).
 Qed.
 
+(* TODO: make generic *)
 Lemma equiv_smt_expr_normalize_cmpop_bv32 : forall op (ast1 ast2 : smt_ast Sort_BV32),
   equiv_smt_expr
     (Expr Sort_BV1 (normalize_cmpop op Sort_BV32 ast1 ast2))
@@ -678,32 +664,16 @@ Lemma equiv_smt_expr_normalize_cmpop_bv32 : forall op (ast1 ast2 : smt_ast Sort_
 Proof.
   intros op ast1 ast2.
   destruct op;
-  try apply equiv_smt_expr_refl.
-  {
-    simpl.
-    apply equiv_smt_expr_symmetry.
-    apply equiv_smt_expr_ne_to_eq.
-  }
-  {
-    simpl.
-    apply equiv_smt_expr_symmetry.
-    apply equiv_smt_expr_ugt_ult.
-  }
-  {
-    simpl.
-    apply equiv_smt_expr_symmetry.
-    apply equiv_smt_expr_uge_ule.
-  }
-  {
-    simpl.
-    apply equiv_smt_expr_symmetry.
-    apply equiv_smt_expr_sgt_slt.
-  }
-  {
-    simpl.
-    apply equiv_smt_expr_symmetry.
-    apply equiv_smt_expr_sge_sle.
-  }
+  try apply equiv_smt_expr_refl;
+  (
+    simpl;
+    apply equiv_smt_expr_symmetry;
+    try apply equiv_smt_expr_ne_to_eq;
+    try apply equiv_smt_expr_ugt_ult;
+    try apply equiv_smt_expr_uge_ule;
+    try apply equiv_smt_expr_sgt_slt;
+    try apply equiv_smt_expr_sge_sle
+  ).
 Qed.
 
 Lemma equiv_smt_expr_normalize_cmpop : forall s op (ast1 ast2 : smt_ast s),
