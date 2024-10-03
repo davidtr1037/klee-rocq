@@ -55,6 +55,15 @@ Definition normalize_binop_bv32 op (ast1 ast2 : smt_ast Sort_BV32) :=
         end
     | _ => AST_BinOp Sort_BV32 op ast1 ast2
     end
+  | SMT_Mul =>
+    match ast2 with
+    | AST_Const Sort_BV32 n2 =>
+        match ast1 with
+        | AST_Const Sort_BV32 n1 => AST_BinOp Sort_BV32 op ast1 ast2
+        | _ => AST_BinOp Sort_BV32 SMT_Mul (AST_Const Sort_BV32 n2) ast1
+        end
+    | _ => AST_BinOp Sort_BV32 SMT_Mul ast1 ast2
+    end
   | _ =>
     AST_BinOp Sort_BV32 op ast1 ast2
   end
@@ -336,6 +345,22 @@ Proof.
   reflexivity.
 Qed.
 
+Lemma equiv_smt_expr_mul_comm : forall s (ast1 ast2 : smt_ast s),
+  equiv_smt_expr
+    (Expr s (AST_BinOp s SMT_Mul ast1 ast2))
+    (Expr s (AST_BinOp s SMT_Mul ast2 ast1)).
+Proof.
+  intros s ast1 ast2.
+  apply EquivExpr.
+  intros m.
+  destruct s; simpl.
+  { apply Int1.mul_commut. }
+  { apply Int8.mul_commut. }
+  { apply Int16.mul_commut. }
+  { apply Int32.mul_commut. }
+  { apply Int64.mul_commut. }
+Qed.
+
 Lemma equiv_smt_expr_normalize_binop_bv32 : forall op (ast1 ast2 : smt_ast Sort_BV32),
   equiv_smt_expr
     (Expr Sort_BV32 (normalize_binop_bv32 op ast1 ast2))
@@ -438,6 +463,16 @@ Proof.
         }
         { apply equiv_smt_expr_refl. }
       }
+    }
+  }
+  (* mul *)
+  {
+    dependent destruction ast2;
+    try apply equiv_smt_expr_refl.
+    {
+      dependent destruction ast1;
+      try apply equiv_smt_expr_mul_comm.
+      { apply equiv_smt_expr_refl. }
     }
   }
 Qed.
@@ -663,6 +698,11 @@ Proof.
         apply equiv_smt_expr_normalize_binop_args;
         try assumption;
         apply equiv_smt_expr_sub_add
+      );
+      try (
+        apply equiv_smt_expr_normalize_binop_args;
+        try assumption;
+        apply equiv_smt_expr_mul_comm
       ).
       {
         apply equiv_smt_expr_normalize_binop_args.
