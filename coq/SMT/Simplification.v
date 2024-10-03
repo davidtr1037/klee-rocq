@@ -557,14 +557,9 @@ Lemma equiv_smt_expr_normalize_binop_args : forall s op (ast1 ast2 : smt_ast s),
     (Expr s (AST_BinOp s op ast1 ast2))
     (Expr
        s
-       (normalize_binop op s ast1 ast2)) ->
-  equiv_smt_expr
-    (Expr s (AST_BinOp s op ast1 ast2))
-    (Expr
-       s
        (normalize_binop op s (normalize s ast1) (normalize s ast2))).
 Proof.
-  intros s op ast1 ast2 H1 H2 H3.
+  intros s op ast1 ast2 H1 H2.
   apply equiv_smt_expr_symmetry.
   eapply equiv_smt_expr_transitivity.
   { apply equiv_smt_expr_normalize_binop. }
@@ -781,56 +776,7 @@ Proof.
       unfold normalize_binop_bv16.
       apply equiv_smt_expr_binop with (ast1 := ast1) (ast3 := ast2); assumption.
     }
-    {
-      dependent destruction ast1; dependent destruction ast2; destruct op;
-      (* trivial cases *)
-      try (
-        apply equiv_smt_expr_normalize_binop_args;
-        try assumption;
-        apply equiv_smt_expr_refl
-      );
-      try (
-        apply equiv_smt_expr_normalize_binop_args;
-        try assumption;
-        apply equiv_smt_expr_add_comm
-      );
-      try (
-        apply equiv_smt_expr_normalize_binop_args;
-        try assumption;
-        apply equiv_smt_expr_sub_add
-      );
-      try (
-        apply equiv_smt_expr_normalize_binop_args;
-        try assumption;
-        apply equiv_smt_expr_mul_comm
-      ).
-      {
-        apply equiv_smt_expr_normalize_binop_args.
-        { assumption. }
-        { assumption. }
-        {
-          destruct op0;
-          try apply equiv_smt_expr_add_comm.
-          dependent destruction ast1_1;
-          try apply equiv_smt_expr_add_comm.
-          simpl.
-          apply equiv_smt_expr_add_consts.
-        }
-      }
-      {
-        apply equiv_smt_expr_normalize_binop_args.
-        { assumption. }
-        { assumption. }
-        {
-          destruct op0;
-          try apply equiv_smt_expr_sub_add.
-          dependent destruction ast1_1;
-          try apply equiv_smt_expr_sub_add.
-          simpl.
-          apply equiv_smt_expr_sub_consts.
-        }
-      }
-    }
+    { apply equiv_smt_expr_normalize_binop_args; assumption. }
     {
       apply equiv_smt_expr_binop with (ast1 := ast1) (ast3 := ast2); assumption.
     }
