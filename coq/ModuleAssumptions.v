@@ -14,6 +14,8 @@ Inductive is_supported_ibinop : ibinop -> Prop :=
   | IS_And : is_supported_ibinop And
   | IS_Or : is_supported_ibinop Or
   | IS_Xor : is_supported_ibinop Xor
+  | IS_URem : is_supported_ibinop URem
+  | IS_SRem : is_supported_ibinop SRem
 .
 
 Inductive is_supported_exp : llvm_exp -> Prop :=
