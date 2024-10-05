@@ -4,13 +4,11 @@
 
 #include <klee/klee.h>
 
-void f(int x, int y) {
-    unsigned n = klee_make_symbolic_int32();
-    int a = x % y;
-    int b = n % a;
-}
-
 int main() {
-    f(3, 2);
+    unsigned x = 3;
+    unsigned y = 2;
+    unsigned n = klee_make_symbolic_int32();
+    unsigned a = x % y;
+    unsigned b = n % x;
     return 0;
 }
