@@ -14,6 +14,7 @@ function run_klee {
         -cache-pc-expr \
         -cache-register-expr \
         -cache-stack-expr \
+        -cache-sym-names \
         -proof-output-path=${output} \
         $1 &> /dev/null
     coqc -Q ${ROOT}/coq SE ${output}
