@@ -309,6 +309,15 @@ Definition simplify_cmpop op (s : smt_sort) (ast1 ast2 : smt_ast s) : smt_ast So
   f op ast1 ast2
 .
 
+Definition simplify_zext (s : smt_sort) (ast : smt_ast s) (cast_sort : smt_sort) : smt_ast cast_sort :=
+  match ast with
+  | AST_Const sort n =>
+      AST_Const cast_sort (smt_eval_zext_by_sort sort n cast_sort)
+  | _ =>
+      AST_ZExt s ast cast_sort
+  end
+.
+
 Fixpoint simplify (s : smt_sort) (ast : smt_ast s) : smt_ast s :=
   match ast with
   | AST_Const sort n => AST_Const sort n
@@ -319,7 +328,7 @@ Fixpoint simplify (s : smt_sort) (ast : smt_ast s) : smt_ast s :=
       simplify_cmpop op sort (simplify sort ast1) (simplify sort ast2)
   | AST_Not sort ast => AST_Not sort (simplify sort ast)
   | AST_ZExt sort ast cast_sort =>
-      AST_ZExt sort (simplify sort ast) cast_sort
+      simplify_zext sort (simplify sort ast) cast_sort
   end
 .
 
