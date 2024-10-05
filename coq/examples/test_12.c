@@ -4,6 +4,7 @@
 
 #include <klee/klee.h>
 
+/* TODO: test */
 void f1() {
     unsigned x = 3;
     unsigned y = 2;
@@ -11,6 +12,7 @@ void f1() {
     unsigned b = n % x;
 }
 
+/* TODO: test */
 void f2(unsigned x, unsigned y) {
     unsigned a = x % y;
 }
