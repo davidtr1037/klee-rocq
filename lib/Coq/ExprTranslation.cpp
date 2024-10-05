@@ -86,6 +86,10 @@ ref<CoqExpr> ExprTranslator::translate(ref<Expr> e,
     return translateCmpExpr(dyn_cast<CmpExpr>(e), m);
   }
 
+  if (isa<CastExpr>(e)) {
+    return translateCastExpr(dyn_cast<CastExpr>(e), m);
+  }
+
   if (isa<BinaryExpr>(e)) {
     ref<BinaryExpr> be = dyn_cast<BinaryExpr>(e);
     ref<Expr> left = be->left;
@@ -251,6 +255,22 @@ ref<CoqExpr> ExprTranslator::translateCmpExpr(ref<CmpExpr> e,
       coqRight,
     }
   );
+}
+
+ref<CoqExpr> ExprTranslator::translateCastExpr(ref<CastExpr> e,
+                                               ArrayTranslation *m) {
+  if (isa<ZExtExpr>(e)) {
+    return new CoqApplication(
+      new CoqVariable("AST_ZExt"),
+      {
+        createBVSort(e->src->getWidth()),
+        translate(e->src, m),
+        createBVSort(e->getWidth()),
+      }
+    );
+  }
+
+  return nullptr;
 }
 
 ref<CoqExpr> ExprTranslator::translateConcatExpr(ref<ConcatExpr> e,

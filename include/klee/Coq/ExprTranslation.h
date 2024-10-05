@@ -51,6 +51,9 @@ public:
   ref<CoqExpr> translateCmpExpr(ref<CmpExpr> e,
                                 ArrayTranslation *m);
 
+  ref<CoqExpr> translateCastExpr(ref<CastExpr> e,
+                                 ArrayTranslation *m);
+
   ref<CoqExpr> translateConcatExpr(ref<ConcatExpr> e,
                                    ArrayTranslation *m);
 
