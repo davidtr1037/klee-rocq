@@ -102,7 +102,16 @@ Definition normalize_cmpop_bv1 op (ast1 ast2 : smt_ast Sort_BV1) : smt_ast Sort_
       | _ => AST_CmpOp Sort_BV1 op ast1 ast2
       end
   | SMT_Ne =>
-      AST_CmpOp Sort_BV1 SMT_Eq (AST_Const Sort_BV1 zero) (AST_CmpOp Sort_BV1 SMT_Eq ast1 ast2)
+      match ast2 with
+      | AST_Const Sort_BV1 n2 =>
+          AST_CmpOp Sort_BV1 SMT_Eq
+            (AST_Const Sort_BV1 zero)
+            (AST_CmpOp Sort_BV1 SMT_Eq (AST_Const Sort_BV1 n2) ast1)
+      | _ =>
+          AST_CmpOp Sort_BV1 SMT_Eq
+            (AST_Const Sort_BV1 zero)
+            (AST_CmpOp Sort_BV1 SMT_Eq ast1 ast2)
+      end
   | _ => AST_CmpOp Sort_BV1 op ast1 ast2
   end
 .
@@ -131,7 +140,16 @@ Definition normalize_cmpop_bv32 op (ast1 ast2 : smt_ast Sort_BV32) : smt_ast Sor
       | _ => AST_CmpOp Sort_BV32 op ast1 ast2
       end
   | SMT_Ne =>
-      AST_CmpOp Sort_BV1 SMT_Eq (AST_Const Sort_BV1 zero) (AST_CmpOp Sort_BV32 SMT_Eq ast1 ast2)
+      match ast2 with
+      | AST_Const Sort_BV32 n2 =>
+          AST_CmpOp Sort_BV1 SMT_Eq
+            (AST_Const Sort_BV1 zero)
+            (AST_CmpOp Sort_BV32 SMT_Eq (AST_Const Sort_BV32 n2) ast1)
+      | _ =>
+          AST_CmpOp Sort_BV1 SMT_Eq
+            (AST_Const Sort_BV1 zero)
+            (AST_CmpOp Sort_BV32 SMT_Eq ast1 ast2)
+      end
   | _ => AST_CmpOp Sort_BV32 op ast1 ast2
   end
 .
@@ -152,7 +170,16 @@ Definition normalize_cmpop_bv64 op (ast1 ast2 : smt_ast Sort_BV64) : smt_ast Sor
       | _ => AST_CmpOp Sort_BV64 op ast1 ast2
       end
   | SMT_Ne =>
-      AST_CmpOp Sort_BV1 SMT_Eq (AST_Const Sort_BV1 zero) (AST_CmpOp Sort_BV64 SMT_Eq ast1 ast2)
+      match ast2 with
+      | AST_Const Sort_BV64 n2 =>
+          AST_CmpOp Sort_BV1 SMT_Eq
+            (AST_Const Sort_BV1 zero)
+            (AST_CmpOp Sort_BV64 SMT_Eq (AST_Const Sort_BV64 n2) ast1)
+      | _ =>
+          AST_CmpOp Sort_BV1 SMT_Eq
+            (AST_Const Sort_BV1 zero)
+            (AST_CmpOp Sort_BV64 SMT_Eq ast1 ast2)
+      end
   | _ => AST_CmpOp Sort_BV64 op ast1 ast2
   end
 .
@@ -745,6 +772,22 @@ Proof.
       try apply equiv_smt_expr_eq_comm.
     }
   }
+  {
+    dependent destruction ast2;
+    try (
+      eapply equiv_smt_expr_transitivity;
+      [ eapply equiv_smt_expr_ne_to_eq | apply equiv_smt_expr_refl ]
+    ).
+    {
+      eapply equiv_smt_expr_transitivity.
+      { eapply equiv_smt_expr_ne_to_eq. }
+      {
+        apply equiv_smt_expr_cmpop.
+        { apply equiv_smt_expr_refl. }
+        { apply equiv_smt_expr_eq_comm. }
+      }
+    }
+  }
 Qed.
 
 (* TODO: make generic *)
@@ -774,6 +817,22 @@ Proof.
       try apply equiv_smt_expr_eq_comm.
     }
   }
+  {
+    dependent destruction ast2;
+    try (
+      eapply equiv_smt_expr_transitivity;
+      [ eapply equiv_smt_expr_ne_to_eq | apply equiv_smt_expr_refl ]
+    ).
+    {
+      eapply equiv_smt_expr_transitivity.
+      { eapply equiv_smt_expr_ne_to_eq. }
+      {
+        apply equiv_smt_expr_cmpop.
+        { apply equiv_smt_expr_refl. }
+        { apply equiv_smt_expr_eq_comm. }
+      }
+    }
+  }
 Qed.
 
 (* TODO: avoid duplicate proof *)
@@ -801,6 +860,22 @@ Proof.
       dependent destruction ast1;
       try apply equiv_smt_expr_refl;
       try apply equiv_smt_expr_eq_comm.
+    }
+  }
+  {
+    dependent destruction ast2;
+    try (
+      eapply equiv_smt_expr_transitivity;
+      [ eapply equiv_smt_expr_ne_to_eq | apply equiv_smt_expr_refl ]
+    ).
+    {
+      eapply equiv_smt_expr_transitivity.
+      { eapply equiv_smt_expr_ne_to_eq. }
+      {
+        apply equiv_smt_expr_cmpop.
+        { apply equiv_smt_expr_refl. }
+        { apply equiv_smt_expr_eq_comm. }
+      }
     }
   }
 Qed.
