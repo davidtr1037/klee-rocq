@@ -92,6 +92,15 @@ Definition normalize_cmpop_bv1 op (ast1 ast2 : smt_ast Sort_BV1) : smt_ast Sort_
   | SMT_Sgt => AST_CmpOp Sort_BV1 SMT_Slt ast2 ast1
   | SMT_Uge => AST_CmpOp Sort_BV1 SMT_Ule ast2 ast1
   | SMT_Ugt => AST_CmpOp Sort_BV1 SMT_Ult ast2 ast1
+  | SMT_Eq =>
+      match ast2 with
+      | AST_Const Sort_BV1 n2 =>
+          match ast1 with
+          | AST_Const Sort_BV1 n1 => AST_CmpOp Sort_BV1 op ast1 ast2
+          | _ => AST_CmpOp Sort_BV1 op (AST_Const Sort_BV1 n2) ast1
+          end
+      | _ => AST_CmpOp Sort_BV1 op ast1 ast2
+      end
   | SMT_Ne =>
       AST_CmpOp Sort_BV1 SMT_Eq (AST_Const Sort_BV1 zero) (AST_CmpOp Sort_BV1 SMT_Eq ast1 ast2)
   | _ => AST_CmpOp Sort_BV1 op ast1 ast2
@@ -727,6 +736,15 @@ Proof.
     try apply equiv_smt_expr_sgt_slt;
     try apply equiv_smt_expr_sge_sle
   ).
+  {
+    dependent destruction ast2;
+    try apply equiv_smt_expr_refl.
+    {
+      dependent destruction ast1;
+      try apply equiv_smt_expr_refl;
+      try apply equiv_smt_expr_eq_comm.
+    }
+  }
 Qed.
 
 (* TODO: make generic *)
