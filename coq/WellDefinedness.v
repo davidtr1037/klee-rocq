@@ -116,6 +116,20 @@ Proof.
     apply contains_var_zext with (cast_sort := Sort_BV64).
     assumption.
   }
+  {
+    simpl in Heq.
+    destruct t1, t2;
+    try discriminate Heq.
+    rename w into w1, w0 into w2.
+    {
+      destruct (w1 =? w2)%positive eqn:E.
+      {
+        inversion Heq; subst.
+        assumption.
+      }
+      { discriminate Heq. }
+    }
+  }
 Qed.
 
 Lemma well_defined_smt_expr_extended_syms : forall se sym syms,

@@ -506,6 +506,10 @@ ref<CoqExpr> ModuleTranslator::translateCastInstOpcode(CastInst *inst) {
     conversion_type = "Zext";
     break;
 
+  case Instruction::BitCast:
+    conversion_type = "Bitcast";
+    break;
+
   default:
     assert(false);
   }

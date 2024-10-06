@@ -265,26 +265,42 @@ Proof.
     destruct (eval_exp c_ls c_gs (Some t1) e) as [dv | ] eqn:E.
     {
       inversion H1; subst.
-      inversion H4; subst.
-      destruct t1; try apply OA_None.
-      destruct t2;
-      try (
-        simpl;
-        repeat (destruct w; try apply OA_None);
-        destruct (make_dynamic_int sort (smt_eval_ast m sort ast)); apply OA_None
-      ).
       {
-        rename w into w1, w0 into w2.
-        repeat (destruct w1; try apply OA_None).
+        inversion H4; subst.
+        destruct t1; try apply OA_None.
+        destruct t2;
+        try (
+          simpl;
+          repeat (destruct w; try apply OA_None);
+          destruct (make_dynamic_int sort (smt_eval_ast m sort ast)); apply OA_None
+        ).
         {
-          simpl.
-          destruct sort; try apply OA_None.
-          repeat (destruct w2; try apply OA_None).
-          simpl.
+          rename w into w1, w0 into w2.
+          repeat (destruct w1; try apply OA_None).
+          {
+            simpl.
+            destruct sort; try apply OA_None.
+            repeat (destruct w2; try apply OA_None).
+            simpl.
+            eapply OA_Some.
+            { reflexivity. }
+            { simpl. reflexivity. }
+          }
+        }
+      }
+      {
+        inversion H4; subst.
+        destruct t1, t2;
+        try apply OA_None.
+        simpl.
+        rename w into w1, w0 into w2.
+        destruct (w1 =? w2)%positive.
+        {
           eapply OA_Some.
           { reflexivity. }
-          { simpl. reflexivity. }
+          { reflexivity. }
         }
+        { apply OA_None. }
       }
     }
     {

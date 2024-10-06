@@ -285,6 +285,10 @@ ref<CoqTactic> ModuleSupport::getTacticForCastInst(CastInst *inst) {
     constructor = "IS_ZExt";
     break;
 
+  case Instruction::BitCast:
+    constructor = "IS_Bitcast";
+    break;
+
   default:
       assert(false);
   }
