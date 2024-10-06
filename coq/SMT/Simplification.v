@@ -128,7 +128,24 @@ Definition normalize_cmpop_bv32 op (ast1 ast2 : smt_ast Sort_BV32) : smt_ast Sor
 .
 
 Definition normalize_cmpop_bv64 op (ast1 ast2 : smt_ast Sort_BV64) : smt_ast Sort_BV1 :=
-  AST_CmpOp Sort_BV64 op ast1 ast2
+  match op with
+  | SMT_Sge => AST_CmpOp Sort_BV64 SMT_Sle ast2 ast1
+  | SMT_Sgt => AST_CmpOp Sort_BV64 SMT_Slt ast2 ast1
+  | SMT_Uge => AST_CmpOp Sort_BV64 SMT_Ule ast2 ast1
+  | SMT_Ugt => AST_CmpOp Sort_BV64 SMT_Ult ast2 ast1
+  | SMT_Eq =>
+      match ast2 with
+      | AST_Const Sort_BV64 n2 =>
+          match ast1 with
+          | AST_Const Sort_BV64 n1 => AST_CmpOp Sort_BV64 op ast1 ast2
+          | _ => AST_CmpOp Sort_BV64 op (AST_Const Sort_BV64 n2) ast1
+          end
+      | _ => AST_CmpOp Sort_BV64 op ast1 ast2
+      end
+  | SMT_Ne =>
+      AST_CmpOp Sort_BV1 SMT_Eq (AST_Const Sort_BV1 zero) (AST_CmpOp Sort_BV64 SMT_Eq ast1 ast2)
+  | _ => AST_CmpOp Sort_BV64 op ast1 ast2
+  end
 .
 
 Definition normalize_cmpop op (s : smt_sort) (ast1 ast2 : smt_ast s) : smt_ast Sort_BV1 :=
@@ -296,7 +313,18 @@ Definition simplify_cmpop_bv32 op (ast1 ast2 : smt_ast Sort_BV32) :=
 .
 
 Definition simplify_cmpop_bv64 op (ast1 ast2 : smt_ast Sort_BV64) :=
-  AST_CmpOp Sort_BV64 op ast1 ast2
+  match ast1, ast2 with
+  | AST_Const Sort_BV64 n1, AST_Const Sort_BV64 n2 =>
+      match op with
+      | SMT_Eq => (make_smt_ast_bool (eq n1 n2))
+      | SMT_Slt
+      | SMT_Sle => make_smt_ast_bool (cmp (smt_cmpop_to_comparison op) n1 n2)
+      | SMT_Ult
+      | SMT_Ule => make_smt_ast_bool (cmpu (smt_cmpop_to_comparison op) n1 n2)
+      | _ => AST_CmpOp Sort_BV64 op ast1 ast2
+      end
+  | _, _ => AST_CmpOp Sort_BV64 op ast1 ast2
+  end
 .
 
 Definition simplify_cmpop op (s : smt_sort) (ast1 ast2 : smt_ast s) : smt_ast Sort_BV1 :=
@@ -729,6 +757,35 @@ Proof.
   }
 Qed.
 
+(* TODO: avoid duplicate proof *)
+Lemma equiv_smt_expr_normalize_cmpop_bv64 : forall op (ast1 ast2 : smt_ast Sort_BV64),
+  equiv_smt_expr
+    (Expr Sort_BV1 (normalize_cmpop op Sort_BV64 ast1 ast2))
+    (Expr Sort_BV1 (AST_CmpOp Sort_BV64 op ast1 ast2)).
+Proof.
+  intros op ast1 ast2.
+  destruct op;
+  try apply equiv_smt_expr_refl;
+  (
+    simpl;
+    apply equiv_smt_expr_symmetry;
+    try apply equiv_smt_expr_ne_to_eq;
+    try apply equiv_smt_expr_ugt_ult;
+    try apply equiv_smt_expr_uge_ule;
+    try apply equiv_smt_expr_sgt_slt;
+    try apply equiv_smt_expr_sge_sle
+  ).
+  {
+    dependent destruction ast2;
+    try apply equiv_smt_expr_refl.
+    {
+      dependent destruction ast1;
+      try apply equiv_smt_expr_refl;
+      try apply equiv_smt_expr_eq_comm.
+    }
+  }
+Qed.
+
 Lemma equiv_smt_expr_normalize_cmpop : forall s op (ast1 ast2 : smt_ast s),
   equiv_smt_expr
     (Expr Sort_BV1 (normalize_cmpop op s ast1 ast2))
@@ -739,6 +796,7 @@ Proof.
   try apply equiv_smt_expr_refl.
   { apply equiv_smt_expr_normalize_cmpop_bv1. }
   { apply equiv_smt_expr_normalize_cmpop_bv32. }
+  { apply equiv_smt_expr_normalize_cmpop_bv64. }
 Qed.
 
 Lemma equiv_smt_expr_normalize_cmpop_args : forall s op (ast1 ast2 : smt_ast s),
@@ -830,11 +888,7 @@ Proof.
       apply equiv_smt_expr_cmpop with (ast1 := ast1) (ast3 := ast2); assumption.
     }
     { apply equiv_smt_expr_normalize_cmpop_args; try assumption. }
-    {
-      simpl.
-      unfold normalize_cmpop_bv64.
-      apply equiv_smt_expr_cmpop with (ast1 := ast1) (ast3 := ast2); assumption.
-    }
+    { apply equiv_smt_expr_normalize_cmpop_args; try assumption. }
   }
   {
     destruct s;
@@ -1233,6 +1287,33 @@ Proof.
   }
 Qed.
 
+(* TODO: avoid duplicate proof *)
+Lemma equiv_smt_expr_simplify_cmpop_bv64 : forall op (ast1 ast2 : smt_ast Sort_BV64),
+  equiv_smt_expr
+    (Expr Sort_BV1 (simplify_cmpop_bv64 op ast1 ast2))
+    (Expr Sort_BV1 (AST_CmpOp Sort_BV64 op ast1 ast2)).
+Proof.
+  intros op ast1 ast2.
+  dependent destruction ast1; dependent destruction ast2;
+  try apply equiv_smt_expr_refl.
+  {
+    simpl.
+    apply EquivExpr.
+    intros m.
+    simpl.
+    unfold smt_eval_cmpop_by_sort.
+    remember (smt_eval_cmpop_generic op n n0) as b.
+    destruct op;
+    try (
+      simpl in *;
+      unfold smt_eval_cmpop_by_sort;
+      simpl;
+      destruct b;
+      (rewrite <- Heqb; reflexivity)
+    ).
+  }
+Qed.
+
 Lemma equiv_smt_expr_simplify_cmpop : forall s op (ast1 ast2 : smt_ast s),
   equiv_smt_expr
     (Expr Sort_BV1 (simplify_cmpop op s ast1 ast2))
@@ -1244,7 +1325,7 @@ Proof.
   { apply equiv_smt_expr_refl. }
   { apply equiv_smt_expr_refl. }
   { apply equiv_smt_expr_simplify_cmpop_bv32. }
-  { apply equiv_smt_expr_refl. }
+  { apply equiv_smt_expr_simplify_cmpop_bv64. }
 Qed.
 
 Lemma equiv_smt_expr_simplify_zext : forall s (ast : smt_ast s) cast_sort,
