@@ -233,6 +233,7 @@ Definition simplify_binop_bv32 op (ast1 ast2 : smt_ast Sort_BV32) :=
       | SMT_Sub => AST_Const Sort_BV32 (sub n1 n2)
       | SMT_Mul => AST_Const Sort_BV32 (mul n1 n2)
       | SMT_URem => AST_Const Sort_BV32 (modu n1 n2)
+      | SMT_SRem => AST_Const Sort_BV32 (mods n1 n2)
       | _ => AST_BinOp Sort_BV32 op ast1 ast2
       end
   | AST_Const Sort_BV32 n1, ast =>
@@ -957,6 +958,16 @@ Definition sort_to_urem s : (smt_sort_to_int_type s) -> (smt_sort_to_int_type s)
   end
 .
 
+Definition sort_to_srem s : (smt_sort_to_int_type s) -> (smt_sort_to_int_type s) -> (smt_sort_to_int_type s) :=
+  match s with
+  | Sort_BV1 => Int1.mods
+  | Sort_BV8 => Int8.mods
+  | Sort_BV16 => Int16.mods
+  | Sort_BV32 => Int32.mods
+  | Sort_BV64 => Int64.mods
+  end
+.
+
 Definition sort_to_and s : (smt_sort_to_int_type s) -> (smt_sort_to_int_type s) -> (smt_sort_to_int_type s) :=
   match s with
   | Sort_BV1 => Int1.and
@@ -1016,6 +1027,21 @@ Lemma equiv_smt_expr_urem_fold_consts : forall s (n1 n2 : smt_sort_to_int_type s
   equiv_smt_expr
     (Expr s (AST_Const s ((sort_to_urem s) n1 n2)))
     (Expr s (AST_BinOp s SMT_URem (AST_Const s n1) (AST_Const s n2))).
+Proof.
+  intros s n1 n2.
+  destruct s;
+  try (
+    apply EquivExpr;
+    intros m;
+    simpl;
+    reflexivity
+  ).
+Qed.
+
+Lemma equiv_smt_expr_srem_fold_consts : forall s (n1 n2 : smt_sort_to_int_type s),
+  equiv_smt_expr
+    (Expr s (AST_Const s ((sort_to_srem s) n1 n2)))
+    (Expr s (AST_BinOp s SMT_SRem (AST_Const s n1) (AST_Const s n2))).
 Proof.
   intros s n1 n2.
   destruct s;
@@ -1144,6 +1170,7 @@ Proof.
       { apply equiv_smt_expr_sub_fold_consts. }
       { apply equiv_smt_expr_mul_fold_consts. }
       { apply equiv_smt_expr_urem_fold_consts. }
+      { apply equiv_smt_expr_srem_fold_consts. }
     }
     {
       destruct op;
