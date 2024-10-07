@@ -39,6 +39,18 @@ cl::opt<bool> ConstArrayOpt(
     cl::desc(
         "Enable an optimization involving all-constant arrays (default=false)"),
     cl::cat(klee::ExprCat));
+
+cl::opt<bool> SimplifyEqRefl(
+  "simplify-eq-refl",
+  cl::init(false),
+  cl::desc(""),
+  cl::cat(klee::ExprCat));
+
+cl::opt<bool> SimplifyExtExpr(
+  "simplify-ext-expr",
+  cl::init(false),
+  cl::desc(""),
+  cl::cat(klee::ExprCat));
 }
 
 /***/
@@ -1038,7 +1050,7 @@ ref<Expr>  _e_op ::create(const ref<Expr> &l, const ref<Expr> &r) {    \
   
 
 static ref<Expr> EqExpr_create(const ref<Expr> &l, const ref<Expr> &r) {
-  if (l == r) {
+  if (SimplifyEqRefl && l == r) {
     return ConstantExpr::alloc(1, Expr::Bool);
   } else {
     return EqExpr::alloc(l, r);
@@ -1105,7 +1117,7 @@ static ref<Expr> EqExpr_createPartialR(const ref<ConstantExpr> &cl, Expr *r) {
                                Expr::createIsZero(roe->right));
       }
     }
-  } else if (rk == Expr::SExt) {
+  } else if (SimplifyExtExpr && rk == Expr::SExt) {
     // (sext(a,T)==c) == (a==c)
     const SExtExpr *see = cast<SExtExpr>(r);
     Expr::Width fromBits = see->src->getWidth();
@@ -1118,7 +1130,7 @@ static ref<Expr> EqExpr_createPartialR(const ref<ConstantExpr> &cl, Expr *r) {
     } else {
       return ConstantExpr::create(0, Expr::Bool);
     }
-  } else if (rk == Expr::ZExt) {
+  } else if (SimplifyExtExpr && rk == Expr::ZExt) {
     // (zext(a,T)==c) == (a==c)
     const ZExtExpr *zee = cast<ZExtExpr>(r);
     Expr::Width fromBits = zee->src->getWidth();
