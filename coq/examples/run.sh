@@ -9,6 +9,7 @@ function run_klee {
     echo "testing ${bc_file}"
     $KLEE \
         -search=dfs \
+        -rewrite-equalities=0 \
         -generate-proof \
         -decompose-state \
         -cache-pc-expr \
@@ -34,6 +35,7 @@ files=(\
     test_11.bc \
     test_12.bc \
     test_13.bc \
+    test_14.bc \
 )
 for f in "${files[@]}"; do
     run_klee $f
