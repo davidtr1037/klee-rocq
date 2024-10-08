@@ -253,8 +253,30 @@ Definition convert conv x t1 t2 : option dynamic_value :=
       end
   | Trunc =>
       match t1, x, t2 with
+      (* i1 *)
+      | TYPE_I 8, DV_Int (DI_I8 i1), TYPE_I 1 =>
+          Some (DV_Int (DI_I1 (repr (unsigned i1))))
+      | TYPE_I 16, DV_Int (DI_I16 i1), TYPE_I 1 =>
+          Some (DV_Int (DI_I1 (repr (unsigned i1))))
+      | TYPE_I 32, DV_Int (DI_I32 i1), TYPE_I 1 =>
+          Some (DV_Int (DI_I1 (repr (unsigned i1))))
+      | TYPE_I 64, DV_Int (DI_I64 i1), TYPE_I 1 =>
+          Some (DV_Int (DI_I1 (repr (unsigned i1))))
+      (* i8 *)
+      | TYPE_I 16, DV_Int (DI_I16 i1), TYPE_I 8 =>
+          Some (DV_Int (DI_I8 (repr (unsigned i1))))
       | TYPE_I 32, DV_Int (DI_I32 i1), TYPE_I 8 =>
           Some (DV_Int (DI_I8 (repr (unsigned i1))))
+      | TYPE_I 64, DV_Int (DI_I64 i1), TYPE_I 8 =>
+          Some (DV_Int (DI_I8 (repr (unsigned i1))))
+      (* i16 *)
+      | TYPE_I 32, DV_Int (DI_I32 i1), TYPE_I 16 =>
+          Some (DV_Int (DI_I16 (repr (unsigned i1))))
+      | TYPE_I 64, DV_Int (DI_I64 i1), TYPE_I 16 =>
+          Some (DV_Int (DI_I16 (repr (unsigned i1))))
+      (* i32 *)
+      | TYPE_I 64, DV_Int (DI_I64 i1), TYPE_I 32 =>
+          Some (DV_Int (DI_I32 (repr (unsigned i1))))
       | _, _, _ => None
       end
   | Bitcast =>

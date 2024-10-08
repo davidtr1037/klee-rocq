@@ -331,10 +331,13 @@ Proof.
           (
             simpl;
             destruct sort; try apply OA_None;
-            repeat (destruct w2; try apply OA_None);
-            simpl;
-            eapply OA_Some;
-            [ reflexivity | reflexivity ]
+            (
+              repeat (destruct w2; try apply OA_None);
+              (
+                simpl;
+                eapply OA_Some; reflexivity
+              )
+            )
           ).
         }
       }

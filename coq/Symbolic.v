@@ -213,7 +213,20 @@ Definition sym_eval_convert (conv : conversion_type) t1 (e : smt_expr) t2 : opti
       match t1, t2 with
       | TYPE_I w1, TYPE_I w2 =>
           match w1, e, w2 with
+          (* i1 *)
+          | 8%positive, (Expr Sort_BV8 ast), 1%positive => Some (Expr Sort_BV1 (AST_Extract Sort_BV8 ast Sort_BV1))
+          | 16%positive, (Expr Sort_BV16 ast), 1%positive => Some (Expr Sort_BV1 (AST_Extract Sort_BV16 ast Sort_BV1))
+          | 32%positive, (Expr Sort_BV32 ast), 1%positive => Some (Expr Sort_BV1 (AST_Extract Sort_BV32 ast Sort_BV1))
+          | 64%positive, (Expr Sort_BV64 ast), 1%positive => Some (Expr Sort_BV1 (AST_Extract Sort_BV64 ast Sort_BV1))
+          (* i8 *)
+          | 16%positive, (Expr Sort_BV16 ast), 8%positive => Some (Expr Sort_BV8 (AST_Extract Sort_BV16 ast Sort_BV8))
           | 32%positive, (Expr Sort_BV32 ast), 8%positive => Some (Expr Sort_BV8 (AST_Extract Sort_BV32 ast Sort_BV8))
+          | 64%positive, (Expr Sort_BV64 ast), 8%positive => Some (Expr Sort_BV8 (AST_Extract Sort_BV64 ast Sort_BV8))
+          (* i16 *)
+          | 32%positive, (Expr Sort_BV32 ast), 16%positive => Some (Expr Sort_BV16 (AST_Extract Sort_BV32 ast Sort_BV16))
+          | 64%positive, (Expr Sort_BV64 ast), 16%positive => Some (Expr Sort_BV16 (AST_Extract Sort_BV64 ast Sort_BV16))
+          (* i32 *)
+          | 64%positive, (Expr Sort_BV64 ast), 32%positive => Some (Expr Sort_BV32 (AST_Extract Sort_BV64 ast Sort_BV32))
           | _, _, _ => None
           end
       | _, _ => None
