@@ -335,6 +335,8 @@ public:
   void setStepID(uint64_t id);
 
   void markAsTerminated();
+
+  void dumpConstraints() const;
 };
 
 struct ExecutionStateIDCompare {

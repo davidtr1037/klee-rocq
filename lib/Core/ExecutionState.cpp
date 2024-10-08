@@ -456,3 +456,9 @@ void ExecutionState::setStepID(uint64_t id) {
 void ExecutionState::markAsTerminated() {
   isTerminated = true;
 }
+
+void ExecutionState::dumpConstraints() const {
+  for (ref<Expr> e : constraints) {
+    errs() << *e << "\n";
+  }
+}
