@@ -1261,15 +1261,51 @@ Proof.
   }
 Qed.
 
+Lemma equiv_smt_expr_add_zero_bv32 : forall n ast,
+  equiv_smt_expr
+    (Expr Sort_BV32
+       (if Int32.eq n Int32.zero
+          then ast
+        else
+         AST_BinOp Sort_BV32 SMT_Add (AST_Const Sort_BV32 n) ast))
+    (Expr Sort_BV32 (AST_BinOp Sort_BV32 SMT_Add (AST_Const Sort_BV32 n) ast)).
+Proof.
+  intros n ast.
+  apply EquivExpr.
+  intros m.
+  simpl.
+  remember (Int32.eq n Int32.zero) as b.
+  destruct b; symmetry in Heqb.
+  {
+    apply int32_eqb_eq in Heqb.
+    rewrite Heqb.
+    simpl.
+    rewrite Int32.add_zero_l.
+    reflexivity.
+  }
+  {
+    simpl.
+    reflexivity.
+  }
+Qed.
+
 Lemma equiv_smt_expr_simplify_binop_bv32 : forall op (ast1 ast2 : smt_ast Sort_BV32),
   equiv_smt_expr
     (Expr Sort_BV32 (simplify_binop_bv32 op ast1 ast2))
     (Expr Sort_BV32 (AST_BinOp Sort_BV32 op ast1 ast2)).
 Proof.
   intros op ast1 ast2.
-  dependent destruction ast1.
+  dependent destruction ast1;
+  try apply equiv_smt_expr_refl.
+  (* const *)
   {
-    dependent destruction ast2.
+    dependent destruction ast2;
+    try (
+      destruct op;
+      try apply equiv_smt_expr_refl;
+      apply equiv_smt_expr_add_zero_bv32
+    ).
+    (* const *)
     {
       simpl.
       destruct op;
@@ -1280,42 +1316,8 @@ Proof.
       { apply equiv_smt_expr_urem_fold_consts. }
       { apply equiv_smt_expr_srem_fold_consts. }
     }
-    {
-      destruct op;
-      try apply equiv_smt_expr_refl.
-      {
-        simpl.
-        apply EquivExpr.
-        intros m.
-        simpl.
-        remember (Int32.eq n Int32.zero) as b.
-        destruct b; symmetry in Heqb.
-        {
-          apply int32_eqb_eq in Heqb.
-          rewrite Heqb.
-          simpl.
-          rewrite Int32.add_zero_l.
-          reflexivity.
-        }
-        {
-          simpl.
-          reflexivity.
-        }
-      }
-    }
-    { admit. } (* same *)
-    { admit. } (* same *)
-    { admit. } (* same / zext *)
-    { admit. } (* same / sext *)
-    { admit. } (* same / extract *)
   }
-  { admit. } (* same *)
-  { admit. } (* same *)
-  { admit. } (* same *)
-  { admit. } (* same / zext *)
-  { admit. } (* same / sext *)
-  { admit. } (* same / extract *)
-Admitted.
+Qed.
 
 Lemma equiv_smt_expr_simplify_binop : forall s op (ast1 ast2 : smt_ast s),
   equiv_smt_expr
