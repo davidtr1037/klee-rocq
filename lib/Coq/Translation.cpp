@@ -378,6 +378,10 @@ ref<CoqExpr> ModuleTranslator::translateBinaryOperatorOpcode(BinaryOperator *ins
     op = new CoqVariable("LLVMAst.SRem");
     break;
 
+  case Instruction::Xor:
+    op = new CoqVariable("LLVMAst.Xor");
+    break;
+
   case Instruction::Shl:
     op = new CoqApplication(
       new CoqVariable("LLVMAst.Shl"),

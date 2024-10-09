@@ -13,11 +13,11 @@ Inductive is_supported_ibinop : ibinop -> Prop :=
   | IS_Add : is_supported_ibinop (Add false false)
   | IS_Sub : is_supported_ibinop (Sub false false)
   | IS_Mul : is_supported_ibinop (Mul false false)
+  | IS_URem : is_supported_ibinop URem
+  | IS_SRem : is_supported_ibinop SRem
   | IS_And : is_supported_ibinop And
   | IS_Or : is_supported_ibinop Or
   | IS_Xor : is_supported_ibinop Xor
-  | IS_URem : is_supported_ibinop URem
-  | IS_SRem : is_supported_ibinop SRem
 .
 
 Inductive is_supported_shift : ibinop -> Prop :=

@@ -116,6 +116,12 @@ ref<CoqExpr> ExprTranslator::translate(ref<Expr> e,
     if (isa<SRemExpr>(e)) {
       return createSMTBinOp("SMT_SRem", left, right, m, useCache);
     }
+    if (isa<XorExpr>(e)) {
+      return createSMTBinOp("SMT_Xor", left, right, m, useCache);
+    }
+    if (isa<ShlExpr>(e)) {
+      return createSMTBinOp("SMT_Shl", left, right, m, useCache);
+    }
     if (isa<LShrExpr>(e)) {
       return createSMTBinOp("SMT_LShr", left, right, m, useCache);
     }

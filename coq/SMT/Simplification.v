@@ -64,6 +64,15 @@ Definition normalize_binop_bv32 op (ast1 ast2 : smt_ast Sort_BV32) :=
         end
     | _ => AST_BinOp Sort_BV32 SMT_Mul ast1 ast2
     end
+  | SMT_Xor =>
+    match ast2 with
+    | AST_Const Sort_BV32 n2 =>
+        match ast1 with
+        | AST_Const Sort_BV32 n1 => AST_BinOp Sort_BV32 op ast1 ast2
+        | _ => AST_BinOp Sort_BV32 SMT_Xor (AST_Const Sort_BV32 n2) ast1
+        end
+    | _ => AST_BinOp Sort_BV32 SMT_Xor ast1 ast2
+    end
   | _ =>
     AST_BinOp Sort_BV32 op ast1 ast2
   end
@@ -281,6 +290,7 @@ Definition simplify_binop_bv32 op (ast1 ast2 : smt_ast Sort_BV32) :=
       | SMT_Mul => AST_Const Sort_BV32 (mul n1 n2)
       | SMT_URem => AST_Const Sort_BV32 (modu n1 n2)
       | SMT_SRem => AST_Const Sort_BV32 (mods n1 n2)
+      | SMT_Xor => AST_Const Sort_BV32 (xor n1 n2)
       | SMT_Shl => AST_Const Sort_BV32 (shl n1 n2)
       | SMT_LShr => AST_Const Sort_BV32 (shru n1 n2)
       | _ => AST_BinOp Sort_BV32 op ast1 ast2
@@ -558,6 +568,22 @@ Proof.
   { apply Int64.and_commut. }
 Qed.
 
+Lemma equiv_smt_expr_xor_comm : forall s (ast1 ast2 : smt_ast s),
+  equiv_smt_expr
+    (Expr s (AST_BinOp s SMT_Xor ast1 ast2))
+    (Expr s (AST_BinOp s SMT_Xor ast2 ast1)).
+Proof.
+  intros s ast1 ast2.
+  apply EquivExpr.
+  intros m.
+  destruct s; simpl.
+  { apply Int1.xor_commut. }
+  { apply Int8.xor_commut. }
+  { apply Int16.xor_commut. }
+  { apply Int32.xor_commut. }
+  { apply Int64.xor_commut. }
+Qed.
+
 Lemma equiv_smt_expr_normalize_binop_bv32 : forall op (ast1 ast2 : smt_ast Sort_BV32),
   equiv_smt_expr
     (Expr Sort_BV32 (normalize_binop_bv32 op ast1 ast2))
@@ -653,6 +679,15 @@ Proof.
     {
       dependent destruction ast1;
       try apply equiv_smt_expr_mul_comm.
+      { apply equiv_smt_expr_refl. }
+    }
+  }
+  {
+    dependent destruction ast2;
+    try apply equiv_smt_expr_refl.
+    {
+      dependent destruction ast1;
+      try apply equiv_smt_expr_xor_comm.
       { apply equiv_smt_expr_refl. }
     }
   }
@@ -1091,6 +1126,15 @@ Definition sort_to_srem s : (smt_sort_to_int_type s) -> (smt_sort_to_int_type s)
   end
 .
 
+Definition sort_to_xor s : (smt_sort_to_int_type s) -> (smt_sort_to_int_type s) -> (smt_sort_to_int_type s) :=
+  match s with
+  | Sort_BV1 => Int1.xor
+  | Sort_BV8 => Int8.xor
+  | Sort_BV16 => Int16.xor
+  | Sort_BV32 => Int32.xor
+  | Sort_BV64 => Int64.xor
+  end
+.
 Definition sort_to_shl s : (smt_sort_to_int_type s) -> (smt_sort_to_int_type s) -> (smt_sort_to_int_type s) :=
   match s with
   | Sort_BV1 => Int1.shl
@@ -1185,6 +1229,21 @@ Lemma equiv_smt_expr_srem_fold_consts : forall s (n1 n2 : smt_sort_to_int_type s
   equiv_smt_expr
     (Expr s (AST_Const s ((sort_to_srem s) n1 n2)))
     (Expr s (AST_BinOp s SMT_SRem (AST_Const s n1) (AST_Const s n2))).
+Proof.
+  intros s n1 n2.
+  destruct s;
+  try (
+    apply EquivExpr;
+    intros m;
+    simpl;
+    reflexivity
+  ).
+Qed.
+
+Lemma equiv_smt_expr_xor_fold_consts : forall s (n1 n2 : smt_sort_to_int_type s),
+  equiv_smt_expr
+    (Expr s (AST_Const s ((sort_to_xor s) n1 n2)))
+    (Expr s (AST_BinOp s SMT_Xor (AST_Const s n1) (AST_Const s n2))).
 Proof.
   intros s n1 n2.
   destruct s;
@@ -1365,6 +1424,7 @@ Proof.
       { apply equiv_smt_expr_mul_fold_consts. }
       { apply equiv_smt_expr_urem_fold_consts. }
       { apply equiv_smt_expr_srem_fold_consts. }
+      { apply equiv_smt_expr_xor_fold_consts. }
       { apply equiv_smt_expr_shl_fold_consts. }
       { apply equiv_smt_expr_lshr_fold_consts. }
     }
