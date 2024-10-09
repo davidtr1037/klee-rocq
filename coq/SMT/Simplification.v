@@ -64,6 +64,15 @@ Definition normalize_binop_bv32 op (ast1 ast2 : smt_ast Sort_BV32) :=
         end
     | _ => AST_BinOp Sort_BV32 SMT_Mul ast1 ast2
     end
+  | SMT_And =>
+    match ast1 with
+    | AST_Const Sort_BV32 n1 =>
+        match ast2 with
+        | AST_Const Sort_BV32 n2 => AST_BinOp Sort_BV32 op ast1 ast2
+        | _ => AST_BinOp Sort_BV32 SMT_And ast2 (AST_Const Sort_BV32 n1)
+        end
+    | _ => AST_BinOp Sort_BV32 SMT_And ast1 ast2
+    end
   | SMT_Xor =>
     match ast2 with
     | AST_Const Sort_BV32 n2 =>
@@ -290,6 +299,7 @@ Definition simplify_binop_bv32 op (ast1 ast2 : smt_ast Sort_BV32) :=
       | SMT_Mul => AST_Const Sort_BV32 (mul n1 n2)
       | SMT_URem => AST_Const Sort_BV32 (modu n1 n2)
       | SMT_SRem => AST_Const Sort_BV32 (mods n1 n2)
+      | SMT_And => AST_Const Sort_BV32 (and n1 n2)
       | SMT_Xor => AST_Const Sort_BV32 (xor n1 n2)
       | SMT_Shl => AST_Const Sort_BV32 (shl n1 n2)
       | SMT_LShr => AST_Const Sort_BV32 (shru n1 n2)
@@ -679,6 +689,15 @@ Proof.
     {
       dependent destruction ast1;
       try apply equiv_smt_expr_mul_comm.
+      { apply equiv_smt_expr_refl. }
+    }
+  }
+  {
+    dependent destruction ast1;
+    try apply equiv_smt_expr_refl.
+    {
+      dependent destruction ast2;
+      try apply equiv_smt_expr_and_comm.
       { apply equiv_smt_expr_refl. }
     }
   }
@@ -1424,6 +1443,7 @@ Proof.
       { apply equiv_smt_expr_mul_fold_consts. }
       { apply equiv_smt_expr_urem_fold_consts. }
       { apply equiv_smt_expr_srem_fold_consts. }
+      { apply equiv_smt_expr_and_fold_consts. }
       { apply equiv_smt_expr_xor_fold_consts. }
       { apply equiv_smt_expr_shl_fold_consts. }
       { apply equiv_smt_expr_lshr_fold_consts. }

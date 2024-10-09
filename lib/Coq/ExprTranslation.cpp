@@ -107,14 +107,14 @@ ref<CoqExpr> ExprTranslator::translate(ref<Expr> e,
     if (isa<MulExpr>(e)) {
       return createSMTBinOp("SMT_Mul", left, right, m, useCache);
     }
-    if (isa<AndExpr>(e)) {
-      return createSMTBinOp("SMT_And", left, right, m, useCache);
-    }
     if (isa<URemExpr>(e)) {
       return createSMTBinOp("SMT_URem", left, right, m, useCache);
     }
     if (isa<SRemExpr>(e)) {
       return createSMTBinOp("SMT_SRem", left, right, m, useCache);
+    }
+    if (isa<AndExpr>(e)) {
+      return createSMTBinOp("SMT_And", left, right, m, useCache);
     }
     if (isa<XorExpr>(e)) {
       return createSMTBinOp("SMT_Xor", left, right, m, useCache);
