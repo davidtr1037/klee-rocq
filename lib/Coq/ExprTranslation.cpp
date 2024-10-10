@@ -95,36 +95,7 @@ ref<CoqExpr> ExprTranslator::translate(ref<Expr> e,
   }
 
   if (isa<BinaryExpr>(e)) {
-    ref<BinaryExpr> be = dyn_cast<BinaryExpr>(e);
-    ref<Expr> left = be->left;
-    ref<Expr> right = be->right;
-    if (isa<AddExpr>(e)) {
-      return createSMTBinOp("SMT_Add", left, right, m, useCache);
-    }
-    if (isa<SubExpr>(e)) {
-      return createSMTBinOp("SMT_Sub", left, right, m, useCache);
-    }
-    if (isa<MulExpr>(e)) {
-      return createSMTBinOp("SMT_Mul", left, right, m, useCache);
-    }
-    if (isa<URemExpr>(e)) {
-      return createSMTBinOp("SMT_URem", left, right, m, useCache);
-    }
-    if (isa<SRemExpr>(e)) {
-      return createSMTBinOp("SMT_SRem", left, right, m, useCache);
-    }
-    if (isa<AndExpr>(e)) {
-      return createSMTBinOp("SMT_And", left, right, m, useCache);
-    }
-    if (isa<XorExpr>(e)) {
-      return createSMTBinOp("SMT_Xor", left, right, m, useCache);
-    }
-    if (isa<ShlExpr>(e)) {
-      return createSMTBinOp("SMT_Shl", left, right, m, useCache);
-    }
-    if (isa<LShrExpr>(e)) {
-      return createSMTBinOp("SMT_LShr", left, right, m, useCache);
-    }
+    return translateBinaryExpr(dyn_cast<BinaryExpr>(e), m, useCache);
   }
 
   if (isa<ConcatExpr>(e)) {
@@ -306,6 +277,57 @@ ref<CoqExpr> ExprTranslator::translateExtractExpr(ref<ExtractExpr> e,
       createBVSort(e->getWidth()),
     }
   );
+}
+
+ref<CoqExpr> ExprTranslator::translateBinaryExpr(ref<BinaryExpr> e,
+                                                 ArrayTranslation *m,
+                                                 bool useCache) {
+  ref<Expr> left = e->left;
+  ref<Expr> right = e->right;
+
+  std::string op;
+  switch (e->getKind()) {
+  case Expr::Add:
+    op = "SMT_Add";
+    break;
+
+  case Expr::Sub:
+    op = "SMT_Sub";
+    break;
+
+  case Expr::Mul:
+    op = "SMT_Mul";
+    break;
+
+  case Expr::URem:
+    op = "SMT_URem";
+    break;
+
+  case Expr::SRem:
+    op = "SMT_SRem";
+    break;
+
+  case Expr::And:
+    op = "SMT_And";
+    break;
+
+  case Expr::Xor:
+    op = "SMT_Xor";
+    break;
+
+  case Expr::Shl:
+    op = "SMT_Shl";
+    break;
+
+  case Expr::LShr:
+    op = "SMT_LShr";
+    break;
+
+  default:
+    assert(false);
+  }
+
+  return createSMTBinOp(op, left, right, m, useCache);
 }
 
 ref<CoqExpr> ExprTranslator::translateConcatExpr(ref<ConcatExpr> e,

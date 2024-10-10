@@ -57,6 +57,10 @@ public:
   ref<CoqExpr> translateExtractExpr(ref<ExtractExpr> e,
                                     ArrayTranslation *m);
 
+  ref<CoqExpr> translateBinaryExpr(ref<BinaryExpr> e,
+                                   ArrayTranslation *m,
+                                   bool useCache);
+
   ref<CoqExpr> translateConcatExpr(ref<ConcatExpr> e,
                                    ArrayTranslation *m);
 
