@@ -364,32 +364,6 @@ ref<CoqExpr> ExprTranslator::translateReadExpr(ref<ReadExpr> e,
 
 ref<CoqExpr> ExprTranslator::createSMTVar(unsigned width,
                                           ref<CoqExpr> name) {
-  std::string constructor;
-  switch (width) {
-  case 1:
-    constructor = "SMT_Var_I1";
-    break;
-
-  case 8:
-    constructor = "SMT_Var_I8";
-    break;
-
-  case 16:
-    constructor = "SMT_Var_I16";
-    break;
-
-  case 32:
-    constructor = "SMT_Var_I32";
-    break;
-
-  case 64:
-    constructor = "SMT_Var_I64";
-    break;
-
-  default:
-    assert(false);
-  }
-
   return new CoqApplication(
     new CoqVariable("AST_Var"),
     {
