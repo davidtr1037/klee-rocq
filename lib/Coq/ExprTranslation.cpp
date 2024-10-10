@@ -256,6 +256,10 @@ ref<CoqExpr> ExprTranslator::translateBinaryExpr(ref<BinaryExpr> e,
     op = createSMTAnd();
     break;
 
+  case Expr::Or:
+    op = createSMTOr();
+    break;
+
   case Expr::Xor:
     op = createSMTXor();
     break;
@@ -528,6 +532,14 @@ ref<CoqExpr> ExprTranslator::createSMTAnd() {
     coqSMTAnd = new CoqVariable("SMT_And");
   }
   return coqSMTAnd;
+}
+
+ref<CoqExpr> ExprTranslator::createSMTOr() {
+  static ref<CoqExpr> coqSMTOr = nullptr;
+  if (coqSMTOr.isNull()) {
+    coqSMTOr = new CoqVariable("SMT_Or");
+  }
+  return coqSMTOr;
 }
 
 ref<CoqExpr> ExprTranslator::createSMTXor() {

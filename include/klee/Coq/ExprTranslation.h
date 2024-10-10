@@ -129,6 +129,8 @@ public:
 
   ref<CoqExpr> createSMTAnd();
 
+  ref<CoqExpr> createSMTOr();
+
   ref<CoqExpr> createSMTXor();
 
   ref<CoqExpr> createSMTShl();

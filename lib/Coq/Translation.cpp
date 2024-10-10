@@ -382,6 +382,10 @@ ref<CoqExpr> ModuleTranslator::translateBinaryOperatorOpcode(BinaryOperator *ins
     op = new CoqVariable("LLVMAst.And");
     break;
 
+  case Instruction::Or:
+    op = new CoqVariable("LLVMAst.Or");
+    break;
+
   case Instruction::Xor:
     op = new CoqVariable("LLVMAst.Xor");
     break;

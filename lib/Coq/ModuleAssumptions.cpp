@@ -259,6 +259,10 @@ ref<CoqTactic> ModuleSupport::getTacticForBinaryOperator(BinaryOperator *inst) {
     constructor = "IS_And";
     break;
 
+  case Instruction::Or:
+    constructor = "IS_Or";
+    break;
+
   case Instruction::Xor:
     constructor = "IS_Xor";
     break;
