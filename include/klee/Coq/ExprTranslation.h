@@ -42,7 +42,7 @@ public:
 
   ref<CoqExpr> translateConstantExpr(ref<ConstantExpr> e);
 
-  ref<CoqExpr> createSMTBinOp(std::string constructor,
+  ref<CoqExpr> createSMTBinOp(ref<CoqExpr> op,
                               ref<Expr> left,
                               ref<Expr> right,
                               ArrayTranslation *m,
@@ -69,6 +69,62 @@ public:
 
   ref<CoqExpr> createSMTVar(unsigned width,
                             ref<CoqExpr> name);
+
+  ref<CoqExpr> createExpr();
+
+  ref<CoqExpr> createASTConst();
+
+  ref<CoqExpr> createSMTEq();
+
+  ref<CoqExpr> createSMTNe();
+
+  ref<CoqExpr> createSMTUlt();
+
+  ref<CoqExpr> createSMTUle();
+
+  ref<CoqExpr> createSMTUgt();
+
+  ref<CoqExpr> createSMTUge();
+
+  ref<CoqExpr> createSMTSlt();
+
+  ref<CoqExpr> createSMTSle();
+
+  ref<CoqExpr> createSMTSgt();
+
+  ref<CoqExpr> createSMTSge();
+
+  ref<CoqExpr> createASTCmpOp();
+
+  ref<CoqExpr> createASTZExt();
+
+  ref<CoqExpr> createASTSExt();
+
+  ref<CoqExpr> createASTExtract();
+
+  ref<CoqExpr> createSMTAdd();
+
+  ref<CoqExpr> createSMTSub();
+
+  ref<CoqExpr> createSMTMul();
+
+  ref<CoqExpr> createSMTURem();
+
+  ref<CoqExpr> createSMTSRem();
+
+  ref<CoqExpr> createSMTAnd();
+
+  ref<CoqExpr> createSMTXor();
+
+  ref<CoqExpr> createSMTShl();
+
+  ref<CoqExpr> createSMTLShr();
+
+  ref<CoqExpr> createASTBinOp();
+
+  ref<CoqExpr> createASTVar();
+
+  ref<CoqExpr> createRepr(Expr::Width w);
 
   ref<CoqExpr> createBVSort(Expr::Width w);
 
