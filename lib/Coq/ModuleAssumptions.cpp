@@ -294,6 +294,10 @@ ref<CoqTactic> ModuleSupport::getTacticForDivOperator(BinaryOperator *inst) {
     constructor = "IS_UDiv";
     break;
 
+  case Instruction::SDiv:
+    constructor = "IS_SDiv";
+    break;
+
   default:
     assert(false);
   }

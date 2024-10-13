@@ -379,6 +379,15 @@ ref<CoqExpr> ModuleTranslator::translateBinaryOperatorOpcode(BinaryOperator *ins
     );
     break;
 
+  case Instruction::SDiv:
+    op = new CoqApplication(
+      new CoqVariable("LLVMAst.SDiv"),
+      {
+        createFalse(),
+      }
+    );
+    break;
+
   case Instruction::URem:
     op = new CoqVariable("LLVMAst.URem");
     break;
