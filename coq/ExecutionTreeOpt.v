@@ -249,13 +249,13 @@ Proof.
     ).
   }
   {
-    destruct (sym_eval_exp ls1 gs1 (Some t) e1) as [se1' | ] eqn:E1; try discriminate Heval.
-    destruct (sym_eval_exp ls1 gs1 (Some t) (EXP_Integer n)) as [se2' | ] eqn:E2; try discriminate Heval.
-    apply IHe1 with (ot := Some t) (se1 := se1') in H4; try assumption.
+    destruct (sym_eval_exp ls1 gs1 (Some (TYPE_I w)) e1) as [se1' | ] eqn:E1; try discriminate Heval.
+    destruct (sym_eval_exp ls1 gs1 (Some (TYPE_I w)) (EXP_Integer n)) as [se2' | ] eqn:E2; try discriminate Heval.
+    apply IHe1 with (ot := Some (TYPE_I w)) (se1 := se1') in H4; try assumption.
     destruct H4 as [se1'' [H4_1 H4_2]].
     assert(L : is_supported_exp (EXP_Integer n)).
     { apply IS_EXP_Integer. }
-    apply IHe2 with (ot := Some t) (se1 := se2') in L; try assumption.
+    apply IHe2 with (ot := Some (TYPE_I w)) (se1 := se2') in L; try assumption.
     destruct L as [se2'' [L_1 L_2]].
     simpl in L_1.
     simpl.

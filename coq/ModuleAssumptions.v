@@ -48,11 +48,11 @@ Inductive is_supported_exp : llvm_exp -> Prop :=
       is_supported_exp e2 ->
       is_supported_ibinop op ->
       is_supported_exp (OP_IBinop op t e1 e2)
-  | IS_OP_Div : forall op t e n,
+  | IS_OP_Div : forall op w e n,
       is_supported_div op ->
       is_supported_exp e ->
-      (n <> 0)%Z ->
-      is_supported_exp (OP_IBinop op t e (EXP_Integer n))
+      ((n mod (two_power_nat (Pos.to_nat w))) <> 0)%Z ->
+      is_supported_exp (OP_IBinop op (TYPE_I w) e (EXP_Integer n))
   | IS_OP_Shift : forall op w e n,
       is_supported_shift op ->
       is_supported_exp e ->

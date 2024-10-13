@@ -62,7 +62,7 @@ Definition dynamic_int_by_sort s (n : smt_sort_to_int_type s) : dynamic_int :=
 .
 
 Lemma eval_udiv_correspondence : forall m s (ast : smt_ast s) n,
-  (n <> 0)%Z ->
+  ((n mod (two_power_nat (Pos.to_nat (smt_sort_to_width s)))) <> 0)%Z ->
   over_approx_via_model
     (eval_ibinop
       (UDiv false)
@@ -71,10 +71,26 @@ Lemma eval_udiv_correspondence : forall m s (ast : smt_ast s) n,
     (Some (Expr s (AST_BinOp s SMT_UDiv ast (AST_Const s (repr_by_sort s n)))))
     m.
 Proof.
+  intros m s ast n Hn.
+  unfold eval_ibinop, eval_ibinop_generic.
+  destruct s.
+  {
+    simpl.
+    rewrite Int1.Z_mod_modulus_eq.
+    assert(L : ((n mod Int1.modulus) =? 0)%Z = false).
+    {
+      unfold Int1.modulus, Int1.wordsize, Wordsize_1.wordsize.
+      unfold Pos.to_nat in Hn.
+      simpl in Hn.
+      lia.
+    }
+    rewrite L.
+    eapply OA_Some; reflexivity.
+  }
 Admitted.
 
 Lemma eval_sdiv_correspondence : forall m s (ast : smt_ast s) n,
-  (n <> 0)%Z ->
+  ((n mod (two_power_nat (Pos.to_nat (smt_sort_to_width s)))) <> 0)%Z ->
   over_approx_via_model
     (eval_ibinop
       (SDiv false)
@@ -83,6 +99,35 @@ Lemma eval_sdiv_correspondence : forall m s (ast : smt_ast s) n,
     (Some (Expr s (AST_BinOp s SMT_SDiv ast (AST_Const s (repr_by_sort s n)))))
     m.
 Proof.
+  intros m s ast n Hn.
+  unfold eval_ibinop, eval_ibinop_generic.
+  destruct s.
+  {
+    simpl.
+    assert(L : (Int1.signed (Int1.repr n) =? 0)%Z = false).
+    {
+      rewrite Int1.signed_repr_eq.
+      remember (Coqlib.zlt (n mod Int1.modulus) Int1.half_modulus) as b.
+      assert(L2 : (n mod Int1.modulus < Int1.modulus)%Z).
+      {
+        apply Z.mod_pos_bound.
+        unfold Int1.modulus, Int1.wordsize, Wordsize_1.wordsize, two_power_nat.
+        lia.
+      }
+      unfold Int1.half_modulus, Int1.modulus, Int1.wordsize, Wordsize_1.wordsize, two_power_nat.
+      unfold Pos.to_nat, two_power_nat in Hn.
+      simpl in *.
+      destruct b eqn:E.
+      { lia.  }
+      {
+        unfold Int1.modulus, Int1.wordsize, Wordsize_1.wordsize, two_power_nat in L2.
+        simpl in L2.
+        lia.
+      }
+    }
+    rewrite L.
+    eapply OA_Some; reflexivity.
+  }
 Admitted.
 
 Lemma eval_shl_correspondence : forall m s (ast : smt_ast s) n,
@@ -467,19 +512,18 @@ Proof.
     }
   }
   {
-    apply IHe1 with (ot := (Some t)) in H4.
+    apply IHe1 with (ot := (Some (TYPE_I w))) in H4.
     assert(L: is_supported_exp (EXP_Integer n)).
     { apply IS_EXP_Integer. }
-    apply IHe2 with (ot := (Some t)) in L.
-    destruct (eval_exp c_ls c_gs (Some t) e1) as [dv1 | ] eqn:E1.
+    apply IHe2 with (ot := (Some (TYPE_I w))) in L.
+    destruct (eval_exp c_ls c_gs (Some (TYPE_I w)) e1) as [dv1 | ] eqn:E1.
     {
-      destruct (eval_exp c_ls c_gs (Some t) (EXP_Integer n)) as [dv2 | ] eqn:E2.
+      destruct (eval_exp c_ls c_gs (Some (TYPE_I w)) (EXP_Integer n)) as [dv2 | ] eqn:E2.
       {
         simpl.
         inversion H4; subst.
         inversion L; subst.
         rename sort into sort1, ast into ast1, sort0 into sort2, ast0 into ast2.
-        destruct t; try discriminate H1.
         assert(Lw : w = (smt_sort_to_width sort2)).
         { apply infer_width in H1. assumption. }
         destruct sort1, sort2; try (apply OA_None);
