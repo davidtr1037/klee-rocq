@@ -137,6 +137,8 @@ public:
 
   ref<CoqExpr> createSMTLShr();
 
+  ref<CoqExpr> createSMTAShr();
+
   ref<CoqExpr> createASTBinOp();
 
   ref<CoqExpr> createASTVar();

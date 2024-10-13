@@ -407,6 +407,13 @@ ref<CoqExpr> ModuleTranslator::translateBinaryOperatorOpcode(BinaryOperator *ins
     );
     break;
 
+  case Instruction::AShr:
+    op = new CoqApplication(
+      new CoqVariable("LLVMAst.AShr"),
+      {createFalse()}
+    );
+    break;
+
   default:
     assert(false);
   }

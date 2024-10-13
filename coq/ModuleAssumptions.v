@@ -23,6 +23,7 @@ Inductive is_supported_ibinop : ibinop -> Prop :=
 Inductive is_supported_shift : ibinop -> Prop :=
   | IS_Shl : is_supported_shift (Shl false false)
   | IS_LShr : is_supported_shift (LShr false)
+  | IS_AShr : is_supported_shift (AShr false)
 .
 
 Inductive is_supported_conv : conversion_type -> Prop :=

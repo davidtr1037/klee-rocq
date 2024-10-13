@@ -272,6 +272,10 @@ ref<CoqExpr> ExprTranslator::translateBinaryExpr(ref<BinaryExpr> e,
     op = createSMTLShr();
     break;
 
+  case Expr::AShr:
+    op = createSMTAShr();
+    break;
+
   default:
     assert(false);
   }
@@ -564,6 +568,14 @@ ref<CoqExpr> ExprTranslator::createSMTLShr() {
     coqSMTLShr = new CoqVariable("SMT_LShr");
   }
   return coqSMTLShr;
+}
+
+ref<CoqExpr> ExprTranslator::createSMTAShr() {
+  static ref<CoqExpr> coqSMTAShr = nullptr;
+  if (coqSMTAShr.isNull()) {
+    coqSMTAShr = new CoqVariable("SMT_AShr");
+  }
+  return coqSMTAShr;
 }
 
 ref<CoqExpr> ExprTranslator::createASTBinOp() {

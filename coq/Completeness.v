@@ -272,6 +272,112 @@ Proof.
     eapply OA_Some; reflexivity.
   }
 Qed.
+
+Lemma eval_ashr_correspondence : forall m s (ast : smt_ast s) n,
+  (n >= 0)%Z ->
+  (n < Zpos (smt_sort_to_width s))%Z ->
+  over_approx_via_model
+    (eval_ibinop (AShr false)
+       (DV_Int (dynamic_int_by_sort s (smt_eval_ast m s ast)))
+       (DV_Int (dynamic_int_by_sort s (repr_by_sort s n))))
+    (Some (Expr s (AST_BinOp s SMT_AShr ast (AST_Const s (repr_by_sort s n)))))
+    m.
+Proof.
+  intros m s ast n Hn1 Hn2.
+  unfold eval_ibinop, eval_ibinop_generic.
+  destruct s; unfold bitwidth; simpl in *.
+  {
+    rewrite Int1.Z_mod_modulus_eq.
+    assert(L1 : (n = 0)%Z).
+    { lia. }
+    subst.
+    simpl.
+    eapply OA_Some.
+    { reflexivity. }
+    {
+      simpl.
+      f_equal.
+      apply Int1.shr_zero.
+    }
+  }
+  {
+    rewrite Int8.unsigned_repr_eq.
+    assert(L1: (n mod Int8.modulus)%Z = n).
+    {
+      apply Z.mod_small.
+      split.
+      { lia. }
+      {
+        unfold Int8.modulus, Int8.wordsize, Wordsize_8.wordsize, two_power_nat.
+        simpl.
+        lia.
+      }
+    }
+    rewrite L1.
+    assert(L2 : (n >=? 8)%Z = false).
+    { lia. }
+    rewrite L2.
+    eapply OA_Some; reflexivity.
+  }
+  {
+    (* TODO: why is this case different? *)
+    rewrite Int16.Z_mod_modulus_eq.
+    assert(L1: (n mod Int16.modulus)%Z = n).
+    {
+      apply Z.mod_small.
+      split.
+      { lia. }
+      {
+        unfold Int16.modulus, Int16.wordsize, Wordsize_16.wordsize, two_power_nat.
+        simpl.
+        lia.
+      }
+    }
+    rewrite L1.
+    assert(L2 : (n >=? 16)%Z = false).
+    { lia. }
+    rewrite L2.
+    eapply OA_Some; reflexivity.
+  }
+  {
+    rewrite Int32.unsigned_repr_eq.
+    assert(L1: (n mod Int32.modulus)%Z = n).
+    {
+      apply Z.mod_small.
+      split.
+      { lia. }
+      {
+        unfold Int32.modulus, Int32.wordsize, Wordsize_32.wordsize, two_power_nat.
+        simpl.
+        lia.
+      }
+    }
+    rewrite L1.
+    assert(L2 : (n >=? 32)%Z = false).
+    { lia. }
+    rewrite L2.
+    eapply OA_Some; reflexivity.
+  }
+  {
+    rewrite Int64.unsigned_repr_eq.
+    assert(L1: (n mod Int64.modulus)%Z = n).
+    {
+      apply Z.mod_small.
+      split.
+      { lia. }
+      {
+        unfold Int64.modulus, Int64.wordsize, Wordsize_64.wordsize, two_power_nat.
+        simpl.
+        lia.
+      }
+    }
+    rewrite L1.
+    assert(L2 : (n >=? 64)%Z = false).
+    { lia. }
+    rewrite L2.
+    eapply OA_Some; reflexivity.
+  }
+Qed.
  
 (* TODO: rename correspondence to over_approx? *)
 Lemma eval_exp_correspondence : forall c_ls s_ls c_gs s_gs ot e m,
@@ -376,6 +482,23 @@ Proof.
             apply inj_pair2 in H2;
             subst;
             apply eval_lshr_correspondence; assumption.
+          }
+        }
+        {
+          simpl.
+          inversion H4; subst.
+          inversion L; subst.
+          rename sort into sort1, ast into ast1, sort0 into sort2, ast0 into ast2.
+          assert(Lw : w = (smt_sort_to_width sort2)).
+          { apply infer_width in H1. assumption. }
+          {
+            destruct sort1, sort2; try (apply OA_None);
+            subst;
+            simpl in H1;
+            inversion H1;
+            apply inj_pair2 in H2;
+            subst;
+            apply eval_ashr_correspondence; assumption.
           }
         }
       }
