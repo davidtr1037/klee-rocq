@@ -309,7 +309,12 @@ ref<CoqTactic> ModuleSupport::getTacticForDivOperator(BinaryOperator *inst) {
       new Apply("IS_OP_Div"),
       opTactic,
       getTacticForValue(inst->getOperand(0)),
-      new Block({new LIA()}),
+      new Block(
+        {
+          new Rewrite("Z.eqb_neq", false),
+          new Reflexivity(),
+        }
+      )
     }
   );
 }
