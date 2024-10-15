@@ -73,9 +73,8 @@ Lemma eval_udiv_correspondence : forall m s (ast : smt_ast s) n,
 Proof.
   intros m s ast n Hn.
   unfold eval_ibinop, eval_ibinop_generic.
-  destruct s.
+  destruct s; simpl.
   {
-    simpl.
     rewrite Int1.Z_mod_modulus_eq.
     assert(L : ((n mod Int1.modulus) =? 0)%Z = false).
     {
@@ -87,7 +86,55 @@ Proof.
     rewrite L.
     eapply OA_Some; reflexivity.
   }
-Admitted.
+  {
+    rewrite Int8.unsigned_repr_eq.
+    assert(L : ((n mod Int8.modulus) =? 0)%Z = false).
+    {
+      unfold Int8.modulus, Int8.wordsize, Wordsize_8.wordsize.
+      unfold Pos.to_nat in Hn.
+      simpl in Hn.
+      lia.
+    }
+    rewrite L.
+    eapply OA_Some; reflexivity.
+  }
+  {
+    rewrite Int16.Z_mod_modulus_eq.
+    assert(L : ((n mod Int16.modulus) =? 0)%Z = false).
+    {
+      unfold Int16.modulus, Int16.wordsize, Wordsize_16.wordsize.
+      unfold Pos.to_nat in Hn.
+      simpl in Hn.
+      lia.
+    }
+    rewrite L.
+    eapply OA_Some; reflexivity.
+  }
+  {
+    rewrite Int32.unsigned_repr_eq.
+    assert(L : ((n mod Int32.modulus) =? 0)%Z = false).
+    {
+      unfold Int32.modulus, Int32.wordsize, Wordsize_32.wordsize.
+      unfold Pos.to_nat in Hn.
+      simpl in Hn.
+      lia.
+    }
+    rewrite L.
+    eapply OA_Some; reflexivity.
+  }
+  {
+    rewrite Int64.unsigned_repr_eq.
+    assert(L : ((n mod Int64.modulus) =? 0)%Z = false).
+    {
+      unfold Int64.modulus, Int64.wordsize, Wordsize_64.wordsize.
+      unfold Pos.to_nat in Hn.
+      simpl in Hn.
+      lia.
+    }
+    rewrite L.
+    eapply OA_Some; reflexivity.
+  }
+Qed.
 
 Lemma eval_sdiv_correspondence : forall m s (ast : smt_ast s) n,
   ((n mod (two_power_nat (Pos.to_nat (smt_sort_to_width s)))) <> 0)%Z ->
@@ -101,9 +148,8 @@ Lemma eval_sdiv_correspondence : forall m s (ast : smt_ast s) n,
 Proof.
   intros m s ast n Hn.
   unfold eval_ibinop, eval_ibinop_generic.
-  destruct s.
+  destruct s; simpl.
   {
-    simpl.
     assert(L : (Int1.signed (Int1.repr n) =? 0)%Z = false).
     {
       rewrite Int1.signed_repr_eq.
@@ -111,24 +157,94 @@ Proof.
       assert(L2 : (n mod Int1.modulus < Int1.modulus)%Z).
       {
         apply Z.mod_pos_bound.
-        unfold Int1.modulus, Int1.wordsize, Wordsize_1.wordsize, two_power_nat.
-        lia.
+        apply Z.ltb_lt.
+        reflexivity.
       }
-      unfold Int1.half_modulus, Int1.modulus, Int1.wordsize, Wordsize_1.wordsize, two_power_nat.
-      unfold Pos.to_nat, two_power_nat in Hn.
-      simpl in *.
       destruct b eqn:E.
-      { lia.  }
-      {
-        unfold Int1.modulus, Int1.wordsize, Wordsize_1.wordsize, two_power_nat in L2.
-        simpl in L2.
-        lia.
-      }
+      simpl in *.
+      { apply Z.eqb_neq.  assumption. }
+      { lia. }
     }
     rewrite L.
     eapply OA_Some; reflexivity.
   }
-Admitted.
+  {
+    assert(L : (Int8.signed (Int8.repr n) =? 0)%Z = false).
+    {
+      rewrite Int8.signed_repr_eq.
+      remember (Coqlib.zlt (n mod Int8.modulus) Int8.half_modulus) as b.
+      assert(L2 : (n mod Int8.modulus < Int8.modulus)%Z).
+      {
+        apply Z.mod_pos_bound.
+        apply Z.ltb_lt.
+        reflexivity.
+      }
+      destruct b eqn:E.
+      simpl in *.
+      { apply Z.eqb_neq.  assumption. }
+      { lia. }
+    }
+    rewrite L.
+    eapply OA_Some; reflexivity.
+  }
+  {
+    assert(L : (Int16.signed (Int16.repr n) =? 0)%Z = false).
+    {
+      rewrite Int16.signed_repr_eq.
+      remember (Coqlib.zlt (n mod Int16.modulus) Int16.half_modulus) as b.
+      assert(L2 : (n mod Int16.modulus < Int16.modulus)%Z).
+      {
+        apply Z.mod_pos_bound.
+        apply Z.ltb_lt.
+        reflexivity.
+      }
+      destruct b eqn:E.
+      simpl in *.
+      { apply Z.eqb_neq.  assumption. }
+      { lia. }
+    }
+    rewrite L.
+    eapply OA_Some; reflexivity.
+  }
+  {
+    assert(L : (Int32.signed (Int32.repr n) =? 0)%Z = false).
+    {
+      rewrite Int32.signed_repr_eq.
+      remember (Coqlib.zlt (n mod Int32.modulus) Int32.half_modulus) as b.
+      assert(L2 : (n mod Int32.modulus < Int32.modulus)%Z).
+      {
+        apply Z.mod_pos_bound.
+        apply Z.ltb_lt.
+        reflexivity.
+      }
+      destruct b eqn:E.
+      simpl in *.
+      { apply Z.eqb_neq.  assumption. }
+      { lia. }
+    }
+    rewrite L.
+    eapply OA_Some; reflexivity.
+  }
+  {
+    assert(L : (Int64.signed (Int64.repr n) =? 0)%Z = false).
+    {
+      rewrite Int64.signed_repr_eq.
+      remember (Coqlib.zlt (n mod Int64.modulus) Int64.half_modulus) as b.
+      assert(L2 : (n mod Int64.modulus < Int64.modulus)%Z).
+      {
+        apply Z.mod_pos_bound.
+        apply Z.ltb_lt.
+        reflexivity.
+      }
+      destruct b eqn:E.
+      simpl in *.
+      { apply Z.eqb_neq.  assumption. }
+      { lia. }
+    }
+    rewrite L.
+    eapply OA_Some; reflexivity.
+  }
+Qed.
 
 Lemma eval_shl_correspondence : forall m s (ast : smt_ast s) n,
   (n >= 0)%Z ->
