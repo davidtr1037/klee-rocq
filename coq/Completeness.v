@@ -78,10 +78,8 @@ Proof.
     rewrite Int1.Z_mod_modulus_eq.
     assert(L : ((n mod Int1.modulus) =? 0)%Z = false).
     {
-      unfold Int1.modulus, Int1.wordsize, Wordsize_1.wordsize.
-      unfold Pos.to_nat in Hn.
-      simpl in Hn.
-      lia.
+      apply Z.eqb_neq.
+      assumption.
     }
     rewrite L.
     eapply OA_Some; reflexivity.
@@ -90,10 +88,8 @@ Proof.
     rewrite Int8.unsigned_repr_eq.
     assert(L : ((n mod Int8.modulus) =? 0)%Z = false).
     {
-      unfold Int8.modulus, Int8.wordsize, Wordsize_8.wordsize.
-      unfold Pos.to_nat in Hn.
-      simpl in Hn.
-      lia.
+      apply Z.eqb_neq.
+      assumption.
     }
     rewrite L.
     eapply OA_Some; reflexivity.
@@ -102,10 +98,8 @@ Proof.
     rewrite Int16.Z_mod_modulus_eq.
     assert(L : ((n mod Int16.modulus) =? 0)%Z = false).
     {
-      unfold Int16.modulus, Int16.wordsize, Wordsize_16.wordsize.
-      unfold Pos.to_nat in Hn.
-      simpl in Hn.
-      lia.
+      apply Z.eqb_neq.
+      assumption.
     }
     rewrite L.
     eapply OA_Some; reflexivity.
@@ -114,10 +108,8 @@ Proof.
     rewrite Int32.unsigned_repr_eq.
     assert(L : ((n mod Int32.modulus) =? 0)%Z = false).
     {
-      unfold Int32.modulus, Int32.wordsize, Wordsize_32.wordsize.
-      unfold Pos.to_nat in Hn.
-      simpl in Hn.
-      lia.
+      apply Z.eqb_neq.
+      assumption.
     }
     rewrite L.
     eapply OA_Some; reflexivity.
@@ -126,10 +118,8 @@ Proof.
     rewrite Int64.unsigned_repr_eq.
     assert(L : ((n mod Int64.modulus) =? 0)%Z = false).
     {
-      unfold Int64.modulus, Int64.wordsize, Wordsize_64.wordsize.
-      unfold Pos.to_nat in Hn.
-      simpl in Hn.
-      lia.
+      apply Z.eqb_neq.
+      assumption.
     }
     rewrite L.
     eapply OA_Some; reflexivity.
