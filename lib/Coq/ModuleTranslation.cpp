@@ -226,11 +226,12 @@ ref<CoqExpr> ModuleTranslator::translateBasicBlock(BasicBlock &bb) {
   std::vector<ref<CoqExpr>> coq_insts;
 
   for (Instruction &inst : bb) {
-    ref<CoqExpr> coq_inst = translateInstCached(inst);
-    /* TODO: add ignore predicate? */
-    if (!coq_inst.isNull()) {
-      coq_insts.push_back(coq_inst);
+    if (!isSupportedInst(inst)) {
+      continue;
     }
+
+    ref<CoqExpr> coq_inst = translateInstCached(inst);
+    coq_insts.push_back(coq_inst);
   }
 
   return new CoqApplication(
@@ -251,16 +252,10 @@ ref<CoqExpr> ModuleTranslator::translateInstCached(Instruction &inst) {
 
   uint64_t instId = getInstID(inst);
   std::string varName = "inst_" + std::to_string(instId);
+  ref<CoqExpr> alias = new CoqVariable(varName);
+  instCache.insert(std::make_pair(&inst, alias));
 
   ref<CoqExpr> expr = translateInst(inst);
-  if (expr.isNull()) {
-    /* TODO: ... */
-    return nullptr;
-  }
-
-  ref<CoqExpr> alias = new CoqVariable(varName);
-
-  instCache.insert(std::make_pair(&inst, alias));
   ref<CoqExpr> def = new CoqDefinition(varName, "llvm_cmd", expr);
   instDefs.push_back(def);
 
@@ -281,12 +276,6 @@ uint64_t ModuleTranslator::getInstID(Instruction &inst) {
 }
 
 ref<CoqExpr> ModuleTranslator::translateInst(Instruction &inst) {
-  if (!isSupportedInst(inst)) {
-    return nullptr;
-  }
-
-  ref<CoqExpr> coq_inst = nullptr;
-
   if (isa<BinaryOperator>(&inst)) {
     return translateBinaryOperator(dyn_cast<BinaryOperator>(&inst));
   }
@@ -800,8 +789,6 @@ ref<CoqExpr> ModuleTranslator::translateUnreachableInst(UnreachableInst *inst) {
   );
 }
 
-/* TODO: manage command id's */
-/* TODO: pass the name of the constructor? */
 ref<CoqExpr> ModuleTranslator::createCMDInst(uint64_t id, ref<CoqExpr> e) {
   return new CoqApplication(
     new CoqVariable("CMD_Inst"),
@@ -875,7 +862,6 @@ ref<CoqExpr> ModuleTranslator::translateType(Type *t) {
   }
 
   assert(false);
-  return nullptr;
 }
 
 ref<CoqExpr> ModuleTranslator::createTypeI(uint64_t width) {
