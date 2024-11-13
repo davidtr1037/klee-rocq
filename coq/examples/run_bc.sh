@@ -5,25 +5,20 @@ KLEE=klee
 
 function run_klee {
     output=${ROOT}/coq/out.v
-    debug_output=${ROOT}/coq/debug.v
-    po_output=/tmp/po
     bc_file=$1
     echo "testing ${bc_file}"
     $KLEE \
         -search=dfs \
         -generate-proof \
         -proof-output-path=${output} \
-        -proof-debug-script-path=${debug_output} \
+        -optimize-proof \
         -decompose-state \
         -cache-pc-expr \
         -cache-register-expr \
         -cache-stack-expr \
-        -optimize-proof \
         $1 &> /dev/null
     time coqc -Q ${ROOT}/coq SE ${output}
-    coqc -Q ${ROOT}/coq SE ${debug_output} > ${po_output}
     ls -lh ${output}
-    ls -lh ${po_output}
 }
 
 run_klee $1
