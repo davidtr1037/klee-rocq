@@ -483,7 +483,7 @@ Proof.
 Qed.
 
 (* TODO: make generic *)
-Lemma equiv_smt_expr_sub_add : forall (n : int32) (ast : smt_ast Sort_BV32),
+Lemma equiv_smt_expr_sub_add_bv32 : forall (n : int32) (ast : smt_ast Sort_BV32),
   equiv_smt_expr
     (Expr
       Sort_BV32
@@ -524,7 +524,7 @@ Proof.
 Admitted.
 
 (* TODO: make generic *)
-Lemma equiv_smt_expr_add_consts : forall (ast : smt_ast Sort_BV32) (n1 n2 : int32),
+Lemma equiv_smt_expr_add_consts_bv32 : forall (ast : smt_ast Sort_BV32) (n1 n2 : int32),
   equiv_smt_expr
     (Expr Sort_BV32
        (AST_BinOp Sort_BV32 SMT_Add
@@ -544,7 +544,7 @@ Proof.
 Qed.
 
 (* TODO: make generic *)
-Lemma equiv_smt_expr_sub_consts : forall (ast : smt_ast Sort_BV32) (n1 n2 : int32),
+Lemma equiv_smt_expr_sub_consts_bv32 : forall (ast : smt_ast Sort_BV32) (n1 n2 : int32),
   equiv_smt_expr
     (Expr Sort_BV32
       (AST_BinOp Sort_BV32 SMT_Sub
@@ -681,7 +681,7 @@ Proof.
           {
             simpl.
             apply equiv_smt_expr_symmetry.
-            apply equiv_smt_expr_add_consts.
+            apply equiv_smt_expr_add_consts_bv32.
           }
         }
       }
@@ -698,7 +698,7 @@ Proof.
         simpl;
         eapply equiv_smt_expr_transitivity;
         [
-          apply equiv_smt_expr_symmetry; apply equiv_smt_expr_sub_add |
+          apply equiv_smt_expr_symmetry; apply equiv_smt_expr_sub_add_bv32 |
           apply equiv_smt_expr_refl
         ]
       ).
@@ -707,7 +707,7 @@ Proof.
         try (
           eapply equiv_smt_expr_transitivity;
           [
-            apply equiv_smt_expr_symmetry; apply equiv_smt_expr_sub_add |
+            apply equiv_smt_expr_symmetry; apply equiv_smt_expr_sub_add_bv32 |
             apply equiv_smt_expr_refl
           ]
         ).
@@ -716,7 +716,7 @@ Proof.
           try (
             eapply equiv_smt_expr_transitivity;
             [
-              apply equiv_smt_expr_symmetry; apply equiv_smt_expr_sub_add |
+              apply equiv_smt_expr_symmetry; apply equiv_smt_expr_sub_add_bv32 |
               apply equiv_smt_expr_refl
             ]
           ).
@@ -725,7 +725,7 @@ Proof.
             apply equiv_smt_expr_symmetry.
             eapply equiv_smt_expr_transitivity.
             {
-              apply equiv_smt_expr_sub_consts.
+              apply equiv_smt_expr_sub_consts_bv32.
             }
             { apply equiv_smt_expr_refl. }
           }
