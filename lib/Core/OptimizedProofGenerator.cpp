@@ -198,6 +198,10 @@ void OptimizedProofGenerator::decomposeBasicBlock(BasicBlock &bb,
   head = nullptr;
 
   for (Instruction &inst : bb) {
+    if (!moduleTranslator->isSupportedInst(inst)) {
+      continue;
+    }
+
     if (!head) {
       head = moduleTranslator->translateInstCached(inst);
     } else {
@@ -218,6 +222,10 @@ void OptimizedProofGenerator::decomposeBasicBlockFrom(BasicBlock &bb,
   head = nullptr;
 
   for (Instruction &inst : bb) {
+    if (!moduleTranslator->isSupportedInst(inst)) {
+      continue;
+    }
+
     if (&inst == &from) {
       head = moduleTranslator->translateInstCached(inst);
     } else {
