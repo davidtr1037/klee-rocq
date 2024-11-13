@@ -336,6 +336,8 @@ public:
 
   void markAsTerminated();
 
+  ref<Expr> getPC() const;
+
   void dumpConstraints() const;
 };
 

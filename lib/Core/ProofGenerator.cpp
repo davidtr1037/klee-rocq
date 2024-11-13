@@ -403,8 +403,9 @@ klee::ref<CoqExpr> ProofGenerator::createFrame(ExecutionState &es,
   );
 }
 
-/* TODO: check if was set? */
 klee::ref<CoqExpr> ProofGenerator::createGlobalStore() {
+  /* TODO: generate the definition lazily? */
+  assert(coqGlobalStoreAlias);
   return coqGlobalStoreAlias;
 }
 
@@ -483,12 +484,7 @@ klee::ref<CoqExpr> ProofGenerator::createSymbolicNames(unsigned size) {
 }
 
 klee::ref<CoqExpr> ProofGenerator::createPC(ExecutionState &es, vector<ref<CoqExpr>> &defs) {
-  /* TODO: add a method to ExecutionState */
-  ref<Expr> pc = ConstantExpr::create(1, Expr::Bool);
-  for (ref<Expr> e : es.constraints) {
-    pc = AndExpr::create(pc, e);
-  }
-
+  ref<Expr> pc = es.getPC();
   if (CachePCExpr) {
     return exprTranslator->translate(pc, &es.arrayTranslation, true, true, defs);
   } else {

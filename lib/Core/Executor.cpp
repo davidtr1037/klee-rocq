@@ -2272,10 +2272,7 @@ void Executor::executeInstruction(ExecutionState &state, KInstruction *ki) {
       stateInfo.branchCondition = cond;
 
       /* backup the path constraints before the fork */
-      ref<Expr> pc = ConstantExpr::create(1, Expr::Bool);
-      for (ref<Expr> e : state.constraints) {
-        pc = AndExpr::create(pc, e);
-      }
+      ref<Expr> pc = state.getPC();
 
       Executor::StatePair branches = fork(state, cond, false, BranchType::Conditional);
 

@@ -457,6 +457,15 @@ void ExecutionState::markAsTerminated() {
   isTerminated = true;
 }
 
+ref<Expr> ExecutionState::getPC() const {
+  ref<Expr> pc = ConstantExpr::create(1, Expr::Bool);
+  for (ref<Expr> e : constraints) {
+    pc = AndExpr::create(pc, e);
+  }
+
+  return pc;
+}
+
 void ExecutionState::dumpConstraints() const {
   for (ref<Expr> e : constraints) {
     errs() << *e << "\n";
