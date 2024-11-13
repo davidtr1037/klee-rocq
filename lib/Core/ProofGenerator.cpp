@@ -56,8 +56,7 @@ ProofGenerator::ProofGenerator(Module &m, raw_ostream &output) : m(m), output(ou
   coqGlobalStoreAlias = nullptr;
 }
 
-/* TODO: rename */
-void ProofGenerator::generate() {
+void ProofGenerator::generateStaticDefs() {
   generateImports();
   generateGlobalDefs();
   generateModule();

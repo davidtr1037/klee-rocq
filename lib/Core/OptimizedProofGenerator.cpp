@@ -18,7 +18,7 @@ OptimizedProofGenerator::OptimizedProofGenerator(Module &m, raw_ostream &output)
 
 }
 
-void OptimizedProofGenerator::generate() {
+void OptimizedProofGenerator::generateStaticDefs() {
   generateImports();
   generateGlobalDefs();
   generateModule();

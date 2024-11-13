@@ -33,7 +33,7 @@ public:
 
   OptimizedProofGenerator(llvm::Module &m, llvm::raw_ostream &output);
 
-  void generate();
+  void generateStaticDefs();
 
   void generateModuleLemmas();
 

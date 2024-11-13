@@ -91,7 +91,7 @@ public:
 
   ProofGenerator(llvm::Module &m, llvm::raw_ostream &output);
 
-  virtual void generate();
+  virtual void generateStaticDefs();
 
   void generateGlobalDefs();
 

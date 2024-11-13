@@ -3693,7 +3693,7 @@ void Executor::run(ExecutionState &initialState) {
     } else {
       proofGenerator = new ProofGenerator(*kmodule->module, *os);
     }
-    proofGenerator->generate();
+    proofGenerator->generateStaticDefs();
   }
 
   // Delay init till now so that ticks don't accrue during optimization and such.
