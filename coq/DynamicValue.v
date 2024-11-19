@@ -81,6 +81,7 @@ Definition eval_ibinop_generic {Int} `{VInt Int} `{ConvertToDV Int} (op : ibinop
       else
         to_dvalue res
   | UDiv ex =>
+    (* TODO: should be undefined behavior *)
     if (unsigned y =? 0)%Z then DV_Undef
     else
       if andb ex (negb ((unsigned x) mod (unsigned y) =? 0)%Z) then
@@ -88,6 +89,7 @@ Definition eval_ibinop_generic {Int} `{VInt Int} `{ConvertToDV Int} (op : ibinop
       else
         to_dvalue (divu x y)
   | SDiv ex =>
+    (* TODO: should be undefined behavior *)
     if (signed y =? 0)%Z then DV_Undef
     else
       if andb ex (negb (((signed x) mod (signed y)) =? 0)%Z) then
