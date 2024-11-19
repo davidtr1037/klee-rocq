@@ -67,14 +67,14 @@ Definition eval_ibinop_generic {Int} `{VInt Int} `{ConvertToDV Int} (op : ibinop
         to_dvalue res
   | Shl nuw nsw =>
     if (bitwidth =? 1)%nat then
-      if ((unsigned y) >=? 1)%Z then DV_Undef else to_dvalue x
+      if ((unsigned y) >=? 1)%Z then DV_Poison else to_dvalue x
     else
       let bz := Z.of_nat bitwidth in
       let res := shl x y in
       let res_u := unsigned res in
       let res_u' := Z.shiftl (unsigned x) (unsigned y) in
       if ((unsigned y) >=? bz)%Z then
-        DV_Undef
+        DV_Poison
       else if orb (andb nuw (res_u' >? res_u)%Z)
                   (andb nsw (negb (Z.shiftr (unsigned x) (bz - unsigned y) =? ((unsigned (negative res)) * (Z.pow 2 (unsigned y) - 1)))%Z)) then
         DV_Poison
@@ -96,22 +96,22 @@ Definition eval_ibinop_generic {Int} `{VInt Int} `{ConvertToDV Int} (op : ibinop
         to_dvalue (divs x y)
   | LShr ex =>
     if (bitwidth =? 1)%nat then
-      if ((unsigned y) >=? 1)%Z then DV_Undef else to_dvalue x
+      if ((unsigned y) >=? 1)%Z then DV_Poison else to_dvalue x
     else
       let bz := Z.of_nat bitwidth in
       if ((unsigned y) >=? bz)%Z then
-        DV_Undef
+        DV_Poison
       else if andb ex (negb ((unsigned x) mod (Z.pow 2 (unsigned y)) =? 0)%Z) then
         DV_Poison
       else
         to_dvalue (shru x y)
   | AShr ex =>
     if (bitwidth =? 1)%nat then
-      if ((unsigned y) >=? 1)%Z then DV_Undef else to_dvalue x
+      if ((unsigned y) >=? 1)%Z then DV_Poison else to_dvalue x
     else
       let bz := Z.of_nat bitwidth in
       if ((unsigned y) >=? bz)%Z then
-        DV_Undef
+        DV_Poison
       else if andb ex (negb ((unsigned x) mod (Z.pow 2 (unsigned y)) =? 0)%Z) then
        DV_Poison
      else
