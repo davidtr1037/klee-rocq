@@ -16,7 +16,7 @@ From SE Require Import LLVMAst.
 From SE Require Import ModuleAssumptions.
 From SE Require Import Symbolic.
 From SE Require Import Relation.
-From SE Require Import WellDefinedness.
+From SE Require Import WellScopedness.
 
 From SE.Numeric Require Import Integers.
 
@@ -1186,7 +1186,7 @@ Qed.
 
 (* TODO: rename *)
 Lemma LX0 : forall s x se name syms,
-  well_defined_smt_store s syms ->
+  well_scoped_smt_store s syms ->
   ~ In name syms ->
   s x = Some se ->
   ~ contains_var se name.
@@ -1205,7 +1205,7 @@ Qed.
 
 Lemma over_approx_store_non_interference : forall s_s c_s m name n syms,
   over_approx_store_via s_s c_s m ->
-  well_defined_smt_store s_s syms ->
+  well_scoped_smt_store s_s syms ->
   ~ In name syms ->
   over_approx_store_via
     s_s
@@ -1233,7 +1233,7 @@ Qed.
 
 Lemma over_approx_stack_non_interference : forall s_stk c_stk m name n syms,
   over_approx_stack_via s_stk c_stk m ->
-  well_defined_stack s_stk syms ->
+  well_scoped_stack s_stk syms ->
   ~ In name syms ->
   over_approx_stack_via
     s_stk
@@ -1272,7 +1272,7 @@ Lemma completeness_single_step :
   forall c c' s,
     is_supported_state c ->
     step c c' ->
-    well_defined s ->
+    well_scoped s ->
     over_approx s c ->
     (exists s', sym_step s s' /\ over_approx s' c').
 Proof.
@@ -1906,7 +1906,7 @@ Proof.
       apply completeness_single_step with (c := init_c).
       { apply (is_supported_init_state mdl fid); assumption. }
       { assumption. }
-      { apply (well_defined_init_sym_state mdl fid). assumption. }
+      { apply (well_scoped_init_sym_state mdl fid). assumption. }
       { apply (over_approx_init_states mdl fid); assumption. }
     }
     destruct L2 as [s [L2_1 L2_2]].
@@ -1937,8 +1937,8 @@ Proof.
       }
       { assumption. }
       {
-        apply well_defined_multi_sym_step with (s := init_s).
-        apply (well_defined_init_sym_state mdl fid).
+        apply well_scoped_multi_sym_step with (s := init_s).
+        apply (well_scoped_init_sym_state mdl fid).
         { assumption. }
         { assumption. }
       }

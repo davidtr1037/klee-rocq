@@ -24,4 +24,4 @@ Soundness.v
 Relation.v
 Utilities.v
 Utils/
-WellDefinedness.v
+WellScopedness.v

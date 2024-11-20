@@ -20,34 +20,34 @@ From SE.Utils Require Import IDMap.
 From SE.Utils Require Import ListUtil.
 From SE.Utils Require Import Util.
 
-Inductive well_defined_smt_expr : smt_expr -> list string -> Prop :=
+Inductive well_scoped_smt_expr : smt_expr -> list string -> Prop :=
   | WD_Expr : forall se syms,
       (forall n, contains_var se n -> In n syms) ->
-      well_defined_smt_expr se syms
+      well_scoped_smt_expr se syms
 .
 
-Inductive well_defined_smt_store : smt_store -> list string -> Prop :=
+Inductive well_scoped_smt_store : smt_store -> list string -> Prop :=
   | WD_SMTStore : forall s syms,
-      (forall x se, (s x) = Some se -> well_defined_smt_expr se syms) ->
-      well_defined_smt_store s syms
+      (forall x se, (s x) = Some se -> well_scoped_smt_expr se syms) ->
+      well_scoped_smt_store s syms
 .
 
-Inductive well_defined_stack : list sym_frame -> list string -> Prop :=
+Inductive well_scoped_stack : list sym_frame -> list string -> Prop :=
   | WD_EmptyStack : forall syms,
-      well_defined_stack [] syms
+      well_scoped_stack [] syms
   | WD_Frame : forall ls ic pbid v stk syms,
-      well_defined_smt_store ls syms ->
-      well_defined_stack stk syms ->
-      well_defined_stack ((Sym_Frame ls ic pbid v) :: stk) syms
+      well_scoped_smt_store ls syms ->
+      well_scoped_stack stk syms ->
+      well_scoped_stack ((Sym_Frame ls ic pbid v) :: stk) syms
 .
 
-Inductive well_defined : sym_state -> Prop :=
+Inductive well_scoped : sym_state -> Prop :=
   | WD_State : forall ic c cs pbid ls stk gs syms pc mdl,
-      well_defined_smt_store ls syms ->
-      well_defined_smt_store gs syms ->
-      well_defined_stack stk syms ->
-      well_defined_smt_expr (Expr Sort_BV1 pc) syms ->
-      well_defined
+      well_scoped_smt_store ls syms ->
+      well_scoped_smt_store gs syms ->
+      well_scoped_stack stk syms ->
+      well_scoped_smt_expr (Expr Sort_BV1 pc) syms ->
+      well_scoped
         (mk_sym_state
           ic
           c
@@ -164,9 +164,9 @@ Proof.
   }
 Qed.
 
-Lemma well_defined_smt_expr_extended_syms : forall se sym syms,
-  well_defined_smt_expr se syms ->
-  well_defined_smt_expr se (sym :: syms).
+Lemma well_scoped_smt_expr_extended_syms : forall se sym syms,
+  well_scoped_smt_expr se syms ->
+  well_scoped_smt_expr se (sym :: syms).
 Proof.
   intros se sym syms Hwd.
   apply WD_Expr.
@@ -177,7 +177,7 @@ Proof.
   assumption.
 Qed.
 
-Lemma well_defined_empty_smt_store : forall syms, well_defined_smt_store empty_smt_store syms.
+Lemma well_scoped_empty_smt_store : forall syms, well_scoped_smt_store empty_smt_store syms.
 Proof.
   intros syms.
   apply WD_SMTStore.
@@ -185,8 +185,8 @@ Proof.
   inversion Heq; subst.
 Qed.
 
-Lemma well_defined_init_sym_state : forall mdl fid s,
-  (init_sym_state mdl fid) = Some s -> well_defined s.
+Lemma well_scoped_init_sym_state : forall mdl fid s,
+  (init_sym_state mdl fid) = Some s -> well_scoped s.
 Proof.
   intros mdl fid s H.
   unfold init_sym_state in H.
@@ -198,11 +198,11 @@ Proof.
   apply WD_State.
   {
     unfold init_local_smt_store.
-    apply well_defined_empty_smt_store.
+    apply well_scoped_empty_smt_store.
   }
   {
     unfold init_local_smt_store.
-    apply well_defined_empty_smt_store.
+    apply well_scoped_empty_smt_store.
   }
   { apply WD_EmptyStack. }
   {
@@ -212,10 +212,10 @@ Proof.
   }
 Qed.
 
-Lemma well_defined_smt_store_update : forall ls x se syms,
-  well_defined_smt_store ls syms ->
-  well_defined_smt_expr se syms ->
-  well_defined_smt_store (x !-> Some se; ls) syms.
+Lemma well_scoped_smt_store_update : forall ls x se syms,
+  well_scoped_smt_store ls syms ->
+  well_scoped_smt_expr se syms ->
+  well_scoped_smt_store (x !-> Some se; ls) syms.
 Proof.
   intros ls x se syms Hwd1 Hwd2.
   apply WD_SMTStore.
@@ -239,23 +239,23 @@ Proof.
   }
 Qed.
 
-Lemma well_defined_smt_store_extended_syms : forall s sym syms,
-  well_defined_smt_store s syms -> well_defined_smt_store s (sym :: syms).
+Lemma well_scoped_smt_store_extended_syms : forall s sym syms,
+  well_scoped_smt_store s syms -> well_scoped_smt_store s (sym :: syms).
 Proof.
   intros s sym syms Hwd.
   inversion Hwd; subst.
   apply WD_SMTStore.
   intros x se Heq.
-  apply well_defined_smt_expr_extended_syms.
+  apply well_scoped_smt_expr_extended_syms.
   apply (H x se).
   assumption.
 Qed.
 
-Lemma well_defined_sym_eval_exp : forall ls gs ot e se syms,
-  well_defined_smt_store ls syms ->
-  well_defined_smt_store gs syms ->
+Lemma well_scoped_sym_eval_exp : forall ls gs ot e se syms,
+  well_scoped_smt_store ls syms ->
+  well_scoped_smt_store gs syms ->
   (sym_eval_exp ls gs ot e) = Some se ->
-  well_defined_smt_expr se syms.
+  well_scoped_smt_expr se syms.
 Proof.
   intros ls gs ot e se syms Hwd_ls Hwd_gs Heq.
   generalize dependent se.
@@ -331,14 +331,14 @@ Proof.
         try assumption.
         destruct Hse as [Hse | Hse].
         {
-          assert(L : well_defined_smt_expr se1 syms).
+          assert(L : well_scoped_smt_expr se1 syms).
           { apply IHe1. reflexivity. }
           inversion L; subst.
           apply H.
           assumption.
         }
         {
-          assert(L : well_defined_smt_expr se2 syms).
+          assert(L : well_scoped_smt_expr se2 syms).
           { apply IHe2. reflexivity. }
           inversion L; subst.
           apply H.
@@ -362,14 +362,14 @@ Proof.
         try assumption.
         destruct Hse as [Hse | Hse].
         {
-          assert(L : well_defined_smt_expr se1 syms).
+          assert(L : well_scoped_smt_expr se1 syms).
           { apply IHe1. reflexivity. }
           inversion L; subst.
           apply H.
           assumption.
         }
         {
-          assert(L : well_defined_smt_expr se2 syms).
+          assert(L : well_scoped_smt_expr se2 syms).
           { apply IHe2. reflexivity. }
           inversion L; subst.
           apply H.
@@ -388,7 +388,7 @@ Proof.
       intros n Hse.
       apply (contains_var_convert n conv t1 se' t2) in Hse;
       try assumption.
-      assert(L : well_defined_smt_expr se' syms).
+      assert(L : well_scoped_smt_expr se' syms).
       { apply IHe. reflexivity. }
       inversion L; subst.
       apply H.
@@ -399,10 +399,10 @@ Proof.
   { discriminate Heq. }
 Qed.
 
-Lemma well_defined_sym_eval_phi_args : forall s t args pbid se,
-  well_defined s ->
+Lemma well_scoped_sym_eval_phi_args : forall s t args pbid se,
+  well_scoped s ->
   (sym_eval_phi_args (sym_store s) (sym_globals s) t args pbid) = Some se ->
-  well_defined_smt_expr se (sym_symbolics s).
+  well_scoped_smt_expr se (sym_symbolics s).
 Proof.
   intros s t args pbid se Hwd Heq.
   induction args.
@@ -416,7 +416,7 @@ Proof.
     destruct (raw_id_eqb bid pbid) eqn:E in Heq.
     {
       inversion Hwd; subst.
-      apply (well_defined_sym_eval_exp
+      apply (well_scoped_sym_eval_exp
         ls
         gs
         (Some t)
@@ -432,11 +432,11 @@ Proof.
   }
 Qed.
 
-Lemma well_defined_fill_smt_store : forall ls gs l r syms,
-  well_defined_smt_store ls syms ->
-  well_defined_smt_store gs syms ->
+Lemma well_scoped_fill_smt_store : forall ls gs l r syms,
+  well_scoped_smt_store ls syms ->
+  well_scoped_smt_store gs syms ->
   fill_smt_store ls gs l = Some r ->
-  well_defined_smt_store r syms.
+  well_scoped_smt_store r syms.
 Proof.
   intros ls gs l r syms Hwdl Hwdg Heq.
   generalize dependent r.
@@ -444,7 +444,7 @@ Proof.
   {
     simpl in Heq.
     inversion Heq; subst.
-    apply well_defined_empty_smt_store.
+    apply well_scoped_empty_smt_store.
   }
   {
     simpl in Heq.
@@ -454,13 +454,13 @@ Proof.
       destruct (fill_smt_store ls gs tail) as [r' | ]  eqn:Efs.
       {
         inversion Heq; subst.
-        apply well_defined_smt_store_update.
+        apply well_scoped_smt_store_update.
         {
           apply (IHtail r').
           reflexivity.
         }
         {
-          apply (well_defined_sym_eval_exp
+          apply (well_scoped_sym_eval_exp
             ls
             gs
             (Some t)
@@ -476,21 +476,21 @@ Proof.
   }
 Qed.
  
-Lemma well_defined_create_local_smt_store : forall d ls gs args r syms,
-  well_defined_smt_store ls syms ->
-  well_defined_smt_store gs syms ->
+Lemma well_scoped_create_local_smt_store : forall d ls gs args r syms,
+  well_scoped_smt_store ls syms ->
+  well_scoped_smt_store gs syms ->
   (create_local_smt_store d ls gs args) = Some r ->
-  well_defined_smt_store r syms.
+  well_scoped_smt_store r syms.
 Proof.
   intros d ls gs args r syms Hls Hgs H.
   unfold create_local_smt_store in H.
   destruct (merge_lists (df_args d) args) eqn:E.
-  { apply well_defined_fill_smt_store with (ls := ls) (gs := gs) (l := l); assumption. }
+  { apply well_scoped_fill_smt_store with (ls := ls) (gs := gs) (l := l); assumption. }
   { discriminate H. }
 Qed.
 
-Lemma well_defined_stack_extended_syms : forall stk sym syms,
-  well_defined_stack stk syms -> well_defined_stack stk (sym :: syms).
+Lemma well_scoped_stack_extended_syms : forall stk sym syms,
+  well_scoped_stack stk syms -> well_scoped_stack stk (sym :: syms).
 Proof.
   intros stk sym syms Hwd.
   induction Hwd.
@@ -498,15 +498,15 @@ Proof.
   {
     apply WD_Frame.
     {
-      apply well_defined_smt_store_extended_syms.
+      apply well_scoped_smt_store_extended_syms.
       assumption.
     }
     { assumption. }
   }
 Qed.
 
-Lemma well_defined_sym_step : forall (s s' : sym_state),
-  well_defined s -> sym_step s s' -> well_defined s'
+Lemma well_scoped_sym_step : forall (s s' : sym_state),
+  well_scoped s -> sym_step s s' -> well_scoped s'
 .
 Proof.
   intros s s' Hwd Hstep.
@@ -517,10 +517,10 @@ Proof.
   {
     apply WD_State; try assumption.
     {
-      apply well_defined_smt_store_update.
+      apply well_scoped_smt_store_update.
       { assumption. }
       {
-        apply (well_defined_sym_eval_exp
+        apply (well_scoped_sym_eval_exp
           ls
           gs
           None
@@ -543,7 +543,7 @@ Proof.
         rewrite update_map_eq in Heq.
         injection Heq. clear Heq. intros Heq.
         rewrite <- Heq in *. clear Heq.
-        apply (well_defined_sym_eval_phi_args
+        apply (well_scoped_sym_eval_phi_args
           (mk_sym_state
             ic
             (CMD_Phi cid (Phi v t args))
@@ -586,9 +586,9 @@ Proof.
         assumption.
       }
       {
-        assert(L : well_defined_smt_expr (Expr Sort_BV1 cond) syms).
+        assert(L : well_scoped_smt_expr (Expr Sort_BV1 cond) syms).
         {
-          apply (well_defined_sym_eval_exp
+          apply (well_scoped_sym_eval_exp
             ls
             gs
             (Some (TYPE_I 1))
@@ -616,9 +616,9 @@ Proof.
         assumption.
       }
       {
-        assert(L : well_defined_smt_expr (Expr Sort_BV1 cond) syms).
+        assert(L : well_scoped_smt_expr (Expr Sort_BV1 cond) syms).
         {
-          apply (well_defined_sym_eval_exp
+          apply (well_scoped_sym_eval_exp
             ls
             gs
             (Some (TYPE_I 1))
@@ -636,12 +636,12 @@ Proof.
   }
   {
     apply WD_State; try assumption.
-    { apply (well_defined_create_local_smt_store d ls gs args); assumption. }
+    { apply (well_scoped_create_local_smt_store d ls gs args); assumption. }
     { apply WD_Frame; assumption. }
   }
   {
     apply WD_State; try assumption.
-    { apply (well_defined_create_local_smt_store d ls gs args); assumption. }
+    { apply (well_scoped_create_local_smt_store d ls gs args); assumption. }
     { apply WD_Frame; assumption. }
   }
   {
@@ -653,10 +653,10 @@ Proof.
     apply WD_State; try assumption.
     {
       inversion H11; subst.
-      apply well_defined_smt_store_update.
+      apply well_scoped_smt_store_update.
       { assumption. }
       {
-        apply (well_defined_sym_eval_exp
+        apply (well_scoped_sym_eval_exp
           ls
           gs
           (Some t)
@@ -684,9 +684,9 @@ Proof.
         assumption.
       }
       {
-        assert(L : well_defined_smt_expr (Expr Sort_BV1 cond) syms).
+        assert(L : well_scoped_smt_expr (Expr Sort_BV1 cond) syms).
         {
-          apply (well_defined_sym_eval_exp
+          apply (well_scoped_sym_eval_exp
             ls
             gs
             (Some (TYPE_I 1))
@@ -723,7 +723,7 @@ Proof.
         rewrite raw_id_eqb_neq in E.
         rewrite update_map_neq in Heq.
         {
-          apply well_defined_smt_expr_extended_syms.
+          apply well_scoped_smt_expr_extended_syms.
           apply (H x se').
           assumption.
         }
@@ -731,28 +731,28 @@ Proof.
       }
     }
     {
-      apply well_defined_smt_store_extended_syms.
+      apply well_scoped_smt_store_extended_syms.
       assumption.
     }
     {
-      apply well_defined_stack_extended_syms.
+      apply well_scoped_stack_extended_syms.
       assumption.
     }
     {
-      apply well_defined_smt_expr_extended_syms.
+      apply well_scoped_smt_expr_extended_syms.
       assumption.
     }
   }
 Qed.
 
-Lemma well_defined_multi_sym_step : forall s s',
-  (well_defined s) -> (multi_sym_step s s') -> (well_defined s').
+Lemma well_scoped_multi_sym_step : forall s s',
+  (well_scoped s) -> (multi_sym_step s s') -> (well_scoped s').
 Proof.
   intros s s' Hwd Hmse.
   induction Hmse as [s s' | s s' s''].
-  { apply well_defined_sym_step with (s := s); assumption. }
+  { apply well_scoped_sym_step with (s := s); assumption. }
   {
-    apply well_defined_sym_step with (s := s').
+    apply well_scoped_sym_step with (s := s').
     { apply IHHmse. assumption. }
     { assumption. }
   }
