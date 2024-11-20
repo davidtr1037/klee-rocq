@@ -1191,8 +1191,8 @@ Lemma LX0 : forall s x se name syms,
   s x = Some se ->
   ~ contains_var se name.
 Proof.
-  intros s x se name syms Hwd Hin Heq.
-  inversion Hwd; subst.
+  intros s x se name syms Hws Hin Heq.
+  inversion Hws; subst.
   specialize (H x se).
   apply H in Heq.
   inversion Heq; subst.
@@ -1212,7 +1212,7 @@ Lemma over_approx_store_non_interference : forall s_s c_s m name n syms,
     c_s
     (mk_smt_model (StringMap.update_map (bv_model m) name n)).
 Proof.
-  intros s_s c_s m name n syms Hoa Hwd Hin.
+  intros s_s c_s m name n syms Hoa Hws Hin.
   apply OA_Store.
   intros x.
   inversion Hoa; subst.
@@ -1241,7 +1241,7 @@ Lemma over_approx_stack_non_interference : forall s_stk c_stk m name n syms,
     (mk_smt_model (StringMap.update_map (bv_model m) name n))
 .
 Proof.
-  intros s_stk c_stk m name n syms Hoa Hwd Hin.
+  intros s_stk c_stk m name n syms Hoa Hws Hin.
   induction Hoa.
   { apply OA_Stack_Empty. }
   {
@@ -1250,12 +1250,12 @@ Proof.
       inversion H; subst.
       apply OA_Frame.
       apply over_approx_store_non_interference with (syms := syms); try assumption.
-      inversion Hwd; subst.
+      inversion Hws; subst.
       assumption.
     }
     {
       apply IHHoa.
-      inversion Hwd; subst; assumption.
+      inversion Hws; subst; assumption.
     }
   }
 Qed.
@@ -1276,7 +1276,7 @@ Lemma completeness_single_step :
     over_approx s c ->
     (exists s', sym_step s s' /\ over_approx s' c').
 Proof.
-  intros c c' s Hiss Hs Hwd Hoa.
+  intros c c' s Hiss Hs Hws Hoa.
   destruct c as [c_ic c_c c_cs c_pbid c_ls c_stk c_gs c_mdl].
   destruct s as [s_ic s_c s_cs s_pbid s_ls s_stk s_gs s_syms s_pc s_mdl].
   inversion Hs; subst.
@@ -1673,7 +1673,7 @@ Proof.
     inversion Hoa; subst.
     destruct H as [m H].
     inversion H; subst.
-    inversion Hwd; subst.
+    inversion Hws; subst.
     exists (mk_sym_state
       (next_inst_counter c_ic c)
       c

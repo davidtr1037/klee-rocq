@@ -168,11 +168,11 @@ Lemma well_scoped_smt_expr_extended_syms : forall se sym syms,
   well_scoped_smt_expr se syms ->
   well_scoped_smt_expr se (sym :: syms).
 Proof.
-  intros se sym syms Hwd.
+  intros se sym syms Hws.
   apply WD_Expr.
   intros n Hse.
   apply in_cons.
-  inversion Hwd; subst.
+  inversion Hws; subst.
   apply H.
   assumption.
 Qed.
@@ -217,7 +217,7 @@ Lemma well_scoped_smt_store_update : forall ls x se syms,
   well_scoped_smt_expr se syms ->
   well_scoped_smt_store (x !-> Some se; ls) syms.
 Proof.
-  intros ls x se syms Hwd1 Hwd2.
+  intros ls x se syms Hws1 Hws2.
   apply WD_SMTStore.
   intros x' se' Heq.
   destruct (raw_id_eqb x x') eqn:E.
@@ -232,7 +232,7 @@ Proof.
     rewrite raw_id_eqb_neq in E.
     rewrite update_map_neq in Heq.
     {
-      inversion Hwd1; subst.
+      inversion Hws1; subst.
       apply (H x' se'); assumption.
     }
     { assumption. }
@@ -242,8 +242,8 @@ Qed.
 Lemma well_scoped_smt_store_extended_syms : forall s sym syms,
   well_scoped_smt_store s syms -> well_scoped_smt_store s (sym :: syms).
 Proof.
-  intros s sym syms Hwd.
-  inversion Hwd; subst.
+  intros s sym syms Hws.
+  inversion Hws; subst.
   apply WD_SMTStore.
   intros x se Heq.
   apply well_scoped_smt_expr_extended_syms.
@@ -257,7 +257,7 @@ Lemma well_scoped_sym_eval_exp : forall ls gs ot e se syms,
   (sym_eval_exp ls gs ot e) = Some se ->
   well_scoped_smt_expr se syms.
 Proof.
-  intros ls gs ot e se syms Hwd_ls Hwd_gs Heq.
+  intros ls gs ot e se syms Hws_ls Hws_gs Heq.
   generalize dependent se.
   generalize dependent ot.
   induction e; intros ot se Heq; simpl in *.
@@ -265,12 +265,12 @@ Proof.
     unfold sym_lookup_ident.
     destruct id as [x | x] eqn:E; simpl in Heq.
     {
-      inversion Hwd_gs; subst.
+      inversion Hws_gs; subst.
       specialize (H x se).
       apply H; assumption.
     }
     {
-      inversion Hwd_ls; subst.
+      inversion Hws_ls; subst.
       specialize (H x se).
       apply H; assumption.
     }
@@ -404,7 +404,7 @@ Lemma well_scoped_sym_eval_phi_args : forall s t args pbid se,
   (sym_eval_phi_args (sym_store s) (sym_globals s) t args pbid) = Some se ->
   well_scoped_smt_expr se (sym_symbolics s).
 Proof.
-  intros s t args pbid se Hwd Heq.
+  intros s t args pbid se Hws Heq.
   induction args.
   {
     simpl in Heq.
@@ -415,7 +415,7 @@ Proof.
     destruct a as [bid e].
     destruct (raw_id_eqb bid pbid) eqn:E in Heq.
     {
-      inversion Hwd; subst.
+      inversion Hws; subst.
       apply (well_scoped_sym_eval_exp
         ls
         gs
@@ -438,7 +438,7 @@ Lemma well_scoped_fill_smt_store : forall ls gs l r syms,
   fill_smt_store ls gs l = Some r ->
   well_scoped_smt_store r syms.
 Proof.
-  intros ls gs l r syms Hwdl Hwdg Heq.
+  intros ls gs l r syms Hwsl Hwsg Heq.
   generalize dependent r.
   induction l as [ | (x, arg) tail]; intros r Heq.
   {
@@ -492,8 +492,8 @@ Qed.
 Lemma well_scoped_stack_extended_syms : forall stk sym syms,
   well_scoped_stack stk syms -> well_scoped_stack stk (sym :: syms).
 Proof.
-  intros stk sym syms Hwd.
-  induction Hwd.
+  intros stk sym syms Hws.
+  induction Hws.
   { apply WD_EmptyStack. }
   {
     apply WD_Frame.
@@ -509,9 +509,9 @@ Lemma well_scoped_sym_step : forall (s s' : sym_state),
   well_scoped s -> sym_step s s' -> well_scoped s'
 .
 Proof.
-  intros s s' Hwd Hstep.
+  intros s s' Hws Hstep.
   destruct s as [ic c cs pbid ls stk gs syms pc mdl].
-  inversion Hwd; subst.
+  inversion Hws; subst.
   (* TODO: this inversion renames state variables *)
   inversion Hstep; subst.
   {
@@ -748,7 +748,7 @@ Qed.
 Lemma well_scoped_multi_sym_step : forall s s',
   (well_scoped s) -> (multi_sym_step s s') -> (well_scoped s').
 Proof.
-  intros s s' Hwd Hmse.
+  intros s s' Hws Hmse.
   induction Hmse as [s s' | s s' s''].
   { apply well_scoped_sym_step with (s := s); assumption. }
   {
