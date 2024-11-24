@@ -41,44 +41,6 @@ Record sym_state : Type := mk_sym_state {
   sym_module : llvm_module;
 }.
 
-Inductive error_sym_state : sym_state -> Prop :=
-  | ESS_Assert : forall ic cid args anns cs pbid ls stk gs syms pc mdl d,
-      (find_function mdl assert_id) = None ->
-      (find_declaration mdl assert_id) = Some d ->
-      (dc_type d) = assert_type ->
-      TYPE_Function TYPE_Void (get_arg_types args) false = assert_type ->
-      error_sym_state
-        (mk_sym_state
-          ic
-          (CMD_Inst
-            cid
-            (INSTR_VoidCall (TYPE_Void, assert_exp) args anns)
-          )
-          cs
-          pbid
-          ls
-          stk
-          gs
-          syms
-          pc
-          mdl
-       )
-  | ESS_Unreachable : forall ic cid cs pbid ls stk gs syms pc mdl,
-      error_sym_state
-        (mk_sym_state
-          ic
-          (CMD_Term cid TERM_Unreachable)
-          cs
-          pbid
-          ls
-          stk
-          gs
-          syms
-          pc
-          mdl
-       )
-.
-
 Inductive sat_sym_state : smt_model -> sym_state -> Prop :=
   | Sat_State: forall m ic c cs pbid ls stk gs syms pc mdl,
       sat_via pc m ->
@@ -637,6 +599,98 @@ Inductive sym_step : sym_state -> sym_state -> Prop :=
 .
 
 Definition multi_sym_step := multi sym_step.
+
+Definition udiv_error_condition pc se :=
+  match se with
+  | Expr sort ast =>
+      AST_BinOp
+        Sort_BV1
+        SMT_And
+        pc
+        (AST_CmpOp sort SMT_Eq ast (AST_Const sort (create_int_by_sort sort 0)))
+  end
+.
+
+Definition shl_error_condition pc se w :=
+  match se with
+  | Expr sort ast =>
+      AST_BinOp
+        Sort_BV1
+        SMT_And
+        pc
+        (AST_CmpOp sort SMT_Uge ast (AST_Const sort (create_int_by_sort sort (Zpos w))))
+  end
+.
+
+Inductive error_sym_state : sym_state -> Prop :=
+  | ESS_Assert : forall ic cid args anns cs pbid ls stk gs syms pc mdl d,
+      (find_function mdl assert_id) = None ->
+      (find_declaration mdl assert_id) = Some d ->
+      (dc_type d) = assert_type ->
+      TYPE_Function TYPE_Void (get_arg_types args) false = assert_type ->
+      error_sym_state
+        (mk_sym_state
+          ic
+          (CMD_Inst
+            cid
+            (INSTR_VoidCall (TYPE_Void, assert_exp) args anns)
+          )
+          cs
+          pbid
+          ls
+          stk
+          gs
+          syms
+          pc
+          mdl
+        )
+  | ESS_Unreachable : forall ic cid cs pbid ls stk gs syms pc mdl,
+      error_sym_state
+        (mk_sym_state
+          ic
+          (CMD_Term cid TERM_Unreachable)
+          cs
+          pbid
+          ls
+          stk
+          gs
+          syms
+          pc
+          mdl
+        )
+  | ESS_UDivByZero : forall ic cid v exact t e1 e2 cs pbid ls stk gs syms pc mdl se,
+      (sym_eval_exp ls gs (Some t) e2) = Some se ->
+      sat (udiv_error_condition pc se) ->
+      error_sym_state
+        (mk_sym_state
+          ic
+          (CMD_Inst cid (INSTR_Op v (OP_IBinop (UDiv exact) t e1 e2)))
+          cs
+          pbid
+          ls
+          stk
+          gs
+          syms
+          pc
+          mdl
+        )
+  | ESS_Shl : forall ic cid v nuw nsw w e1 e2 cs pbid ls stk gs syms pc mdl se,
+      (sym_eval_exp ls gs (Some (TYPE_I w)) e2) = Some se ->
+      sat (shl_error_condition pc se w) ->
+      error_sym_state
+        (mk_sym_state
+          ic
+          (CMD_Inst cid (INSTR_Op v (OP_IBinop (Shl nuw nsw) (TYPE_I w) e1 e2)))
+          cs
+          pbid
+          ls
+          stk
+          gs
+          syms
+          pc
+          mdl
+        )
+.
 
 Definition init_local_smt_store (m : llvm_module) (d : llvm_definition) : smt_store :=
   empty_smt_store
