@@ -8,6 +8,7 @@ From SE Require Import BitVectors.
 From SE Require Import CFG.
 From SE Require Import DynamicValue.
 From SE Require Import LLVMAst.
+From SE Require Import LLVMUtils.
 From SE Require Import Relation.
 
 From SE.Utils Require Import IDMap.
@@ -181,13 +182,40 @@ Definition klee_assume_id := (Name "klee_assume_bool").
 Definition klee_assume_exp : llvm_exp := EXP_Ident (ID_Global klee_assume_id).
 Definition klee_assume_type := TYPE_Function TYPE_Void [(TYPE_I 1)] false.
 
+(* TODO: use safe_llvm_expr in other rules *)
 Inductive step : state -> state -> Prop :=
   | Step_OP : forall ic cid v e c cs pbid ls stk gs mdl dv,
+      (safe_llvm_expr e) ->
       (eval_exp ls gs None e) = Some dv ->
       step
         (mk_state
           ic
           (CMD_Inst cid (INSTR_Op v e))
+          (c :: cs)
+          pbid
+          ls
+          stk
+          gs
+          mdl
+        )
+        (mk_state
+          (next_inst_counter ic c)
+          c
+          cs
+          pbid
+          (v !-> Some dv; ls)
+          stk
+          gs
+          mdl
+        )
+  | Step_UDiv : forall ic cid v exact t e1 e2 c cs pbid ls stk gs mdl di2 dv,
+      (eval_exp ls gs (Some t) e2) = Some (DV_Int di2) ->
+      (di_is_zero di2) = false ->
+      (eval_exp ls gs None (OP_IBinop (UDiv exact) t e1 e2)) = Some dv ->
+      step
+        (mk_state
+          ic
+          (CMD_Inst cid (INSTR_Op v (OP_IBinop (UDiv exact) t e1 e2)))
           (c :: cs)
           pbid
           ls
