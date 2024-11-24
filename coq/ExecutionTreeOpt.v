@@ -1238,7 +1238,7 @@ Proof.
 Qed.
 
 (* TODO: rename? lemma? *)
-Theorem program_safety_via_et_with_ns_step: forall mdl fid init_s l,
+Theorem program_safety_with_ns_step_via_et: forall mdl fid init_s l,
   is_supported_module mdl ->
   (init_sym_state mdl fid) = Some init_s ->
   safe_et_opt (t_subtree init_s l) -> 
@@ -1308,6 +1308,15 @@ Proof.
   }
 Qed.
 
+(* TODO: define the safe trace property *)
+Lemma L1 : forall s1 s2,
+  step s1 s2 ->
+  (forall s, ns_step s1 s -> ~ error_state s) ->
+  ns_step s1 s2.
+Proof.
+Admitted.
+
+(* TODO: add required lemmas *)
 Theorem program_safety_via_et: forall mdl fid,
   is_supported_module mdl ->
   is_safe_program_with_ns_step mdl fid ->
