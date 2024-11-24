@@ -31,3 +31,14 @@ Inductive llvm_contains_ibinop : llvm_exp -> ibinop -> Prop :=
       llvm_subexpr e1 e2 ->
       llvm_contains_ibinop e2 op
 .
+
+Inductive llvm_contains_division : llvm_exp -> Prop :=
+  | LLVM_Contains_UDiv : forall exact e,
+      llvm_contains_ibinop e (UDiv exact) ->
+      llvm_contains_division e
+.
+
+Inductive safe_llvm_expr : llvm_exp -> Prop :=
+  | Safe_NoDivision : forall e,
+      ~ llvm_contains_division e -> safe_llvm_expr e
+.
