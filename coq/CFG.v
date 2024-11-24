@@ -1,3 +1,4 @@
+(* TODO: rename to LLVMCFG? *)
 Require Import Equalities.
 
 From Coq Require Import ZArith List String.
