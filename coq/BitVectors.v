@@ -337,6 +337,27 @@ Global Instance VInt64 : VInt Int64.int := {
   repr := Int64.repr;
 }.
 
+(* TODO: rename? move from here? *)
+Definition di_is_zero (di : dynamic_int) : bool :=
+  match di with
+  | DI_I1 n => eq n zero
+  | DI_I8 n => eq n zero
+  | DI_I16 n => eq n zero
+  | DI_I32 n => eq n zero
+  | DI_I64 n => eq n zero
+  end
+.
+
+Definition di_unsigned (di : dynamic_int) : Z :=
+  match di with
+  | DI_I1 n => unsigned n
+  | DI_I8 n => unsigned n
+  | DI_I16 n => unsigned n
+  | DI_I32 n => unsigned n
+  | DI_I64 n => unsigned n
+  end
+.
+
 Lemma int1_eqb_eq : forall (x y : Int1.int),
   Int1.eq x y = true -> x = y.
 Proof.
