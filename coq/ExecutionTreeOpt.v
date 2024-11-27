@@ -1308,18 +1308,76 @@ Proof.
   }
 Qed.
 
-(* TODO: define the safe trace property *)
-Lemma L1 : forall s1 s2,
+Lemma safe_state_preserved_on_reachability : forall R s s',
+  safe_state R s ->
+  (multi R) s s' ->
+  safe_state R s'.
+Proof.
+  intros R s s' Hsafe Hms.
+  unfold safe_state.
+  intros s'' Hms'.
+  unfold safe_state in Hsafe.
+  apply Hsafe.
+  eapply relation_concat.
+  { eassumption. }
+  { assumption. }
+Qed.
+
+Lemma ns_step_relative_completeness : forall s1 s2,
+  safe_state ns_step s1 ->
   step s1 s2 ->
-  (forall s, ns_step s1 s -> ~ error_state s) ->
   ns_step s1 s2.
 Proof.
 Admitted.
 
-(* TODO: add required lemmas *)
-Theorem program_safety_via_et: forall mdl fid,
+Lemma multi_ns_step_relative_completeness : forall s1 s2,
+  safe_state ns_step s1 ->
+  multi_step s1 s2 ->
+  multi_ns_step s1 s2.
+Proof.
+  intros s1 s2 Hsafe Hms.
+  induction Hms as [s s' | s s' s''].
+  {
+    apply ns_step_relative_completeness with (s2 := s') in Hsafe; try assumption.
+    apply multi_base.
+    assumption.
+  }
+  {
+    assert(Ls' : safe_state ns_step s').
+    {
+      apply safe_state_preserved_on_reachability with (s := s).
+      { assumption. }
+      { apply IHHms. assumption. }
+    }
+    apply IHHms in Hsafe.
+    apply ns_step_relative_completeness with (s2 := s'') in Ls'; try assumption.
+    apply multi_trans with (y := s'); assumption.
+  }
+Qed.
+
+Theorem program_safety_via_et: forall mdl fid init_s l,
   is_supported_module mdl ->
-  is_safe_program_with_ns_step mdl fid ->
+  (init_sym_state mdl fid) = Some init_s ->
+  safe_et_opt (t_subtree init_s l) ->
   is_safe_program mdl fid.
 Proof.
-Admitted.
+  intros mdl fid init_s l His Hinit Het.
+  apply program_safety_with_ns_step_via_et with (fid := fid) (init_s := init_s) (l := l) in His;
+  try assumption.
+  unfold is_safe_program, is_safe_program_with_ns_step in *.
+  clear Hinit Het init_s.
+  destruct His as [init_s His].
+  destruct His as [Hinit Hsafe].
+  exists init_s.
+  split.
+  { assumption. }
+  {
+    unfold safe_state.
+    intros s' Hms.
+    assert(L : multi_ns_step init_s s').
+    { apply multi_ns_step_relative_completeness; assumption. }
+    unfold safe_state in Hsafe.
+    apply Hsafe.
+    assumption.
+  }
+Qed.

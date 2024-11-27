@@ -631,7 +631,12 @@ Inductive error_state : state -> Prop :=
         )
 .
 
+(* TODO: rename? move to ExecutionTreeOpt? *)
+Definition safe_state (R : relation state) (s : state) :=
+  (forall s', (multi R) s s' -> ~ error_state s').
+
+(* TODO: parametrize? *)
 Definition is_safe_program (mdl : llvm_module) (fid : function_id) :=
   exists init_s,
-    (init_state mdl fid) = Some init_s /\ (forall s, multi_step init_s s -> ~ error_state s)
+    (init_state mdl fid) = Some init_s /\ (safe_state step init_s)
 .
