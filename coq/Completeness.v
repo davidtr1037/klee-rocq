@@ -1154,6 +1154,7 @@ Proof.
   }
 Qed.
 
+(* TODO: generalize *)
 Lemma infer_sort : forall (sort : smt_sort) (x : smt_sort_to_int_type sort) (n : int1),
   make_dynamic_int sort x = DI_I1 n -> sort = Sort_BV1.
 Proof.
@@ -1225,10 +1226,69 @@ Proof.
         }
       }
     }
-    { admit. }
+    {
+      simpl in H10.
+      destruct
+        (eval_exp c_ls c_gs (Some t) e1) as [dv1 | ] eqn:E1,
+        (eval_exp c_ls c_gs (Some t) e2) as [dv2 | ] eqn:E2;
+      try discriminate H10.
+      destruct dv1 as [di1 | | ] , dv2 as [di2 | | ];
+      try (
+        unfold eval_ibinop in H10;
+        destruct di1; discriminate H10
+      );
+      try (
+        unfold eval_ibinop in H10;
+        destruct di2; discriminate H10
+      );
+      try (
+        unfold eval_ibinop in H10;
+        discriminate H10
+      ).
+      unfold eval_ibinop in H10.
+      destruct di1 as [n1 | n1 | n1 | n1 | n1], di2 as [n2 | n2 | n2 | n2 | n2];
+      try (discriminate H10).
+      {
+        simpl in H10.
+        destruct (Int1.unsigned n2 =? 0)%Z eqn:En2; try discriminate H10.
+        assert(L1 :
+          over_approx_via_model
+            (eval_exp c_ls c_gs (Some t) e1)
+            (sym_eval_exp s_ls s_gs (Some t) e1)
+            m
+        ).
+        { apply eval_exp_correspondence; assumption. }
+        assert(L2 :
+          over_approx_via_model
+            (eval_exp c_ls c_gs (Some t) e2)
+            (sym_eval_exp s_ls s_gs (Some t) e2)
+            m
+        ).
+        { apply eval_exp_correspondence; assumption. }
+        rewrite E1 in L1.
+        rewrite E2 in L2.
+        inversion L1; subst.
+        inversion L2; subst.
+        rename sort into sort1, ast into ast1, sort0 into sort2, ast0 into ast2.
+        assert(Lsort1 : sort1 = Sort_BV1).
+        { eapply infer_sort. eassumption. }
+        assert(Lsort2 : sort2 = Sort_BV1).
+        { eapply infer_sort. eassumption. }
+        subst.
+        remember (sym_eval_exp s_ls s_gs None (OP_IBinop (UDiv false) t e1 e2)) as x.
+        simpl in Heqx.
+        rewrite <- H3 in Heqx.
+        rewrite <- H6 in Heqx.
+        simpl in Heqx.
+        (* TODO : exists *)
+        admit.
+      }
+      { admit. }
+      { admit. }
+      { admit. }
+      { admit. }
+    }
   }
-  (* udiv *)
-  { admit. }
   (* Phi *)
   {
     assert(L :

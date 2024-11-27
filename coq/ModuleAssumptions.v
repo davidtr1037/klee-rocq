@@ -298,7 +298,6 @@ Proof.
   inversion Hs; subst; inversion His; subst.
   { apply is_supported_state_lemma; assumption. }
   { apply is_supported_state_lemma; assumption. }
-  { apply is_supported_state_lemma; assumption. }
   {
     apply is_supported_state_lemma; try assumption.
     apply (is_supported_propagation mdl (ic_fid ic) d tbid b (c :: cs)); assumption.
