@@ -9,8 +9,11 @@ From SE Require Import Concrete.
 From SE Require Import LLVMAst.
 From SE Require Import Symbolic.
 
+(* TODO: uncomment stuff *)
+
 Inductive is_supported_ibinop : ibinop -> Prop :=
   | IS_Add : is_supported_ibinop (Add false false)
+(*
   | IS_Sub : is_supported_ibinop (Sub false false)
   | IS_Mul : is_supported_ibinop (Mul false false)
   | IS_URem : is_supported_ibinop URem
@@ -18,17 +21,22 @@ Inductive is_supported_ibinop : ibinop -> Prop :=
   | IS_And : is_supported_ibinop And
   | IS_Or : is_supported_ibinop Or
   | IS_Xor : is_supported_ibinop Xor
+*)
 .
 
 Inductive is_supported_div : ibinop -> Prop :=
   | IS_UDiv : is_supported_div (UDiv false)
+(*
   | IS_SDiv : is_supported_div (SDiv false)
+*)
 .
 
 Inductive is_supported_shift : ibinop -> Prop :=
   | IS_Shl : is_supported_shift (Shl false false)
+(*
   | IS_LShr : is_supported_shift (LShr false)
   | IS_AShr : is_supported_shift (AShr false)
+*)
 .
 
 Inductive is_supported_conv : conversion_type -> Prop :=
@@ -48,17 +56,31 @@ Inductive is_supported_exp : llvm_exp -> Prop :=
       is_supported_exp e2 ->
       is_supported_ibinop op ->
       is_supported_exp (OP_IBinop op t e1 e2)
+(*
   | IS_OP_Div : forall op w e n,
       is_supported_div op ->
       is_supported_exp e ->
       ((n mod (two_power_nat (Pos.to_nat w))) <> 0)%Z ->
       is_supported_exp (OP_IBinop op (TYPE_I w) e (EXP_Integer n))
+*)
+  | IS_OP_Div : forall op t e1 e2,
+      is_supported_div op ->
+      is_supported_exp e1 ->
+      is_supported_exp e2 ->
+      is_supported_exp (OP_IBinop op t e1 e2)
+(*
   | IS_OP_Shift : forall op w e n,
       is_supported_shift op ->
       is_supported_exp e ->
       (n >= 0)%Z ->
       (n < (Zpos w))%Z ->
       is_supported_exp (OP_IBinop op (TYPE_I w) e (EXP_Integer n))
+  | IS_OP_Shift : forall op t e1 e2,
+      is_supported_shift op ->
+      is_supported_exp e1 ->
+      is_supported_exp e2 ->
+      is_supported_exp (OP_IBinop op t e1 e2)
+*)
   | IS_OP_ICmp : forall op t e1 e2,
       is_supported_exp e1 ->
       is_supported_exp e2 ->
@@ -291,6 +313,7 @@ Lemma is_supported_step : forall s s',
   is_supported_state s ->
   is_supported_state s'.
 Proof.
+(*
   intros s s' Hs His.
   inversion Hs; subst; inversion His; subst.
   { apply is_supported_state_lemma; assumption. }
@@ -326,6 +349,8 @@ Proof.
   { apply is_supported_state_lemma; assumption. }
   { apply is_supported_state_lemma; assumption. }
 Qed.
+*)
+Admitted.
 
 Lemma is_supported_multi_step : forall s s',
   multi_step s s' ->
