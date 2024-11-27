@@ -7,6 +7,7 @@ Import ListNotations.
 From SE Require Import CFG.
 From SE Require Import Concrete.
 From SE Require Import LLVMAst.
+From SE Require Import LLVMUtils.
 From SE Require Import Symbolic.
 
 (* TODO: uncomment stuff *)
@@ -46,6 +47,7 @@ Inductive is_supported_conv : conversion_type -> Prop :=
   | IS_Bitcast : is_supported_conv Bitcast
 .
 
+(* TODO: rename to is_safe_exp/is_simple_expr? *)
 Inductive is_supported_exp : llvm_exp -> Prop :=
   | IS_EXP_Ident : forall id,
       is_supported_exp (EXP_Ident id)
@@ -56,31 +58,6 @@ Inductive is_supported_exp : llvm_exp -> Prop :=
       is_supported_exp e2 ->
       is_supported_ibinop op ->
       is_supported_exp (OP_IBinop op t e1 e2)
-(*
-  | IS_OP_Div : forall op w e n,
-      is_supported_div op ->
-      is_supported_exp e ->
-      ((n mod (two_power_nat (Pos.to_nat w))) <> 0)%Z ->
-      is_supported_exp (OP_IBinop op (TYPE_I w) e (EXP_Integer n))
-*)
-  | IS_OP_Div : forall op t e1 e2,
-      is_supported_div op ->
-      is_supported_exp e1 ->
-      is_supported_exp e2 ->
-      is_supported_exp (OP_IBinop op t e1 e2)
-(*
-  | IS_OP_Shift : forall op w e n,
-      is_supported_shift op ->
-      is_supported_exp e ->
-      (n >= 0)%Z ->
-      (n < (Zpos w))%Z ->
-      is_supported_exp (OP_IBinop op (TYPE_I w) e (EXP_Integer n))
-  | IS_OP_Shift : forall op t e1 e2,
-      is_supported_shift op ->
-      is_supported_exp e1 ->
-      is_supported_exp e2 ->
-      is_supported_exp (OP_IBinop op t e1 e2)
-*)
   | IS_OP_ICmp : forall op t e1 e2,
       is_supported_exp e1 ->
       is_supported_exp e2 ->
@@ -98,12 +75,16 @@ Inductive is_supported_function_arg : function_arg -> Prop :=
 .
 
 Inductive is_supported_cmd : llvm_cmd -> Prop :=
-  | IS_Phi : forall n v t args,
-      (forall bid e, In (bid, e) args -> is_supported_exp e) ->
-      is_supported_cmd (CMD_Phi n (Phi v t args))
   | IS_INSTR_Op : forall n v e,
       is_supported_exp e ->
       is_supported_cmd (CMD_Inst n (INSTR_Op v e))
+  | IS_INSTR_Op_UDiv : forall n v t e1 e2,
+      is_supported_exp e1 ->
+      is_supported_exp e2 ->
+      is_supported_cmd (CMD_Inst n (INSTR_Op v (OP_IBinop (UDiv false) t e1 e2)))
+  | IS_Phi : forall n v t args,
+      (forall bid e, In (bid, e) args -> is_supported_exp e) ->
+      is_supported_cmd (CMD_Phi n (Phi v t args))
   | IS_INSTR_VoidCall : forall n f args anns,
       (forall arg, In arg args -> is_supported_function_arg arg) ->
       is_supported_cmd (CMD_Inst n (INSTR_VoidCall f args anns))
@@ -313,9 +294,9 @@ Lemma is_supported_step : forall s s',
   is_supported_state s ->
   is_supported_state s'.
 Proof.
-(*
   intros s s' Hs His.
   inversion Hs; subst; inversion His; subst.
+  { apply is_supported_state_lemma; assumption. }
   { apply is_supported_state_lemma; assumption. }
   { apply is_supported_state_lemma; assumption. }
   {
@@ -349,8 +330,6 @@ Proof.
   { apply is_supported_state_lemma; assumption. }
   { apply is_supported_state_lemma; assumption. }
 Qed.
-*)
-Admitted.
 
 Lemma is_supported_multi_step : forall s s',
   multi_step s s' ->
