@@ -1242,7 +1242,7 @@ Theorem program_safety_with_ns_step_via_et: forall mdl fid init_s l,
   is_supported_module mdl ->
   (init_sym_state mdl fid) = Some init_s ->
   safe_et_opt (t_subtree init_s l) -> 
-  is_safe_program_with_ns_step mdl fid.
+  is_safe_program ns_step mdl fid.
 Proof.
   intros mdl fid init_s l Hism Hinit Hse.
   unfold is_safe_program.
@@ -1312,12 +1312,12 @@ Theorem program_safety_via_et: forall mdl fid init_s l,
   is_supported_module mdl ->
   (init_sym_state mdl fid) = Some init_s ->
   safe_et_opt (t_subtree init_s l) ->
-  is_safe_program mdl fid.
+  is_safe_program step mdl fid.
 Proof.
   intros mdl fid init_s l His Hinit Het.
   apply program_safety_with_ns_step_via_et with (fid := fid) (init_s := init_s) (l := l) in His;
   try assumption.
-  unfold is_safe_program, is_safe_program_with_ns_step in *.
+  unfold is_safe_program in *.
   clear Hinit Het init_s.
   destruct His as [init_s His].
   destruct His as [Hinit Hsafe].

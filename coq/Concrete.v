@@ -650,8 +650,7 @@ Proof.
   { assumption. }
 Qed.
 
-(* TODO: parametrize? *)
-Definition is_safe_program (mdl : llvm_module) (fid : function_id) :=
+Definition is_safe_program (R : relation state) (mdl : llvm_module) (fid : function_id) :=
   exists init_s,
-    (init_state mdl fid) = Some init_s /\ (safe_state step init_s)
+    (init_state mdl fid) = Some init_s /\ (safe_state R init_s)
 .
