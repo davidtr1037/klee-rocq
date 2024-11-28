@@ -843,8 +843,62 @@ Proof.
       }
     }
     {
-      (* x = udiv ... *)
-      admit.
+      simpl in H.
+      destruct
+        (sym_eval_exp ls1 gs1 (Some t) e1) as [se1_1 | ] eqn:Ee1,
+        (sym_eval_exp ls1 gs1 (Some t) e2) as [se2_1 | ] eqn:Ee2;
+      try discriminate H.
+      {
+      assert(L1 :
+        exists se1_2,
+          (sym_eval_exp ls2 gs2 (Some t) e1 = Some se1_2 /\ equiv_smt_expr se1_1 se1_2)
+      ).
+      { eapply equiv_sym_eval_exp; eassumption. }
+      assert(L2 :
+        exists se2_2,
+          (sym_eval_exp ls2 gs2 (Some t) e2 = Some se2_2 /\ equiv_smt_expr se2_1 se2_2)
+      ).
+      { eapply equiv_sym_eval_exp; eassumption. }
+      destruct L1 as [se1_2 [L1_1 L1_2]].
+      destruct L2 as [se2_2 [L2_1 L2_2]].
+      destruct se1_1 as [sort1_1 ast1_1], se2_1 as [sort2_1 ast2_1].
+      destruct se1_2 as [sort1_2 ast1_2], se2_2 as [sort2_2 ast2_2].
+      destruct sort1_1, sort2_1; try discriminate H.
+      {
+        inversion L1_2; subst.
+        inversion L2_2; subst.
+        exists (mk_sym_state
+            (next_inst_counter ic c)
+            c
+            cs
+            pbid
+            (v !-> Some (Expr Sort_BV1 (AST_BinOp Sort_BV1 SMT_UDiv ast1_2 ast2_2)); ls2)
+            stk2
+            gs2
+            syms
+            pc2
+            mdl
+          ).
+          split.
+          {
+            apply Sym_Step_OP.
+            simpl.
+            rewrite L1_1, L2_1.
+            reflexivity.
+          }
+          {
+            apply EquivSymState; try assumption.
+            apply equiv_smt_store_update. try assumption.
+            simpl in H.
+            inversion H; subst.
+            admit.
+          }
+        }
+        { admit. }
+        { admit. }
+        { admit. }
+        { admit. }
+      }
     }
   }
   {
