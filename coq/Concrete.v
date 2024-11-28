@@ -207,7 +207,7 @@ Inductive step : state -> state -> Prop :=
           gs
           mdl
         )
-(*
+(* TODO: remove
   | Step_UDiv : forall ic cid v exact t e1 e2 c cs pbid ls stk gs mdl di2 dv,
       (eval_exp ls gs (Some t) e2) = Some (DV_Int di2) ->
       (di_is_zero di2) = false ->
