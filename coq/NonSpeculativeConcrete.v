@@ -48,10 +48,17 @@ Inductive has_no_poison : state -> Prop :=
 .
 
 (* TODO: rename *)
-Lemma stack_has_no_poison_suffix : forall stk f,
+Lemma stack_has_no_poison_suffix : forall f stk,
   stack_has_no_poison (f :: stk) -> stack_has_no_poison stk.
 Proof.
-Admitted.
+  intros f stk H.
+  inversion H; subst.
+  apply Stack_Has_No_Poison.
+  intros f' Hin.
+  apply H0.
+  apply in_cons.
+  assumption.
+Qed.
 
 (* TODO: s1 should not contain poison? *)
 Inductive ns_step : state -> state -> Prop :=
@@ -61,11 +68,13 @@ Inductive ns_step : state -> state -> Prop :=
 
 Definition multi_ns_step := multi ns_step.
 
+(* TODO: is needed? *)
 Lemma ns_step_soundness : forall s1 s2,
   ns_step s1 s2 -> step s1 s2.
 Proof.
 Admitted.
 
+(* TODO: is needed? *)
 Lemma multi_ns_step_soundness : forall s1 s2,
   multi_ns_step s1 s2 -> multi_step s1 s2.
 Proof.
