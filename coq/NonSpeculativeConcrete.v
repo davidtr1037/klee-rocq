@@ -7,6 +7,7 @@ From SE Require Import CFG.
 From SE Require Import Concrete.
 From SE Require Import DynamicValue.
 From SE Require Import LLVMAst.
+From SE Require Import ModuleAssumptions.
 From SE Require Import Relation.
 
 From SE.Utils Require Import IDMap.
@@ -47,6 +48,13 @@ Inductive has_no_poison : state -> Prop :=
         )
 .
 
+Lemma store_has_no_poison_update : forall s x dv,
+  store_has_no_poison s ->
+  dv <> DV_Poison ->
+  store_has_no_poison (x !-> Some dv; s).
+Proof.
+Admitted.
+
 (* TODO: rename *)
 Lemma stack_has_no_poison_suffix : forall f stk,
   stack_has_no_poison (f :: stk) -> stack_has_no_poison stk.
@@ -80,14 +88,14 @@ Lemma multi_ns_step_soundness : forall s1 s2,
 Proof.
 Admitted.
 
-(* TODO: module assumptions are required? *)
 Lemma ns_step_relative_completeness : forall s1 s2,
+  is_supported_state s1 ->
   safe_state ns_step s1 ->
   has_no_poison s1 ->
   step s1 s2 ->
   ns_step s1 s2.
 Proof.
-  intros s1 s2 Hsafe Hnp Hstep.
+  intros s1 s2 His Hsafe Hnp Hstep.
   inversion Hnp; subst.
   inversion Hstep; subst.
   (* INSTR_Op *)
@@ -96,6 +104,7 @@ Proof.
     { eapply Step_OP; eassumption. }
     {
       apply Has_No_Poison; try assumption.
+      apply store_has_no_poison_update; try assumption.
       admit.
     }
   }
@@ -189,11 +198,13 @@ Proof.
 Admitted.
 
 Lemma multi_ns_step_relative_completeness : forall s1 s2,
+  is_supported_state s1 ->
   safe_state ns_step s1 ->
+  has_no_poison s1 ->
   multi_step s1 s2 ->
   multi_ns_step s1 s2.
 Proof.
-  intros s1 s2 Hsafe Hms.
+  intros s1 s2 His Hnp Hsafe Hms.
   induction Hms as [s s' | s s' s''].
   {
     apply ns_step_relative_completeness with (s2 := s') in Hsafe; try assumption.
@@ -205,10 +216,16 @@ Proof.
     {
       apply safe_state_preserved_on_reachability with (s := s).
       { assumption. }
-      { apply IHHms. assumption. }
+      { apply IHHms; assumption. }
     }
     apply IHHms in Hsafe.
-    apply ns_step_relative_completeness with (s2 := s'') in Ls'; try assumption.
-    apply multi_trans with (y := s'); assumption.
+    {
+      apply ns_step_relative_completeness with (s2 := s'') in Ls'; try assumption.
+      { apply multi_trans with (y := s'); try assumption. }
+      { apply is_supported_multi_step with (s := s); assumption. }
+      { admit. }
+    }
+    { assumption. }
+    { assumption. }
   }
-Qed.
+Admitted.

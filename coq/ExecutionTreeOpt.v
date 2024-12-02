@@ -653,6 +653,7 @@ Proof.
     { apply equiv_smt_store_symmetry. assumption. }
     { apply equiv_smt_store_symmetry. assumption. }
   }
+  (* TODO: should be similar *)
   { admit. }
 Admitted.
 
