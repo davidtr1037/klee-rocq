@@ -133,9 +133,49 @@ Proof.
       )
     ).
   }
-  { admit. }
-  { admit. }
-  { admit. }
+  {
+    destruct
+      (eval_exp ls gs (Some t) e1) as [dv1 | ] eqn:E1,
+      (eval_exp ls gs (Some t) e2) as [dv2 | ] eqn:E2;
+    try discriminate Heval.
+    unfold eval_ibinop in Heval.
+    destruct dv1 as [di1 | | ] eqn:Edv1, dv2 as [di2 | | ] eqn:Edv2;
+    try (discriminate Heval);
+    try (destruct di1; discriminate Heval).
+    destruct di1 as [n1 | n1 | n1 | n1 | n1], di2 as [n2 | n2 | n2 | n2 | n2];
+    try discriminate Heval; (
+      unfold eval_ibinop_generic in Heval;
+      inversion H1; subst;
+      simpl in Heval;
+      intros Hf;
+      subst;
+      discriminate Heval
+    ).
+  }
+  {
+    destruct
+      (eval_exp ls gs (Some t) e1) as [dv1 | ] eqn:E1,
+      (eval_exp ls gs (Some t) e2) as [dv2 | ] eqn:E2;
+    try discriminate Heval.
+    unfold eval_icmp in Heval.
+    destruct dv1 as [di1 | | ] eqn:Edv1, dv2 as [di2 | | ] eqn:Edv2;
+    try (discriminate Heval);
+    try (destruct di1; discriminate Heval).
+    destruct di1 as [n1 | n1 | n1 | n1 | n1], di2 as [n2 | n2 | n2 | n2 | n2];
+    try discriminate Heval; (
+      unfold eval_icmp_generic in Heval;
+      intros Hf;
+      subst;
+      discriminate Heval
+    ).
+  }
+  {
+    rename e0 into e.
+    destruct (eval_exp ls gs (Some t1) e) as [dv' | ] eqn:E;
+    try discriminate Heval.
+    unfold convert in Heval.
+    admit.
+  }
 Admitted.
 
 Lemma has_no_poison_eval_phi_args : forall ls gs t args pbid dv,
