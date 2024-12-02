@@ -1291,20 +1291,27 @@ Theorem program_safety_via_et: forall mdl fid init_s l,
   is_safe_program step mdl fid.
 Proof.
   intros mdl fid init_s l His Hinit Het.
-  apply program_safety_with_ns_step_via_et with (fid := fid) (init_s := init_s) (l := l) in His;
-  try assumption.
+  assert(L1 : is_safe_program ns_step mdl fid).
+  {
+    apply program_safety_with_ns_step_via_et with (fid := fid) (init_s := init_s) (l := l);
+    try assumption.
+  }
   unfold is_safe_program in *.
   clear Hinit Het init_s.
-  destruct His as [init_s His].
-  destruct His as [Hinit Hsafe].
+  destruct L1 as [init_s L1].
+  destruct L1 as [Hinit Hsafe].
   exists init_s.
   split.
   { assumption. }
   {
     unfold safe_state.
     intros s' Hms.
-    assert(L : multi_ns_step init_s s').
-    { apply multi_ns_step_relative_completeness; assumption. }
+    assert(L2 : multi_ns_step init_s s').
+    {
+      apply multi_ns_step_relative_completeness; try assumption.
+      { eapply is_supported_init_state; eassumption. }
+      { eapply has_no_poison_init_state. eassumption. }
+    }
     unfold safe_state in Hsafe.
     apply Hsafe.
     assumption.

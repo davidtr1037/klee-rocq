@@ -48,7 +48,7 @@ Inductive has_no_poison : state -> Prop :=
         )
 .
 
-Lemma store_has_no_poison_update : forall s x dv,
+Lemma has_no_poison_store_update : forall s x dv,
   store_has_no_poison s ->
   dv <> DV_Poison ->
   store_has_no_poison (x !-> Some dv; s).
@@ -76,6 +76,12 @@ Inductive ns_step : state -> state -> Prop :=
 
 Definition multi_ns_step := multi ns_step.
 
+Lemma has_no_poison_init_state : forall mdl fid s,
+  init_state mdl fid = Some s ->
+  has_no_poison s.
+Proof.
+Admitted.
+
 (* TODO: is needed? *)
 Lemma ns_step_soundness : forall s1 s2,
   ns_step s1 s2 -> step s1 s2.
@@ -88,6 +94,20 @@ Lemma multi_ns_step_soundness : forall s1 s2,
 Proof.
 Admitted.
 
+Lemma has_no_poison_eval_exp : forall ls gs ot e dv,
+  is_supported_exp e ->
+  eval_exp ls gs ot e = Some dv ->
+  dv <> DV_Poison.
+Proof.
+Admitted.
+
+Lemma has_no_poison_eval_phi_args : forall ls gs t args pbid dv,
+  (forall bid e, In (bid, e) args -> is_supported_exp e) ->
+  eval_phi_args ls gs t args pbid = Some dv ->
+  dv <> DV_Poison.
+Proof.
+Admitted.
+
 Lemma has_no_poison_step : forall s1 s2,
   is_supported_state s1 ->
   safe_state ns_step s1 ->
@@ -96,18 +116,25 @@ Lemma has_no_poison_step : forall s1 s2,
   has_no_poison s2.
 Proof.
   intros s1 s2 His Hsafe Hnp Hstep.
+  inversion His; subst.
   inversion Hnp; subst.
   inversion Hstep; subst.
   (* INSTR_Op *)
   {
     apply Has_No_Poison; try assumption.
-    apply store_has_no_poison_update; try assumption.
-    admit.
+    apply has_no_poison_store_update; try assumption.
+    inversion H; subst.
+    { eapply has_no_poison_eval_exp; eassumption. }
+    (* UDiv *)
+    { admit. }
   }
   (* Phi *)
   {
     apply Has_No_Poison; try assumption.
-    admit.
+    apply has_no_poison_store_update; try assumption.
+    eapply has_no_poison_eval_phi_args.
+    { inversion H; subst. eassumption. }
+    { eassumption. }
   }
   (* TERM_UnconditionalBr *)
   {
@@ -126,13 +153,15 @@ Proof.
     admit.
   }
   {
-    inversion H1; subst.
     apply Has_No_Poison; try assumption.
     {
       assert(L : frame_has_no_poison (Frame ls' ic' pbid' None)).
-      { apply H2. apply in_eq. }
-      inversion L; subst.
-      assumption.
+      {
+        inversion H12; subst.
+        eapply H2.
+        apply in_eq.
+      }
+      { inversion L; subst. assumption. }
     }
     {
       eapply stack_has_no_poison_suffix.
@@ -140,12 +169,33 @@ Proof.
     }
   }
   {
-    admit.
+    apply Has_No_Poison; try assumption.
+    {
+      apply has_no_poison_store_update.
+      {
+        assert(L : frame_has_no_poison (Frame ls' ic' pbid' (Some v))).
+        {
+          inversion H12; subst.
+          eapply H2.
+          apply in_eq.
+        }
+        inversion L; subst.
+        assumption.
+      }
+      {
+        eapply has_no_poison_eval_exp.
+        { inversion H; subst. eassumption. }
+        { eassumption. }
+      }
+    }
+    {
+      eapply stack_has_no_poison_suffix.
+      eassumption.
+    }
   }
   {
     apply Has_No_Poison; try assumption.
     apply Store_Has_No_Poison.
-    inversion H; subst.
     intros x.
     destruct (raw_id_eqb x v) eqn:E.
     {
@@ -158,7 +208,7 @@ Proof.
     {
       rewrite raw_id_eqb_neq in E.
       rewrite update_map_neq.
-      { apply H2. }
+      { inversion H5; subst. apply H2. }
       { symmetry. assumption. }
     }
   }
