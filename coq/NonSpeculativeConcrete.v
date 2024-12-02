@@ -126,7 +126,34 @@ Proof.
     inversion H; subst.
     { eapply has_no_poison_eval_exp; eassumption. }
     (* UDiv *)
-    { admit. }
+    {
+      simpl in H14.
+      destruct
+        (eval_exp ls gs (Some t) e1) as [dv1 | ] eqn:E1,
+        (eval_exp ls gs (Some t) e2) as [dv2 | ] eqn:E2;
+      try discriminate H14.
+      unfold eval_ibinop in H14.
+      destruct dv1 as [di1 | | ] eqn:Edv1, dv2 as [di2 | | ] eqn:Edv2;
+      try (discriminate H14);
+      try (destruct di1; discriminate H14).
+      destruct di1 as [n1 | n1 | n1 | n1 | n1], di2 as [n2 | n2 | n2 | n2 | n2];
+      try discriminate H14.
+      {
+        simpl in H14.
+        destruct (BinInt.Z.eqb (Int1.unsigned n2) BinNums.Z0) eqn:E; subst.
+        { discriminate H14. }
+        {
+          inversion H14. subst.
+          intros Hf.
+          discriminate Hf.
+        }
+      }
+      (* TODO: these are similar... *)
+      { admit. }
+      { admit. }
+      { admit. }
+      { admit. }
+    }
   }
   (* Phi *)
   {
