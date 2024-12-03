@@ -103,7 +103,9 @@ Lemma has_no_poison_eval_exp : forall ls gs ot e dv,
   dv <> DV_Poison.
 Proof.
   intros ls gs ot e dv His Hnp_ls Hnp_gs Heval.
-  inversion His; subst; simpl in Heval.
+  generalize dependent dv.
+  generalize dependent ot.
+  induction e; intros ot dv Heval; inversion His; subst; simpl in Heval.
   {
     unfold lookup_ident in Heval.
     destruct id.
@@ -138,18 +140,23 @@ Proof.
       (eval_exp ls gs (Some t) e1) as [dv1 | ] eqn:E1,
       (eval_exp ls gs (Some t) e2) as [dv2 | ] eqn:E2;
     try discriminate Heval.
+    apply IHe1 with (dv := dv1) (ot := Some t) in H2; try assumption.
+    apply IHe2 with (dv := dv2) (ot := Some t) in H4; try assumption.
     unfold eval_ibinop in Heval.
     destruct dv1 as [di1 | | ] eqn:Edv1, dv2 as [di2 | | ] eqn:Edv2;
     try (discriminate Heval);
-    try (destruct di1; discriminate Heval).
+    try (destruct di1; discriminate Heval);
+    try (destruct H2; reflexivity);
+    try (destruct H4; reflexivity).
     destruct di1 as [n1 | n1 | n1 | n1 | n1], di2 as [n2 | n2 | n2 | n2 | n2];
     try discriminate Heval; (
       unfold eval_ibinop_generic in Heval;
-      inversion H1; subst;
-      simpl in Heval;
-      intros Hf;
-      subst;
-      discriminate Heval
+      inversion H5; subst; (
+        simpl in Heval;
+        intros Hf;
+        subst;
+        discriminate Heval
+      )
     ).
   }
   {
@@ -157,10 +164,14 @@ Proof.
       (eval_exp ls gs (Some t) e1) as [dv1 | ] eqn:E1,
       (eval_exp ls gs (Some t) e2) as [dv2 | ] eqn:E2;
     try discriminate Heval.
+    apply IHe1 with (dv := dv1) (ot := Some t) in H1; try assumption.
+    apply IHe2 with (dv := dv2) (ot := Some t) in H4; try assumption.
     unfold eval_icmp in Heval.
     destruct dv1 as [di1 | | ] eqn:Edv1, dv2 as [di2 | | ] eqn:Edv2;
     try (discriminate Heval);
-    try (destruct di1; discriminate Heval).
+    try (destruct di1; discriminate Heval);
+    try (destruct H1; reflexivity);
+    try (destruct H4; reflexivity).
     destruct di1 as [n1 | n1 | n1 | n1 | n1], di2 as [n2 | n2 | n2 | n2 | n2];
     try discriminate Heval; (
       unfold eval_icmp_generic in Heval;
@@ -170,11 +181,48 @@ Proof.
     ).
   }
   {
-    rename e0 into e.
     destruct (eval_exp ls gs (Some t1) e) as [dv' | ] eqn:E;
     try discriminate Heval.
+    apply IHe with (dv := dv') (ot := Some t1) in H4; try assumption.
     unfold convert in Heval.
-    admit.
+    destruct conv.
+    {
+      destruct t1 eqn:Et1;
+      try (
+        destruct dv'; try discriminate Heval;
+        destruct H4;
+        reflexivity
+      ).
+      repeat (
+        destruct w;
+        try (
+          destruct dv'; try discriminate Heval;
+          destruct H4;
+          reflexivity
+        )
+      ).
+      {
+        destruct dv' eqn:Edv'.
+        {
+          destruct di; try discriminate Heval.
+          destruct t2; try discriminate Heval.
+          repeat (
+            destruct w;
+            try discriminate Heval;
+            try (inversion Heval; subst; intros Hf; discriminate Hf)
+          ).
+        }
+        { discriminate Heval. }
+        { inversion Heval. destruct H4. reflexivity. }
+      }
+      (* TODO: similar *)
+      { admit. }
+      { admit. }
+      { admit. }
+    }
+    { admit. }
+    { admit. }
+    { admit. }
   }
 Admitted.
 
@@ -201,7 +249,10 @@ Proof.
     apply Has_No_Poison; try assumption.
     apply has_no_poison_store_update; try assumption.
     inversion H; subst.
-    { eapply has_no_poison_eval_exp; eassumption. }
+    {
+      apply has_no_poison_eval_exp with (ls := ls) (gs := gs) (ot := None) (e := e);
+      try eassumption.
+    }
     (* UDiv *)
     {
       simpl in H14.
@@ -212,7 +263,13 @@ Proof.
       unfold eval_ibinop in H14.
       destruct dv1 as [di1 | | ] eqn:Edv1, dv2 as [di2 | | ] eqn:Edv2;
       try (discriminate H14);
-      try (destruct di1; discriminate H14).
+      try (destruct di1; discriminate H14);
+      try (
+        apply has_no_poison_eval_exp with (ls := ls) (gs := gs) (ot := Some t) (e := e1);
+        try assumption;
+        rewrite H14 in E1;
+        assumption
+      ).
       destruct di1 as [n1 | n1 | n1 | n1 | n1], di2 as [n2 | n2 | n2 | n2 | n2];
       try discriminate H14.
       {
