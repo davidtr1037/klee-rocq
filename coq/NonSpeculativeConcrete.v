@@ -264,10 +264,40 @@ Admitted.
 
 Lemma has_no_poison_eval_phi_args : forall ls gs t args pbid dv,
   (forall bid e, In (bid, e) args -> is_supported_exp e) ->
+  store_has_no_poison ls ->
+  store_has_no_poison gs ->
   eval_phi_args ls gs t args pbid = Some dv ->
   dv <> DV_Poison.
 Proof.
-Admitted.
+  intros ls gs t args pbid dv His Hnp_ls Hnp_gs Heval.
+  generalize dependent dv.
+  induction args as [ | arg tail]; intros dv Heval.
+  {
+    simpl in Heval.
+    discriminate.
+  }
+  {
+    simpl in Heval.
+    destruct arg as (bid, e).
+    destruct (raw_id_eqb bid pbid) eqn:E.
+    {
+      apply has_no_poison_eval_exp with (ls := ls) (gs := gs) (ot := Some t) (e := e);
+      try assumption.
+      apply (His bid e).
+      apply in_eq.
+    }
+    {
+      apply IHtail.
+      {
+        intros bid' e' Hin.
+        apply (His bid').
+        apply in_cons.
+        assumption.
+      }
+      { assumption. }
+    }
+  }
+Qed.
 
 Lemma has_no_poison_empty_store : store_has_no_poison empty_dv_store.
 Proof.
