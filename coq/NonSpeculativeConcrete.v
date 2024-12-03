@@ -96,6 +96,16 @@ Inductive ns_step : state -> state -> Prop :=
 
 Definition multi_ns_step := multi ns_step.
 
+Lemma ns_step_soundness : forall s1 s2,
+  ns_step s1 s2 -> step s1 s2.
+Proof.
+Admitted.
+
+Lemma multi_ns_step_soundness : forall s1 s2,
+  multi_ns_step s1 s2 -> multi_step s1 s2.
+Proof.
+Admitted.
+
 Lemma has_no_poison_multi_ns_step : forall s1 s2,
   multi_ns_step s1 s2 ->
   has_no_poison s2.
