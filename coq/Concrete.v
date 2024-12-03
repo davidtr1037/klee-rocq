@@ -521,6 +521,7 @@ Definition add_global (gs : dv_store) (g : llvm_global) : option dv_store :=
   end
 .
 
+(* TODO: use later in init_global_store? *)
 Fixpoint init_global_store_internal (gs : dv_store) (l : list llvm_global) : option dv_store :=
   match l with
   | g :: tail =>
