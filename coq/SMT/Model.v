@@ -370,7 +370,17 @@ Lemma equiv_smt_expr_sat : forall (ast1 ast2 : smt_ast_bool),
   sat ast1 ->
   sat ast2.
 Proof.
-Admitted.
+  intros ast1 ast2 Heq Hsat.
+  unfold sat, sat_via in *.
+  destruct Hsat as [m Hsat].
+  exists m.
+  inversion Heq; subst.
+  apply inj_pair2 in H1, H2; subst.
+  specialize (H0 m).
+  rewrite Hsat in *.
+  symmetry in H0.
+  assumption.
+Qed.
 
 Lemma equiv_smt_expr_unsat : forall (ast1 ast2 : smt_ast_bool),
   equiv_smt_expr (Expr Sort_BV1 ast1) (Expr Sort_BV1 ast2) ->
