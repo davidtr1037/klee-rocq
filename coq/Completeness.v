@@ -1328,6 +1328,8 @@ Proof.
       { admit. }
       { admit. }
     }
+    (* Shl *)
+    { admit. }
   }
   (* Phi *)
   {
@@ -1820,6 +1822,7 @@ Proof.
     inversion His; subst.
     inversion H8; subst.
     inversion H1; subst.
+    { inversion H14. }
     {
       assert(L :
         over_approx_via_model
@@ -1829,7 +1832,7 @@ Proof.
       ).
       { apply eval_exp_correspondence; assumption. }
       inversion L; subst.
-      { rewrite H6 in H7. discriminate. }
+      { rewrite H6 in H1. discriminate. }
       {
         apply ESS_Shl with (se := (Expr sort ast)).
         { symmetry. assumption. }
@@ -1852,7 +1855,7 @@ Proof.
       }
     }
   }
-Qed.
+Admitted.
 
 Lemma init_state_correspondence : forall mdl fid,
   (exists c, (init_state mdl fid) = Some c) <-> (exists s, (init_sym_state mdl fid) = Some s).

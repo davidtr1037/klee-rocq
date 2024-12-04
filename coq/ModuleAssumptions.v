@@ -82,6 +82,10 @@ Inductive is_supported_cmd : llvm_cmd -> Prop :=
       is_supported_exp e1 ->
       is_supported_exp e2 ->
       is_supported_cmd (CMD_Inst n (INSTR_Op v (OP_IBinop (UDiv false) t e1 e2)))
+  | IS_INSTR_Op_Shl : forall n v t e1 e2,
+      is_supported_exp e1 ->
+      is_supported_exp e2 ->
+      is_supported_cmd (CMD_Inst n (INSTR_Op v (OP_IBinop (Shl false false) t e1 e2)))
   | IS_Phi : forall n v t args,
       (forall bid e, In (bid, e) args -> is_supported_exp e) ->
       is_supported_cmd (CMD_Phi n (Phi v t args))

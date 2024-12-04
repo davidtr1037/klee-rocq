@@ -460,6 +460,47 @@ Proof.
       { admit. }
       { admit. }
     }
+    (* Shl *)
+    {
+      simpl in H14.
+      destruct
+        (eval_exp ls gs (Some t) e1) as [dv1 | ] eqn:E1,
+        (eval_exp ls gs (Some t) e2) as [dv2 | ] eqn:E2;
+      try discriminate H14.
+      unfold eval_ibinop in H14.
+      destruct dv1 as [di1 | | ] eqn:Edv1, dv2 as [di2 | | ] eqn:Edv2;
+      try (discriminate H14);
+      try (destruct di1; discriminate H14);
+      try (
+        apply has_no_poison_eval_exp with (ls := ls) (gs := gs) (ot := Some t) (e := e1);
+        try assumption;
+        rewrite H14 in E1;
+        assumption
+      );
+      try (
+        apply has_no_poison_eval_exp
+          with (ls := ls) (gs := gs) (ot := Some t) (e := e2) (dv := DV_Poison) in H7;
+        try assumption;
+        destruct H7;
+        reflexivity
+      ).
+      destruct di1 as [n1 | n1 | n1 | n1 | n1], di2 as [n2 | n2 | n2 | n2 | n2];
+      try discriminate H14.
+      {
+        simpl in H14.
+        destruct (BinInt.Z.geb (Int1.unsigned n2) (BinNums.Zpos BinNums.xH)) eqn:E.
+        { admit. }
+        {
+          inversion H14; subst.
+          discriminate.
+        }
+      }
+      (* TODO: similar *)
+      { admit. }
+      { admit. }
+      { admit. }
+      { admit. }
+    }
   }
   (* Phi *)
   {

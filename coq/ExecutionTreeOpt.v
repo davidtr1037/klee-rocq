@@ -882,6 +882,7 @@ Proof.
         { admit. }
       }
     }
+    { admit. }
   }
   {
     rename se into se1.
