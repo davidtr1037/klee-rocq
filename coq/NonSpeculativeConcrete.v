@@ -389,9 +389,10 @@ Proof.
   {
     apply Has_No_Poison; try assumption.
     apply has_no_poison_store_update; try assumption.
-    eapply has_no_poison_eval_phi_args.
-    { inversion H; subst. eassumption. }
-    { eassumption. }
+    apply has_no_poison_eval_phi_args
+      with (ls := ls) (gs := gs) (t := t) (args := args) (pbid := pbid0); try assumption.
+    inversion H; subst.
+    assumption.
   }
   (* TERM_UnconditionalBr *)
   {
