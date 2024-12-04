@@ -318,6 +318,72 @@ Proof.
   discriminate.
 Qed.
 
+Lemma has_no_poison_fill_store : forall ls gs l ls',
+  store_has_no_poison ls ->
+  store_has_no_poison gs ->
+  (forall x arg, In (x, arg) l -> is_supported_function_arg arg) ->
+  fill_store ls gs l = Some ls' ->
+  store_has_no_poison ls'.
+Proof.
+  intros ls gs l ls' Hls Hgs His Heq.
+  generalize dependent ls'.
+  induction l as [ | (x, arg) tail].
+  {
+    intros ls' Heq.
+    simpl in Heq.
+    inversion Heq; subst.
+    apply has_no_poison_empty_store.
+  }
+  {
+    intros ls' Heq.
+    simpl in Heq.
+    destruct arg as [(t, e) attrs].
+    destruct (eval_exp ls gs (Some t) e) eqn:Ee; try discriminate.
+    destruct (fill_store ls gs tail) eqn:Etail.
+    {
+      rename d0 into lstail, d into dv.
+      inversion Heq; subst.
+      apply has_no_poison_store_update.
+      {
+        apply IHtail.
+        {
+          intros x' arg' Hin.
+          apply (His x').
+          apply in_cons.
+          assumption.
+        }
+        { reflexivity. }
+      }
+      {
+        apply has_no_poison_eval_exp with (ls := ls) (gs := gs) (ot := Some t) (e := e);
+        try assumption.
+        assert(L : is_supported_function_arg (t, e, attrs)).
+        { eapply His. apply in_eq. }
+        inversion L; subst.
+        assumption.
+      }
+    }
+    { discriminate. }
+  }
+Qed.
+
+Lemma has_no_poison_local_store : forall d ls gs args ls',
+  store_has_no_poison ls ->
+  store_has_no_poison gs ->
+  (forall arg, In arg args -> is_supported_function_arg arg) ->
+  create_local_store d ls gs args = Some ls' ->
+  store_has_no_poison ls'.
+Proof.
+  intros d ls gs args ls' Hls Hgs His Heq.
+  unfold create_local_store in Heq.
+  destruct (ListUtil.merge_lists (df_args d)) eqn:E.
+  {
+    apply has_no_poison_fill_store with (ls := ls) (gs := gs) (l := l); try assumption.
+    apply ListUtil.merge_lists_preserves_prop with (xs := (df_args d)) (ys := args); assumption.
+  }
+  { discriminate. }
+Qed.
+
 Lemma has_no_poison_init_state : forall mdl fid s,
   init_state mdl fid = Some s ->
   has_no_poison s.
