@@ -645,26 +645,38 @@ Inductive error_state : state -> Prop :=
         )
 .
 
-(* TODO: rename? *)
-Definition safe_state (R : relation state) (s : state) :=
+Definition safe_successors (R : relation state) (s : state) :=
   (forall s', (multi R) s s' -> ~ error_state s').
 
+(* TODO: rename? *)
+Definition safe_state (R : relation state) (s : state) :=
+  ~ error_state s /\ safe_successors R s.
+
+(* TODO: rename? *)
 Lemma safe_state_preserved_on_reachability : forall R s s',
   safe_state R s ->
   (multi R) s s' ->
   safe_state R s'.
 Proof.
   intros R s s' Hsafe Hms.
-  unfold safe_state.
-  intros s'' Hms'.
-  unfold safe_state in Hsafe.
-  apply Hsafe.
-  eapply relation_concat.
-  { eassumption. }
-  { assumption. }
+  unfold safe_state in *.
+  destruct Hsafe as [Hne Hss].
+  split.
+  {
+    unfold safe_successors in Hss.
+    apply Hss.
+    assumption.
+  }
+  {
+    intros s'' Hms'.
+    apply Hss.
+    eapply relation_concat.
+    { eassumption. }
+    { assumption. }
+  }
 Qed.
 
 Definition is_safe_program (R : relation state) (mdl : llvm_module) (fid : function_id) :=
   exists init_s,
-    (init_state mdl fid) = Some init_s /\ (safe_state R init_s)
+    (init_state mdl fid) = Some init_s /\ (safe_successors R init_s)
 .

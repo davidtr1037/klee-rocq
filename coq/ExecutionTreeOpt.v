@@ -1298,7 +1298,7 @@ Proof.
       }
       intros Hes.
       apply error_correspondence in L2_3.
-      { apply L4.  assumption. }
+      { apply L4. assumption. }
       {
         apply is_supported_multi_step with (s := init_c).
         { apply multi_ns_step_soundness. assumption. }
@@ -1324,30 +1324,47 @@ Qed.
 Theorem program_safety_via_et: forall mdl fid init_s l,
   is_supported_module mdl ->
   (init_sym_state mdl fid) = Some init_s ->
+  ~ error_sym_state init_s ->
   safe_et_opt (t_subtree init_s l) ->
   is_safe_program step mdl fid.
 Proof.
-  intros mdl fid init_s l His Hinit Het.
+  intros mdl fid init_s l His Hinit_s Hne_s Het.
   assert(L1 : is_safe_program ns_step mdl fid).
   {
     apply program_safety_with_ns_step_via_et with (fid := fid) (init_s := init_s) (l := l);
     try assumption.
   }
   unfold is_safe_program in *.
-  clear Hinit Het init_s.
-  destruct L1 as [init_s L1].
-  destruct L1 as [Hinit Hsafe].
-  exists init_s.
+  destruct L1 as [init_c L1].
+  destruct L1 as [Hinit_c Hsafe].
+  exists init_c.
   split.
   { assumption. }
   {
     unfold safe_state.
-    intros s' Hms.
-    assert(L2 : multi_ns_step init_s s').
+    intros c' Hms.
+    assert(L2 : multi_ns_step init_c c').
     {
-      apply multi_ns_step_relative_completeness; try assumption.
+      apply multi_ns_step_relative_completeness.
       { eapply is_supported_init_state; eassumption. }
+      {
+        split.
+        {
+          intros He_c.
+          assert(L3 : error_sym_state init_s).
+          {
+            apply error_correspondence with (c := init_c).
+            { eapply is_supported_init_state; eassumption. }
+            { assumption. }
+            { eapply over_approx_init_states; eassumption. }
+          }
+          apply Hne_s.
+          assumption.
+        }
+        { assumption. }
+      }
       { eapply has_no_poison_init_state. eassumption. }
+      { assumption. }
     }
     unfold safe_state in Hsafe.
     apply Hsafe.
