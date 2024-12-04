@@ -256,9 +256,19 @@ Proof.
       { admit. }
       { admit. }
     }
+    (* TODO: similar *)
     { admit. }
     { admit. }
-    { admit. }
+    {
+      destruct t1 eqn:Et1, t2 eqn:Et2; try discriminate Heval.
+      rename w into w1, w0 into w2.
+      destruct (BinPos.Pos.eqb w1 w2) eqn:Ew.
+      {
+        inversion Heval; subst.
+        assumption.
+      }
+      { discriminate Heval. }
+    }
   }
 Admitted.
 
