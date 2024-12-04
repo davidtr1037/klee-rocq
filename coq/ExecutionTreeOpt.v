@@ -654,8 +654,35 @@ Proof.
     { apply equiv_smt_store_symmetry. assumption. }
   }
   (* TODO: should be similar *)
-  { admit. }
-Admitted.
+  {
+    rename se into se2.
+    apply equiv_sym_eval_exp with (ls2 := ls1) (gs2 := gs1) in H5.
+    destruct H5 as [se1 [H5_1 H5_2]].
+    apply ESS_Shl with (se := se1).
+    { assumption. }
+    {
+      destruct se1 as [sort1 ast1], se2 as [sort2 ast2].
+      assert(L : sort1 = sort2).
+      { apply sort_injection in H5_2. symmetry. assumption. }
+      subst.
+      rename sort2 into sort.
+      unfold shl_error_condition in *.
+      eapply equiv_smt_expr_sat.
+      {
+        eapply equiv_smt_expr_binop.
+        { apply equiv_smt_expr_symmetry. eassumption. }
+        {
+          eapply equiv_smt_expr_cmpop.
+          { eassumption. }
+          { apply equiv_smt_expr_refl. }
+        }
+      }
+      { assumption. }
+    }
+    { apply equiv_smt_store_symmetry. assumption. }
+    { apply equiv_smt_store_symmetry. assumption. }
+  }
+Qed.
 
 Inductive safe_et_opt : execution_tree -> Prop :=
   | Safe_Leaf_RetVoid: forall ic cid pbid ls gs syms pc mdl,
