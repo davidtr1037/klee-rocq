@@ -60,6 +60,25 @@ Definition sym_lookup_ident (s : smt_store) (g : smt_store) (id : ident) : optio
   end
 .
 
+Definition sym_eval_ident (s : smt_store) (g : smt_store) (ot : option typ) (id : ident) : option smt_expr :=
+  match ot with
+  | Some t =>
+    match (sym_lookup_ident s g id) with
+    | Some se =>
+        match t, se with
+        | TYPE_I 1, Expr Sort_BV1 ast => Some se
+        | TYPE_I 8, Expr Sort_BV8 ast => Some se
+        | TYPE_I 16, Expr Sort_BV16 ast => Some se
+        | TYPE_I 32, Expr Sort_BV32 ast => Some se
+        | TYPE_I 64, Expr Sort_BV64 ast => Some se
+        | _, _ => None
+        end
+    | None => None
+    end
+  | None => sym_lookup_ident s g id
+  end
+.
+
 Definition ibinop_to_smt_binop (op : ibinop) : smt_binop :=
   match op with
   | Add _ _ => SMT_Add
@@ -204,7 +223,7 @@ Definition sym_eval_convert (conv : conversion_type) t1 (e : smt_expr) t2 : opti
 
 Fixpoint sym_eval_exp (s : smt_store) (g : smt_store) (t : option typ) (e : llvm_exp) : option smt_expr :=
   match e with
-  | EXP_Ident id => sym_lookup_ident s g id
+  | EXP_Ident id => sym_eval_ident s g t id
   | EXP_Integer n =>
       match t with
       | Some (TYPE_I bits) => make_smt_const bits n
