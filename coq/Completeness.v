@@ -1971,7 +1971,7 @@ Proof.
       }
     }
   }
-Admitted.
+Qed.
 
 Lemma init_state_correspondence : forall mdl fid,
   (exists c, (init_state mdl fid) = Some c) <-> (exists s, (init_sym_state mdl fid) = Some s).
