@@ -1440,6 +1440,7 @@ Proof.
           }
         }
       }
+      (* TODO: should be similar *)
       { admit. }
       { admit. }
       { admit. }
