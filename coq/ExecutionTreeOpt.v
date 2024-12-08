@@ -768,7 +768,7 @@ Inductive safe_et_opt : execution_tree -> Prop :=
           )
         )
   | Safe_Subtree: forall s l,
-      ~ error_sym_state s-> (* to avoid an error state with no children *)
+      ~ error_sym_state s -> (* to avoid an error state with no children *)
       (forall s',
         sym_step s s' ->
         (
@@ -1433,15 +1433,13 @@ Proof.
   }
 Qed.
 
-(* TODO: required that init_s is not an error state in safe_et_opt? *)
 Theorem program_safety_via_et: forall mdl fid init_s l,
   is_supported_module mdl ->
   (init_sym_state mdl fid) = Some init_s ->
-  ~ error_sym_state init_s ->
   safe_et_opt (t_subtree init_s l) ->
   is_safe_program step mdl fid.
 Proof.
-  intros mdl fid init_s l His Hinit_s Hne_s Het.
+  intros mdl fid init_s l His Hinit_s Het.
   assert(L1 : is_safe_program ns_step mdl fid).
   {
     apply program_safety_with_ns_step_via_et with (fid := fid) (init_s := init_s) (l := l);
@@ -1471,7 +1469,8 @@ Proof.
             { assumption. }
             { eapply over_approx_init_states; eassumption. }
           }
-          apply Hne_s.
+          inversion Het; subst.
+          apply H1.
           assumption.
         }
         { assumption. }
