@@ -442,6 +442,23 @@ Proof.
       )
     ).
   }
+  {
+    repeat (destruct w; try discriminate; try reflexivity).
+  }
+  {
+    destruct
+      (eval_exp ls gs (Some t) e1) as [dv1 | ],
+      (eval_exp ls gs (Some t) e2) as [dv2 | ]; try discriminate Heval.
+    destruct dv1 as [di1 | | ] eqn:Edv1, dv2 as [di2 | | ] eqn:Edv2;
+    try discriminate Heval;
+    try (destruct op; discriminate Heval);
+    try (
+      destruct op; (
+        destruct di1 as [n1 | n1 | n1 | n1 | n1]; discriminate Heval
+      )
+    ).
+    admit.
+  }
 Admitted.
 
 Lemma has_no_poison_step : forall s1 s2,
