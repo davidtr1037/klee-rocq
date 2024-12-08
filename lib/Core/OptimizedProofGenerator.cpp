@@ -312,25 +312,30 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtreeAssignment(Stat
 
   ref<CoqExpr> var = nullptr;
   ref<CoqExpr> expr = nullptr;
+  ref<CoqTactic> exprTactic = nullptr;
+
   if (isa<BinaryOperator>(si.inst)) {
     BinaryOperator *bo = cast<BinaryOperator>(si.inst);
     var = moduleTranslator->translateBinaryOperatorName(bo);
     expr = moduleTranslator->translateBinaryOperatorExpr(bo);
+    exprTactic = moduleSupport->getTacticForBinaryOperatorExpr(bo);
   }
 
   if (isa<CmpInst>(si.inst)) {
     CmpInst *ci = cast<CmpInst>(si.inst);
     var = moduleTranslator->translateCmpInstName(ci);
     expr = moduleTranslator->translateCmpInstExpr(ci);
+    exprTactic = moduleSupport->getTacticForCmpExpr(ci);
   }
 
   if (isa<CastInst>(si.inst)) {
     CastInst *ci = cast<CastInst>(si.inst);
     var = moduleTranslator->translateCastInstName(ci);
     expr = moduleTranslator->translateCastInstExpr(ci);
+    exprTactic = moduleSupport->getTacticForCastExpr(ci);
   }
 
-  assert(var && expr);
+  assert(var && expr && exprTactic);
   return new Block(
     {
       new Apply(
@@ -353,7 +358,7 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtreeAssignment(Stat
           getTreeAlias(successor.stepID),
         }
       ),
-      new Block({new Admit()}),
+      exprTactic, /* is_supported_exp */
       t,
       new Block({new Reflexivity()}),
       new Block({new Apply("L_" + to_string(successor.stepID))}),
