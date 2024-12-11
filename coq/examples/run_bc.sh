@@ -9,6 +9,7 @@ function run_klee {
     echo "testing ${bc_file}"
     $KLEE \
         -search=dfs \
+        -rewrite-equalities=0 \
         -generate-proof \
         -proof-output-path=${output} \
         -optimize-proof \
