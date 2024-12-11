@@ -272,14 +272,6 @@ ref<CoqTactic> ModuleSupport::getTacticForAssignmentExpr(Instruction &inst) {
 }
 
 ref<CoqTactic> ModuleSupport::getTacticForBinaryOperatorExpr(BinaryOperator *inst) {
-  //if (isDivOperator(inst)) {
-  //  return getTacticForDivOperator(inst);
-  //}
-
-  //if (isShiftOperator(inst)) {
-  //  return getTacticForShiftOperator(inst);
-  //}
-
   std::string constructor;
   switch (inst->getOpcode()) {
   case Instruction::Add:
