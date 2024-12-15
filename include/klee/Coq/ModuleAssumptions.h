@@ -63,6 +63,8 @@ public:
 
   ref<CoqLemma> getLemmaForAssignmentExpr(llvm::Instruction &inst);
 
+  ref<CoqTactic> getTacticForAssignmentExprCached(llvm::Instruction &inst);
+
   ref<CoqTactic> getTacticForAssignmentExpr(llvm::Instruction &inst);
 
   ref<CoqTactic> getTacticForBinaryOperatorExpr(llvm::BinaryOperator *inst);
@@ -86,6 +88,8 @@ public:
   ref<CoqTactic> getTacticForUnreachableInst(llvm::UnreachableInst *inst);
 
   ref<CoqLemma> getLemmaForValue(llvm::Value *value);
+
+  ref<CoqTactic> getTacticForValueCached(llvm::Value *value);
 
   ref<CoqTactic> getTacticForValue(llvm::Value *value);
 

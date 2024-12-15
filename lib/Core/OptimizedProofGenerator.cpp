@@ -276,7 +276,7 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtree(StateInfo &si,
 klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtreeAssignment(StateInfo &si,
                                                                             ExecutionState &successor) {
   if (si.inst->getOpcode() == Instruction::UDiv) {
-    return new Block({new Admit()});
+    return getTacticForSubtreeUDiv(si, successor);
   }
 
   ref<CoqExpr> var = nullptr;
@@ -300,10 +300,8 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtreeAssignment(Stat
     expr = moduleTranslator->translateCastInstExpr(ci);
   }
 
-  auto i = moduleSupport->exprLemmaNames.find(si.inst);
-  assert(i != moduleSupport->exprLemmaNames.end());
-  std::string exprLemmaName = i->second;
-  ref<CoqTactic> exprTactic = new Block({new Apply(exprLemmaName)});
+  ref<CoqTactic> exprTactic = moduleSupport->getTacticForAssignmentExprCached(*si.inst);
+  assert(!exprTactic.isNull());
 
   assert(var && expr);
   return new Block(
@@ -330,6 +328,66 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtreeAssignment(Stat
       ),
       exprTactic, /* is_supported_exp */
       getTacticForEquivStore(si),
+      new Block({new Reflexivity()}),
+      new Block({new Apply("L_" + to_string(successor.stepID))}),
+    }
+  );
+}
+
+klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtreeUDiv(StateInfo &si,
+                                                                      ExecutionState &successor) {
+  BinaryOperator *bo = cast<BinaryOperator>(si.inst);
+  Value *v1 = bo->getOperand(0);
+  Value *v2 = bo->getOperand(1);
+
+  ref<CoqTactic> t1 = moduleSupport->getTacticForValueCached(v1);
+  ref<CoqTactic> t2 = moduleSupport->getTacticForValueCached(v2);
+
+  ref<CoqExpr> ast = new CoqApplication(
+    new CoqVariable("extract_smt_expr"),
+    {
+      new CoqApplication(
+        new CoqVariable("sym_eval_exp"),
+        {
+          stateTranslator->getLocalStoreAlias(si.stepID),
+          stateTranslator->createGlobalStore(),
+          createSome(moduleTranslator->translateType(v2->getType())),
+          moduleTranslator->translateValue(v2),
+        }
+      ),
+    }
+  );
+
+  return new Block(
+    {
+      new Apply(
+        "safe_subtree_instr_op_udiv",
+        {
+          stateTranslator->getICAlias(si.stepID),
+          createNat(moduleTranslator->getInstID(si.inst)),
+          createPlaceHolder(), /* var */
+          createPlaceHolder(), /* optional type */
+          createPlaceHolder(), /* e1 */
+          createPlaceHolder(), /* e2 */
+          createPlaceHolder(),
+          createPlaceHolder(),
+          stateTranslator->getPrevBIDAlias(si.stepID),
+          stateTranslator->getLocalStoreAlias(si.stepID),
+          stateTranslator->getStackAlias(si.stepID),
+          stateTranslator->createGlobalStore(),
+          stateTranslator->getSymbolicsAlias(si.stepID),
+          stateTranslator->getPCAlias(si.stepID),
+          stateTranslator->createModule(),
+          stateTranslator->getLocalStoreAlias(successor.stepID),
+          ast,
+          getTreeAlias(successor.stepID),
+        }
+      ),
+      t1, /* is_supported_exp e1 */
+      t2, /* is_supported_exp e2 */
+      getTacticForEquivStore(si),
+      new Block({new Reflexivity()}),
+      new Block({new Admit()}), /* unsat */
       new Block({new Reflexivity()}),
       new Block({new Apply("L_" + to_string(successor.stepID))}),
     }

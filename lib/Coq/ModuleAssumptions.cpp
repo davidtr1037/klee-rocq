@@ -280,6 +280,16 @@ ref<CoqLemma> ModuleSupport::getLemmaForAssignmentExpr(Instruction &inst) {
   );
 }
 
+ref<CoqTactic> ModuleSupport::getTacticForAssignmentExprCached(Instruction &inst) {
+  auto i = exprLemmaNames.find(&inst);
+  if (i == exprLemmaNames.end()) {
+    return nullptr;
+  }
+
+  std::string name = i->second;
+  return new Block({new Apply(name)});
+}
+
 ref<CoqTactic> ModuleSupport::getTacticForAssignmentExpr(Instruction &inst) {
   if (isa<BinaryOperator>(inst)) {
     return getTacticForBinaryOperatorExpr(dyn_cast<BinaryOperator>(&inst));
@@ -553,6 +563,16 @@ ref<CoqLemma> ModuleSupport::getLemmaForValue(Value *value) {
     new CoqApplication(new CoqVariable("is_supported_exp"), {expr}),
     tactic
   );
+}
+
+ref<CoqTactic> ModuleSupport::getTacticForValueCached(Value *value) {
+  auto i = valueLemmaNames.find(value);
+  if (i == valueLemmaNames.end()) {
+    return nullptr;
+  }
+
+  std::string name = i->second;
+  return new Block({new Apply(name)});
 }
 
 ref<CoqTactic> ModuleSupport::getTacticForValue(Value *value) {
