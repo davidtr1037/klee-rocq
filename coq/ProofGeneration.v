@@ -391,6 +391,39 @@ Proof.
   assumption.
 Qed.
 
+Lemma unsat_ne_i32 : forall n1 n2,
+  eq n1 n2 = false ->
+  unsat (AST_CmpOp Sort_BV32 SMT_Eq (AST_Const Sort_BV32 n1) (AST_Const Sort_BV32 n2)).
+Proof.
+  intros n1 n2 Hne.
+  unfold unsat.
+  intros Hsat.
+  unfold sat in Hsat.
+  destruct Hsat as [m Hsat].
+  unfold sat_via in Hsat.
+  simpl in Hsat.
+  unfold smt_eval_cmpop_by_sort in Hsat.
+  simpl in Hsat.
+  simpl in Hne.
+  rewrite Hne in Hsat.
+  discriminate.
+Qed.
+
+Lemma unsat_extension_with_ne_i32 : forall pc n1 n2,
+  eq n1 n2 = false ->
+  unsat
+    (AST_BinOp
+      Sort_BV1
+      SMT_And
+      pc
+      (AST_CmpOp Sort_BV32 SMT_Eq (AST_Const Sort_BV32 n1) (AST_Const Sort_BV32 n2))).
+Proof.
+  intros pc n1 n2 Heq.
+  apply unsat_and_right.
+  apply unsat_ne_i32.
+  assumption.
+Qed.
+
 Lemma inversion_instr_op : forall ic cid v e c cs pbid ls stk gs syms pc mdl s,
   sym_step
     (mk_sym_state
