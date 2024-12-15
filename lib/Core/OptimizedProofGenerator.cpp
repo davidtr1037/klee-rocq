@@ -345,13 +345,14 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtreeUDiv(StateInfo 
 
   ref<CoqTactic> unsatTactic = nullptr;
   if (isa<ConstantInt>(v2)) {
-    ConstantInt *ci = dyn_cast<ConstantInt>(v2);
     unsatTactic = new Block(
       {
         new Apply("unsat_extension_with_ne_i32"),
         new Reflexivity(),
       }
     );
+  } else {
+    unsatTactic = new Block({new Admit()});
   }
 
   assert(!unsatTactic.isNull());
