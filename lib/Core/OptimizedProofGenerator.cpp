@@ -343,6 +343,19 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtreeUDiv(StateInfo 
   ref<CoqTactic> t1 = moduleSupport->getTacticForValueCached(v1);
   ref<CoqTactic> t2 = moduleSupport->getTacticForValueCached(v2);
 
+  ref<CoqTactic> unsatTactic = nullptr;
+  if (isa<ConstantInt>(v2)) {
+    ConstantInt *ci = dyn_cast<ConstantInt>(v2);
+    unsatTactic = new Block(
+      {
+        new Apply("unsat_extension_with_ne_i32"),
+        new Reflexivity(),
+      }
+    );
+  }
+
+  assert(!unsatTactic.isNull());
+
   ref<CoqExpr> ast = new CoqApplication(
     new CoqVariable("extract_smt_expr"),
     {
@@ -387,7 +400,7 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtreeUDiv(StateInfo 
       t2, /* is_supported_exp e2 */
       getTacticForEquivStore(si),
       new Block({new Reflexivity()}),
-      new Block({new Admit()}), /* unsat */
+      unsatTactic, /* unsat */
       new Block({new Reflexivity()}),
       new Block({new Apply("L_" + to_string(successor.stepID))}),
     }
