@@ -107,17 +107,6 @@ Definition get_ast (e : smt_expr) : (smt_ast (get_sort e)) :=
 Definition smt_expr_true := (Expr Sort_BV1 smt_ast_true).
 Definition smt_expr_false := (Expr Sort_BV1 smt_ast_false).
 
-Definition make_smt_const (bits : positive) (n : Z) : option smt_expr :=
-  match bits with
-  | 1%positive => Some (Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr n)))
-  | 8%positive => Some (Expr Sort_BV8 (AST_Const Sort_BV8 (Int8.repr n)))
-  | 16%positive => Some (Expr Sort_BV16 (AST_Const Sort_BV16 (Int16.repr n)))
-  | 32%positive => Some (Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr n)))
-  | 64%positive => Some (Expr Sort_BV64 (AST_Const Sort_BV64 (Int64.repr n)))
-  | _ => None
-  end
-.
-
 Definition make_smt_ast_bool (b : bool) : smt_ast_bool :=
   match b with
   | true => smt_ast_true
@@ -129,6 +118,27 @@ Definition make_smt_bool (b : bool) : smt_expr :=
   match b with
   | true => smt_expr_true
   | false => smt_expr_false
+  end
+.
+
+Definition make_smt_ast_const (n : Z) (s : smt_sort) : smt_ast s :=
+  match s with
+  | Sort_BV1 => AST_Const Sort_BV1 (Int1.repr n)
+  | Sort_BV8 => AST_Const Sort_BV8 (repr n)
+  | Sort_BV16 => AST_Const Sort_BV16 (repr n)
+  | Sort_BV32 => AST_Const Sort_BV32 (repr n)
+  | Sort_BV64 => AST_Const Sort_BV64 (repr n)
+  end
+.
+
+Definition make_smt_const (bits : positive) (n : Z) : option smt_expr :=
+  match bits with
+  | 1%positive => Some (Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr n)))
+  | 8%positive => Some (Expr Sort_BV8 (AST_Const Sort_BV8 (Int8.repr n)))
+  | 16%positive => Some (Expr Sort_BV16 (AST_Const Sort_BV16 (Int16.repr n)))
+  | 32%positive => Some (Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr n)))
+  | 64%positive => Some (Expr Sort_BV64 (AST_Const Sort_BV64 (Int64.repr n)))
+  | _ => None
   end
 .
 

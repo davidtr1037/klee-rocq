@@ -893,6 +893,14 @@ Proof.
   }
 Qed.
 
+Definition extract_smt_expr (ose : option smt_expr) : smt_expr :=
+  match ose with
+  | Some se => se
+  | None => smt_expr_false
+  end
+.
+
+(* TODO: rename *)
 Definition extract_ast (se : option smt_expr) : (smt_ast Sort_BV1) :=
   match se with
   | Some se =>
