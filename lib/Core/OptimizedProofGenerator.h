@@ -83,6 +83,8 @@ public:
   ref<CoqTactic> getTacticForSubtreeReturn(StateInfo &si,
                                            ExecutionState &successor);
 
+  ref<CoqTactic> getTacticForEquivStore(StateInfo &si);
+
   ref<CoqLemma> createLemmaForSubtree(StateInfo &stateInfo,
                                       SuccessorInfo &successor1,
                                       SuccessorInfo &successor2);

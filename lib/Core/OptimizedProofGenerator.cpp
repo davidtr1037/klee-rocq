@@ -279,41 +279,6 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtreeAssignment(Stat
     return new Block({new Admit()});
   }
 
-  ref<CoqTactic> t;
-  if (si.wasRegisterUpdated) {
-    t = new Block(
-      {
-        new Apply(
-          "equiv_smt_store_on_optimized_update",
-          {
-            createPlaceHolder(),
-            createPlaceHolder(),
-            createPlaceHolder(),
-            createPlaceHolder(),
-            createPlaceHolder(),
-            createSuffixUpdates(si.suffix),
-          }
-        ),
-        new Apply("equiv_smt_expr_normalize_simplify"),
-      }
-    );
-  } else {
-    t = new Block(
-      {
-        new Apply(
-          "equiv_smt_store_on_update",
-          {
-            stateTranslator->getLocalStoreAlias(si.stepID),
-            createPlaceHolder(),
-            createPlaceHolder(),
-            createPlaceHolder(),
-          }
-        ),
-        new Apply("equiv_smt_expr_normalize_simplify"),
-      }
-    );
-  }
-
   ref<CoqExpr> var = nullptr;
   ref<CoqExpr> expr = nullptr;
 
@@ -364,7 +329,7 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtreeAssignment(Stat
         }
       ),
       exprTactic, /* is_supported_exp */
-      t,
+      getTacticForEquivStore(si),
       new Block({new Reflexivity()}),
       new Block({new Apply("L_" + to_string(successor.stepID))}),
     }
@@ -681,6 +646,42 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtreeReturn(StateInf
         new Block({new Reflexivity()}), /* TODO: define lemma */
         new Block({new Reflexivity()}),
         new Block({new Apply("L_" + to_string(successor.stepID))}),
+      }
+    );
+  }
+}
+
+klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForEquivStore(StateInfo &si) {
+  if (si.wasRegisterUpdated) {
+    return new Block(
+      {
+        new Apply(
+          "equiv_smt_store_on_optimized_update",
+          {
+            createPlaceHolder(),
+            createPlaceHolder(),
+            createPlaceHolder(),
+            createPlaceHolder(),
+            createPlaceHolder(),
+            createSuffixUpdates(si.suffix),
+          }
+        ),
+        new Apply("equiv_smt_expr_normalize_simplify"),
+      }
+    );
+  } else {
+    return new Block(
+      {
+        new Apply(
+          "equiv_smt_store_on_update",
+          {
+            stateTranslator->getLocalStoreAlias(si.stepID),
+            createPlaceHolder(),
+            createPlaceHolder(),
+            createPlaceHolder(),
+          }
+        ),
+        new Apply("equiv_smt_expr_normalize_simplify"),
       }
     );
   }
