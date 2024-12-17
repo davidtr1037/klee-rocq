@@ -226,7 +226,7 @@ ref<CoqTactic> ModuleSupport::getTacticForInst(Instruction &inst) {
 }
 
 ref<CoqTactic> ModuleSupport::getTacticForAssignment(Instruction &inst) {
-  if (inst.getOpcode() == Instruction::UDiv) {
+  if (isUnsafeInstruction(inst)) {
     /* left */
     Value *leftValue = inst.getOperand(0);
     ref<CoqLemma> leftLemma = getLemmaForValue(leftValue);
@@ -238,9 +238,23 @@ ref<CoqTactic> ModuleSupport::getTacticForAssignment(Instruction &inst) {
     valueLemmas.push_back(rightLemma);
     valueLemmaNames.insert(std::make_pair(rightValue, rightLemma->name));
 
+    std::string lemmaName;
+    switch (inst.getOpcode()) {
+    case Instruction::UDiv:
+      lemmaName = "IS_INSTR_Op_UDiv";
+      break;
+
+    case Instruction::Shl:
+      lemmaName = "IS_INSTR_Op_Shl";
+      break;
+
+    default:
+      assert(false);
+    }
+
     return new Block(
       {
-        new Apply("IS_INSTR_Op_UDiv"),
+        new Apply(lemmaName),
         new Apply(leftLemma->name),
         new Apply(rightLemma->name),
       }
@@ -355,6 +369,7 @@ ref<CoqTactic> ModuleSupport::getTacticForBinaryOperatorExpr(BinaryOperator *ins
   );
 }
 
+/* TODO: remove */
 ref<CoqTactic> ModuleSupport::getTacticForDivOperator(BinaryOperator *inst) {
   std::string constructor;
   switch (inst->getOpcode()) {
@@ -387,6 +402,7 @@ ref<CoqTactic> ModuleSupport::getTacticForDivOperator(BinaryOperator *inst) {
   );
 }
 
+/* TODO: remove */
 ref<CoqTactic> ModuleSupport::getTacticForShiftOperator(BinaryOperator *inst) {
   std::string constructor;
   switch (inst->getOpcode()) {
@@ -597,19 +613,12 @@ ref<CoqTactic> ModuleSupport::getTacticForValue(Value *value) {
   assert(false);
 }
 
-bool ModuleSupport::isDivOperator(BinaryOperator *inst) {
-  switch (inst->getOpcode()) {
+bool ModuleSupport::isUnsafeInstruction(Instruction &inst) {
+  switch (inst.getOpcode()) {
   case Instruction::UDiv:
   case Instruction::SDiv:
-    return true;
-
-  default:
-    return false;
-  }
-}
-
-bool ModuleSupport::isShiftOperator(BinaryOperator *inst) {
-  switch (inst->getOpcode()) {
+  case Instruction::URem:
+  case Instruction::SRem:
   case Instruction::Shl:
   case Instruction::LShr:
   case Instruction::AShr:

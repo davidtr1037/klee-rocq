@@ -7,6 +7,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include <assert.h>
+
 #include "klee/klee.h"
 
 /* This instrumentation call is used to check for overshifting.
@@ -18,14 +20,7 @@
  * then we can detect overshifting (which has undefined behaviour).
  */
 void klee_overshift_check(unsigned long long bitWidth, unsigned long long shift) {
-  if (shift >= bitWidth) {
-    /* Maybe we shouldn't throw an error because
-     * overshifting can be non-fatal? Perhaps
-     * we should generate a test case but carry
-     * on executing the state with a warning?
-     */
-    klee_report_error("IGNORED", 0 /*Ignored */, "overshift error", "overshift.err");
-  }
+  assert(shift < bitWidth);
 }
 
 

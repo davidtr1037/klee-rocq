@@ -93,9 +93,7 @@ public:
 
   ref<CoqTactic> getTacticForValue(llvm::Value *value);
 
-  bool isDivOperator(llvm::BinaryOperator *inst);
-
-  bool isShiftOperator(llvm::BinaryOperator *inst);
+  bool isUnsafeInstruction(llvm::Instruction &inst);
 
   ~ModuleSupport();
 };
