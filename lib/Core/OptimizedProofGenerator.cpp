@@ -821,7 +821,7 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtree(StateInfo &sta
             }
           ),
           new Block({new Apply("equiv_smt_expr_normalize_simplify")}),
-          new Block({new Apply("UNSAT_" + to_string(axiomID))}),
+          new Block({new Apply(createUnsatAxiomName(axiomID))}),
         }
       );
     } else {
@@ -863,7 +863,7 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtree(StateInfo &sta
         new Block({new Apply("L_" + to_string(si1.state->stepID))}),
         t,
         new Block({new Apply("equiv_smt_expr_normalize_simplify")}),
-        new Block({new Apply("UNSAT_" + to_string(axiomID))}),
+        new Block({new Apply(createUnsatAxiomName(axiomID))}),
       }
     );
   }
@@ -892,7 +892,7 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtree(StateInfo &sta
             }
           ),
           new Block({new Apply("equiv_smt_expr_normalize_simplify")}),
-          new Block({new Apply("UNSAT_" + to_string(axiomID))}),
+          new Block({new Apply(createUnsatAxiomName(axiomID))}),
         }
       );
     } else {
