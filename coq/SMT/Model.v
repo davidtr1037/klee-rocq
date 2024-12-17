@@ -223,6 +223,18 @@ Definition sat (ast : smt_ast_bool) :=
 
 Definition unsat (ast : smt_ast_bool) := ~ sat ast.
 
+Lemma unsat_false :
+  unsat smt_ast_false.
+Proof.
+  unfold unsat.
+  intros Hsat.
+  unfold sat, sat_via in Hsat.
+  simpl in Hsat.
+  assert(Int1.zero = Int1.one).
+  { destruct Hsat as [m Hsat]. assumption. }
+  discriminate.
+Qed.
+
 Lemma unsat_and_left : forall (e1 e2 : smt_ast_bool),
   unsat e1 ->
   unsat (AST_BinOp Sort_BV1 SMT_And e1 e2).
