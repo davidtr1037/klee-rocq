@@ -123,7 +123,8 @@ ExecutionState::ExecutionState(const ExecutionState& state):
     forkDisabled(state.forkDisabled),
     base_addrs(state.base_addrs),
     base_mos(state.base_mos),
-    isTerminated(state.isTerminated) {
+    isTerminated(state.isTerminated),
+    historyInfo(state.historyInfo) {
   for (const auto &cur_mergehandler: openMergeStack)
     cur_mergehandler->addOpenState(this);
 }

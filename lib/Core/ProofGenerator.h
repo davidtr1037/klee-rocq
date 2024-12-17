@@ -58,6 +58,34 @@ public:
 
 };
 
+/* TODO: rename */
+struct ProofGenerationOutput {
+
+  std::string unsatAxiomName;
+
+  ProofGenerationOutput() = default;
+
+  ProofGenerationOutput(std::string unsatAxiomName) :
+    unsatAxiomName(unsatAxiomName) {
+
+  }
+
+};
+
+/* TODO: rename */
+class ExternalProofHint {
+
+public:
+
+  std::string lastUnsatAxiomName;
+
+  ExternalProofHint(std::string lastUnsatAxiomName) :
+    lastUnsatAxiomName(lastUnsatAxiomName) {
+
+  }
+
+};
+
 class ProofGenerator {
 
 private:
@@ -106,10 +134,13 @@ public:
 
   ref<CoqTactic> getTacticForLeaf(ExecutionState &state);
 
-  void handleStep(StateInfo &si, ExecutionState &successor);
+  void handleStep(StateInfo &si,
+                  ExecutionState &successor,
+                  const ExternalProofHint &hint);
 
   virtual ref<CoqLemma> createLemmaForSubtree(StateInfo &si,
-                                              ExecutionState &successor);
+                                              ExecutionState &successor,
+                                              const ExternalProofHint &hint);
 
   ref<CoqTactic> getTacticForSafety(StateInfo &si);
 
@@ -152,11 +183,13 @@ public:
 
   void handleStep(StateInfo &stateInfo,
                   SuccessorInfo &successor1,
-                  SuccessorInfo &successor2);
+                  SuccessorInfo &successor2,
+                  ProofGenerationOutput &output);
 
   virtual ref<CoqLemma> createLemmaForSubtree(StateInfo &stateInfo,
                                               SuccessorInfo &successor1,
-                                              SuccessorInfo &successor2);
+                                              SuccessorInfo &successor2,
+                                              ProofGenerationOutput &output);
 
   virtual ref<CoqTactic> getTacticForStep(StateInfo &stateInfo,
                                           SuccessorInfo &successor1,

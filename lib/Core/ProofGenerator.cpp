@@ -188,7 +188,9 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForLeaf(ExecutionState &state) {
   );
 }
 
-void ProofGenerator::handleStep(StateInfo &si, ExecutionState &successor) {
+void ProofGenerator::handleStep(StateInfo &si,
+                                ExecutionState &successor,
+                                const ExternalProofHint &hint) {
   ref<CoqExpr> def = new CoqDefinition(
     getTreeAliasName(si.stepID),
     "execution_tree",
@@ -204,12 +206,13 @@ void ProofGenerator::handleStep(StateInfo &si, ExecutionState &successor) {
   );
   treeDefs.push_front(def);
 
-  ref<CoqLemma> lemma = createLemmaForSubtree(si, successor);
+  ref<CoqLemma> lemma = createLemmaForSubtree(si, successor, hint);
   lemmaDefs.push_front(lemma);
 }
 
 klee::ref<CoqLemma> ProofGenerator::createLemmaForSubtree(StateInfo &si,
-                                                          ExecutionState &successor) {
+                                                          ExecutionState &successor,
+                                                          const ExternalProofHint &hint) {
   ref<CoqTactic> safetyTactic = getTacticForSafety(si);
   ref<CoqTactic> stepTactic = getTacticForStep(si, successor);
   ref<CoqTactic> tactic = getTacticForSubtree(safetyTactic, stepTactic);
@@ -693,7 +696,8 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForEquivReturn(StateInfo &si,
 
 void ProofGenerator::handleStep(StateInfo &stateInfo,
                                 SuccessorInfo &si1,
-                                SuccessorInfo &si2) {
+                                SuccessorInfo &si2,
+                                ProofGenerationOutput &output) {
   vector<ref<CoqExpr>> satSuccessors;
   if (si1.isSat) {
     satSuccessors.push_back(getTreeAlias(si1.state->stepID));
@@ -715,13 +719,14 @@ void ProofGenerator::handleStep(StateInfo &stateInfo,
   );
   treeDefs.push_front(def);
 
-  ref<CoqLemma> lemma = createLemmaForSubtree(stateInfo, si1, si2);
+  ref<CoqLemma> lemma = createLemmaForSubtree(stateInfo, si1, si2, output);
   lemmaDefs.push_front(lemma);
 }
 
 klee::ref<CoqLemma> ProofGenerator::createLemmaForSubtree(StateInfo &stateInfo,
                                                           SuccessorInfo &si1,
-                                                          SuccessorInfo &si2) {
+                                                          SuccessorInfo &si2,
+                                                          ProofGenerationOutput &output) {
   ref<CoqTactic> safetyTactic = getTacticForSafety(stateInfo);
   ref<CoqTactic> stepTactic = getTacticForStep(stateInfo, si1, si2);
   ref<CoqTactic> tactic = getTacticForSubtree(safetyTactic, stepTactic);

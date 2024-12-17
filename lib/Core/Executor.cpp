@@ -2275,33 +2275,42 @@ void Executor::executeInstruction(ExecutionState &state, KInstruction *ki) {
       ref<Expr> pc = state.getPC();
 
       Executor::StatePair branches = fork(state, cond, false, BranchType::Conditional);
+      ExecutionState *trueState = branches.first;
+      ExecutionState *falseState = branches.second;
 
       // NOTE: There is a hidden dependency here, markBranchVisited
       // requires that we still be in the context of the branch
       // instruction (it reuses its statistic id). Should be cleaned
       // up with convenient instruction specific data.
       if (statsTracker && state.stack.back().kf->trackCoverage)
-        statsTracker->markBranchVisited(branches.first, branches.second);
+        statsTracker->markBranchVisited(trueState, falseState);
 
       if (branches.first)
-        transferToBasicBlock(bi->getSuccessor(0), bi->getParent(), *branches.first);
+        transferToBasicBlock(bi->getSuccessor(0), bi->getParent(), *trueState);
       if (branches.second)
-        transferToBasicBlock(bi->getSuccessor(1), bi->getParent(), *branches.second);
+        transferToBasicBlock(bi->getSuccessor(1), bi->getParent(), *falseState);
 
       if (isInProofMode()) {
         TimerStatIncrementer timer(stats::proofTime);
-        if (branches.first) {
+        if (trueState) {
           branches.first->setStepID(allocateStepID());
         }
-        if (branches.second) {
+        if (falseState) {
           branches.second->setStepID(allocateStepID());
         }
 
         ref<Expr> pc1 = AndExpr::create(pc, cond);
-        SuccessorInfo si1 = branches.first ? SuccessorInfo(branches.first) : SuccessorInfo(pc1);
+        SuccessorInfo si1 = trueState ? SuccessorInfo(trueState) : SuccessorInfo(pc1);
         ref<Expr> pc2 = AndExpr::create(pc, Expr::createIsZero(cond));
-        SuccessorInfo si2 = branches.second ? SuccessorInfo(branches.second) : SuccessorInfo(pc2);
-        proofGenerator->handleStep(stateInfo, si1, si2);
+        SuccessorInfo si2 = falseState ? SuccessorInfo(falseState) : SuccessorInfo(pc2);
+        ProofGenerationOutput output;
+        proofGenerator->handleStep(stateInfo, si1, si2, output);
+        if (trueState) {
+          trueState->historyInfo.lastUnsatAxiomName = output.unsatAxiomName;
+        }
+        if (falseState) {
+          falseState->historyInfo.lastUnsatAxiomName = output.unsatAxiomName;
+        }
       }
     }
     break;
@@ -3812,7 +3821,8 @@ void Executor::run(ExecutionState &initialState) {
         BranchInst *bi = dyn_cast<BranchInst>(state.prevPC->inst);
         if (!(bi && bi->isConditional())) {
           state.setStepID(allocateStepID());
-          proofGenerator->handleStep(si, state);
+          ExternalProofHint hint(state.historyInfo.lastUnsatAxiomName);
+          proofGenerator->handleStep(si, state, hint);
         }
       }
     }

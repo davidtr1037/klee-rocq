@@ -63,16 +63,20 @@ public:
                                std::vector<ref<CoqExpr>> &tail);
 
   ref<CoqLemma> createLemmaForSubtree(StateInfo &si,
-                                      ExecutionState &successor);
+                                      ExecutionState &successor,
+                                      const ExternalProofHint &hint);
 
   ref<CoqTactic> getTacticForSubtree(StateInfo &si,
-                                     ExecutionState &successor);
+                                     ExecutionState &successor,
+                                     const ExternalProofHint &hint);
 
   ref<CoqTactic> getTacticForSubtreeAssignment(StateInfo &si,
-                                               ExecutionState &successor);
+                                               ExecutionState &successor,
+                                               const ExternalProofHint &hint);
 
   ref<CoqTactic> getTacticForSubtreeUDiv(StateInfo &si,
-                                         ExecutionState &successor);
+                                         ExecutionState &successor,
+                                         const ExternalProofHint &hint);
 
   ref<CoqTactic> getTacticForSubtreePHI(StateInfo &si,
                                         ExecutionState &successor);
@@ -90,11 +94,13 @@ public:
 
   ref<CoqLemma> createLemmaForSubtree(StateInfo &stateInfo,
                                       SuccessorInfo &successor1,
-                                      SuccessorInfo &successor2);
+                                      SuccessorInfo &successor2,
+                                      ProofGenerationOutput &output);
 
   ref<CoqTactic> getTacticForSubtree(StateInfo &stateInfo,
                                      SuccessorInfo &successor1,
-                                     SuccessorInfo &successor2);
+                                     SuccessorInfo &successor2,
+                                     ProofGenerationOutput &output);
 
 };
 

@@ -47,11 +47,27 @@ llvm::raw_ostream &operator<<(llvm::raw_ostream &os, const MemoryMap &mm);
 
 /* TODO: add copy constructor? */
 struct RegisterUpdate {
+
   std::string name;
   ref<Expr> value;
 
   RegisterUpdate(const std::string &name, const ref<Expr> &value) :
     name(name), value(value) {}
+
+};
+
+/* TODO: rename */
+struct HistoryInfo {
+
+  std::string lastUnsatAxiomName;
+
+  HistoryInfo() = default;
+
+  HistoryInfo(std::string lastUnsatAxiomName) :
+    lastUnsatAxiomName(lastUnsatAxiomName) {
+
+  }
+
 };
 
 struct StackFrame {
@@ -283,6 +299,8 @@ public:
 
   /* TODO: add docs */
   bool isTerminated;
+
+  HistoryInfo historyInfo;
 
 public:
 #ifdef KLEE_UNITTEST
