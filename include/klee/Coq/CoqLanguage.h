@@ -439,6 +439,20 @@ public:
 
 };
 
+class Try : public CoqTactic {
+
+public:
+
+  std::vector<ref<CoqTactic>> tactics;
+
+  Try(const std::vector<ref<CoqTactic>> &tactics);
+
+  std::string dump(int indent) const;
+
+  std::string dump(int indent, bool end) const;
+
+};
+
 class Right : public BasicTactic {
 
 public:
@@ -472,6 +486,8 @@ public:
     name(name), kwargs(kwargs), in(in) {}
 
   std::string dump(int indent) const;
+
+  std::string dump(int indent, bool end) const;
 
 };
 

@@ -387,6 +387,10 @@ string Block::dump(int indent) const {
 }
 
 string Apply::dump(int indent) const {
+  return dump(indent, true);
+}
+
+string Apply::dump(int indent, bool end) const {
   ostringstream os;
   os << space(indent);
   if (!args.empty()) {
@@ -398,7 +402,6 @@ string Apply::dump(int indent) const {
     if (!in.empty()) {
       os << " in " << in;
     }
-    os << ".";
   } else if (!kwargs.empty()) {
     os << "apply " << name << " with";
     for (auto i : kwargs) {
@@ -409,12 +412,13 @@ string Apply::dump(int indent) const {
     if (!in.empty()) {
       os << " in " << in;
     }
-    os << ".";
   } else {
     os << "apply " << name;
     if (!in.empty()) {
       os << " in " << in;
     }
+  }
+  if (end) {
     os << ".";
   }
 
@@ -430,7 +434,7 @@ string Concat::dump(int indent) const {
   ostringstream os;
   for (size_t i = 0; i < tactics.size(); i++) {
     if (i != tactics.size() - 1) {
-      os << tactics[i]->dump(indent, false) << "\n";
+      os << tactics[i]->dump(indent, false) << ";\n";
     } else {
       os << tactics[i]->dump(indent);
     }
@@ -545,6 +549,32 @@ Rewrite::Rewrite(const string &hypothesis, bool forward) :
 string Rewrite::dump(int indent) const {
   ostringstream os;
   os << space(indent) << "rewrite " << (forward ? "" : "<- ") << hypothesis << ".";
+  return os.str();
+}
+
+Try::Try(const std::vector<ref<CoqTactic>> &tactics) :
+  tactics(tactics) {
+
+}
+
+string Try::dump(int indent) const {
+  return dump(indent, true);
+}
+
+string Try::dump(int indent, bool end) const {
+  ostringstream os;
+  os << space(indent) << "try (\n";
+  for (size_t i = 0; i < tactics.size(); i++) {
+    os << tactics[i]->dump(indent + 1, false);
+    if (i != tactics.size() - 1) {
+      os << ";";
+    }
+    os << "\n";
+  }
+  os << space(indent) << ")";
+  if (end) {
+    os << ".";
+  }
   return os.str();
 }
 
