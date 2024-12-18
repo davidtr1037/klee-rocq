@@ -411,8 +411,7 @@ Proof.
   reflexivity.
 Qed.
 
-(* TODO: rename? *)
-Lemma unsat_eq_zero_zext_bv32_bv64 : forall pc ast,
+Lemma unsat_div_condition_bv32 : forall pc ast,
   unsat
     (AST_BinOp
       Sort_BV1
@@ -443,6 +442,30 @@ Proof.
   }
   assumption.
 Qed.
+
+Lemma unsat_shift_condition_bv32 : forall pc ast,
+  unsat
+    (AST_BinOp
+      Sort_BV1
+      SMT_And
+      pc
+      (AST_CmpOp
+        Sort_BV1
+        SMT_Eq
+        (AST_Const Sort_BV1 zero)
+        (AST_CmpOp
+          Sort_BV64
+          SMT_Ult
+          (AST_ZExt Sort_BV32 ast Sort_BV64)
+          (AST_Const Sort_BV64 (repr 32))))) ->
+  unsat
+    (AST_BinOp
+      Sort_BV1
+      SMT_And
+      pc
+      (AST_CmpOp Sort_BV32 SMT_Uge ast (AST_Const Sort_BV32 (repr 32)))).
+Proof.
+Admitted.
 
 Lemma inversion_instr_op : forall ic cid v e c cs pbid ls stk gs syms pc mdl s,
   sym_step

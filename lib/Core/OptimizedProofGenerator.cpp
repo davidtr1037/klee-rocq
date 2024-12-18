@@ -435,7 +435,7 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForErrorCondition(StateIn
               new Try({new Apply("unsat_false")}),
               new Try(
                 {
-                  new Apply("unsat_eq_zero_zext_bv32_bv64"),
+                  new Apply("unsat_div_condition_bv32"),
                   new Apply(hint.lastUnsatAxiomName),
                 }
               )
@@ -446,8 +446,27 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForErrorCondition(StateIn
     }
 
   case Instruction::Shl:
-    /* TODO: ... */
-    return new Block({new Admit()});
+    if (isa<ConstantInt>(v2)) {
+      return new Apply("unsat_false");
+    } else {
+      /* TODO: avoid code duplication */
+      assert(!hint.lastUnsatAxiomName.empty());
+      return new Block(
+        {
+          new Concat(
+            {
+              new Try({new Apply("unsat_false")}),
+              new Try(
+                {
+                  new Apply("unsat_shift_condition_bv32"),
+                  new Apply(hint.lastUnsatAxiomName),
+                }
+              )
+            }
+          )
+        }
+      );
+    }
 
   default:
     return nullptr;

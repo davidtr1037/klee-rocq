@@ -11,11 +11,23 @@ void f1(int x) {
 
 void f2() {
     int x = klee_make_symbolic_int32();
-    int y = x << 7;
+    int y = x << 2;
+}
+
+void f3(unsigned x) {
+    int y = 10 << x;
+}
+
+void f4() {
+    unsigned x = klee_make_symbolic_int32();
+    klee_assume_bool(x < 32);
+    int y = 10 << x;
 }
 
 int main() {
     f1(100);
     f2();
+    f3(10);
+    f4();
     return 0;
 }
