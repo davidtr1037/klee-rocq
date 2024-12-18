@@ -226,15 +226,30 @@ Lemma sat_and : forall (e1 e2 : smt_ast_bool) (m : smt_model),
   (sat_via e1 m /\ sat_via e2 m).
 Proof.
  intros e1 e2 m Hsat.
-Admitted.
+ unfold sat_via in Hsat.
+ simpl in Hsat.
+ split.
+ {
+   apply int1_and_one_left in Hsat.
+   assumption.
+ }
+ {
+   apply int1_and_one_right in Hsat.
+   assumption.
+ }
+Qed.
 
 Lemma sat_and_intro : forall (e1 e2 : smt_ast_bool) (m : smt_model),
   sat_via e1 m ->
   sat_via e2 m ->
   sat_via (AST_BinOp Sort_BV1 SMT_And e1 e2) m.
 Proof.
- intros e1 e2 m Hsat.
-Admitted.
+ intros e1 e2 m Hsat1 Hsat2.
+ unfold sat_via in *.
+ simpl.
+ rewrite Hsat1, Hsat2.
+ reflexivity.
+Qed.
 
 Definition unsat (ast : smt_ast_bool) := ~ sat ast.
 
@@ -263,15 +278,9 @@ Proof.
   exists m.
   unfold sat_via in *.
   simpl in Hsat.
-  apply int1_and_one in Hsat.
+  apply int1_and_one_left in Hsat.
   assumption.
 Qed.
-
-Lemma unsat_and_right : forall (e1 e2 : smt_ast_bool),
-  unsat e2 ->
-  unsat (AST_BinOp Sort_BV1 SMT_And e1 e2).
-Proof.
-Admitted.
 
 Lemma subexpr_non_interference : forall sort (ast : smt_ast sort) x m n,
   (~ contains_var (Expr sort ast) x ) ->

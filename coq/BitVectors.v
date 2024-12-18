@@ -404,8 +404,7 @@ Proof.
   }
 Qed.
 
-(* TOOD: rename to int1_and_one_l *)
-Lemma int1_and_one : forall (n1 n2 : Int1.int),
+Lemma int1_and_one_left : forall (n1 n2 : Int1.int),
   Int1.and n1 n2 = Int1.one -> n1 = Int1.one.
 Proof.
   intros n1 n2 H.
@@ -415,6 +414,21 @@ Proof.
   {
     rewrite L in H.
     rewrite Int1.and_commut in H.
+    rewrite Int1.and_zero in H.
+    discriminate H.
+  }
+  { assumption. }
+Qed.
+
+Lemma int1_and_one_right : forall (n1 n2 : Int1.int),
+  Int1.and n1 n2 = Int1.one -> n2 = Int1.one.
+Proof.
+  intros n1 n2 H.
+  assert(L: n2 = Int1.zero \/ n2 = Int1.one).
+  { apply int1_destruct. }
+  destruct L as [L | L].
+  {
+    rewrite L in H.
     rewrite Int1.and_zero in H.
     discriminate H.
   }
