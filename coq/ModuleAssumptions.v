@@ -25,6 +25,12 @@ Inductive is_supported_ibinop : ibinop -> Prop :=
 *)
 .
 
+(* TODO: add SDiv, LShr, AShr, URem, SRem *)
+Inductive is_unsafe_op : ibinop -> Prop :=
+  | IU_Op_UDiv : is_unsafe_op (UDiv false)
+  | IU_Op_Shl : is_unsafe_op (Shl false false)
+.
+
 Inductive is_supported_conv : conversion_type -> Prop :=
   | IS_ZExt : is_supported_conv Zext
   | IS_SExt : is_supported_conv Sext
@@ -59,19 +65,15 @@ Inductive is_supported_function_arg : function_arg -> Prop :=
       is_supported_function_arg ((t, e), attrs)
 .
 
-(* TODO: add SDiv, LShr, AShr, URem, SRem *)
 Inductive is_supported_cmd : llvm_cmd -> Prop :=
   | IS_INSTR_Op : forall n v e,
       is_supported_exp e ->
       is_supported_cmd (CMD_Inst n (INSTR_Op v e))
-  | IS_INSTR_Op_UDiv : forall n v w e1 e2,
+  | IS_INSTR_Op_Unsafe : forall n v w op e1 e2,
+      is_unsafe_op op ->
       is_supported_exp e1 ->
       is_supported_exp e2 ->
-      is_supported_cmd (CMD_Inst n (INSTR_Op v (OP_IBinop (UDiv false) (TYPE_I w) e1 e2)))
-  | IS_INSTR_Op_Shl : forall n v w e1 e2,
-      is_supported_exp e1 ->
-      is_supported_exp e2 ->
-      is_supported_cmd (CMD_Inst n (INSTR_Op v (OP_IBinop (Shl false false) (TYPE_I w) e1 e2)))
+      is_supported_cmd (CMD_Inst n (INSTR_Op v (OP_IBinop op (TYPE_I w) e1 e2)))
   | IS_Phi : forall n v t args,
       (forall bid e, In (bid, e) args -> is_supported_exp e) ->
       is_supported_cmd (CMD_Phi n (Phi v t args))

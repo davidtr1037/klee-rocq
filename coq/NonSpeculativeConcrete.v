@@ -438,90 +438,93 @@ Proof.
       apply has_no_poison_eval_exp with (ls := ls) (gs := gs) (ot := None) (e := e);
       try eassumption.
     }
-    (* UDiv *)
     {
-      simpl in H14.
-      destruct
-        (eval_exp ls gs (Some (TYPE_I w)) e1) as [dv1 | ] eqn:E1,
-        (eval_exp ls gs (Some (TYPE_I w)) e2) as [dv2 | ] eqn:E2;
-      try discriminate H14.
-      unfold eval_ibinop in H14.
-      destruct dv1 as [di1 | | ] eqn:Edv1, dv2 as [di2 | | ] eqn:Edv2;
-      try (discriminate H14);
-      try (destruct di1; discriminate H14);
-      try (
-        apply has_no_poison_eval_exp with (ls := ls) (gs := gs) (ot := Some (TYPE_I w)) (e := e1);
-        try assumption;
-        rewrite H14 in E1;
-        assumption
-      ).
-      destruct di1 as [n1 | n1 | n1 | n1 | n1], di2 as [n2 | n2 | n2 | n2 | n2];
-      try discriminate H14;
-      (
-        unfold eval_ibinop_generic in H14;
-        destruct ((unsigned n2) =? 0)%Z eqn:E; subst; [
-          discriminate H14 |
-          simpl in H14;
-          inversion H14; subst;
-          intros Hf;
-          discriminate Hf
-        ]
-      ).
-    }
-    (* Shl *)
-    {
-      simpl in H14.
-      destruct
-        (eval_exp ls gs (Some (TYPE_I w)) e1) as [dv1 | ] eqn:E1,
-        (eval_exp ls gs (Some (TYPE_I w)) e2) as [dv2 | ] eqn:E2;
-      try discriminate H14.
-      unfold eval_ibinop in H14.
-      destruct dv1 as [di1 | | ] eqn:Edv1, dv2 as [di2 | | ] eqn:Edv2;
-      try (discriminate H14);
-      try (destruct di1; discriminate H14);
-      try (
-        apply has_no_poison_eval_exp
-          with (ls := ls) (gs := gs) (ot := Some (TYPE_I w)) (e := e1);
-        try assumption;
-        rewrite H14 in E1;
-        assumption
-      );
-      try (
-        apply has_no_poison_eval_exp
-          with (ls := ls) (gs := gs) (ot := Some (TYPE_I w)) (e := e2) (dv := DV_Poison) in H7;
-        try assumption;
-        destruct H7;
-        reflexivity
-      ).
-      destruct di1 as [n1 | n1 | n1 | n1 | n1], di2 as [n2 | n2 | n2 | n2 | n2];
-      try discriminate H14.
+      inversion H6; subst.
+      (* UDiv *)
       {
         simpl in H14.
-        destruct ((Int1.unsigned n2) >=? 1)%Z eqn:E.
+        destruct
+          (eval_exp ls gs (Some (TYPE_I w)) e1) as [dv1 | ] eqn:E1,
+          (eval_exp ls gs (Some (TYPE_I w)) e2) as [dv2 | ] eqn:E2;
+        try discriminate H14.
+        unfold eval_ibinop in H14.
+        destruct dv1 as [di1 | | ] eqn:Edv1, dv2 as [di2 | | ] eqn:Edv2;
+        try (discriminate H14);
+        try (destruct di1; discriminate H14);
+        try (
+          apply has_no_poison_eval_exp with (ls := ls) (gs := gs) (ot := Some (TYPE_I w)) (e := e1);
+          try assumption;
+          rewrite H14 in E1;
+          assumption
+        ).
+        destruct di1 as [n1 | n1 | n1 | n1 | n1], di2 as [n2 | n2 | n2 | n2 | n2];
+        try discriminate H14;
+        (
+          unfold eval_ibinop_generic in H14;
+          destruct ((unsigned n2) =? 0)%Z eqn:E; subst; [
+            discriminate H14 |
+            simpl in H14;
+            inversion H14; subst;
+            intros Hf;
+            discriminate Hf
+          ]
+        ).
+      }
+      (* Shl *)
+      {
+        simpl in H14.
+        destruct
+          (eval_exp ls gs (Some (TYPE_I w)) e1) as [dv1 | ] eqn:E1,
+          (eval_exp ls gs (Some (TYPE_I w)) e2) as [dv2 | ] eqn:E2;
+        try discriminate H14.
+        unfold eval_ibinop in H14.
+        destruct dv1 as [di1 | | ] eqn:Edv1, dv2 as [di2 | | ] eqn:Edv2;
+        try (discriminate H14);
+        try (destruct di1; discriminate H14);
+        try (
+          apply has_no_poison_eval_exp
+            with (ls := ls) (gs := gs) (ot := Some (TYPE_I w)) (e := e1);
+          try assumption;
+          rewrite H14 in E1;
+          assumption
+        );
+        try (
+          apply has_no_poison_eval_exp
+            with (ls := ls) (gs := gs) (ot := Some (TYPE_I w)) (e := e2) (dv := DV_Poison) in H8;
+          try assumption;
+          destruct H8;
+          reflexivity
+        ).
+        destruct di1 as [n1 | n1 | n1 | n1 | n1], di2 as [n2 | n2 | n2 | n2 | n2];
+        try discriminate H14.
         {
           simpl in H14.
-          inversion Hsafe.
-          destruct H2.
-          eapply ES_Shl; try eassumption.
-          simpl.
-          unfold Int1.ltu.
-          rewrite Int1.unsigned_repr_eq.
-          replace (1 mod Int1.modulus)%Z with (1%Z); try reflexivity.
-          rewrite Z.geb_ge in E.
-          apply Coqlib.zlt_false with (A := bool) (a := true) (b := false) in E.
-          rewrite E.
-          reflexivity.
+          destruct ((Int1.unsigned n2) >=? 1)%Z eqn:E.
+          {
+            simpl in H14.
+            inversion Hsafe.
+            destruct H2.
+            eapply ES_Shl; try eassumption.
+            simpl.
+            unfold Int1.ltu.
+            rewrite Int1.unsigned_repr_eq.
+            replace (1 mod Int1.modulus)%Z with (1%Z); try reflexivity.
+            rewrite Z.geb_ge in E.
+            apply Coqlib.zlt_false with (A := bool) (a := true) (b := false) in E.
+            rewrite E.
+            reflexivity.
+          }
+          {
+            inversion H14; subst.
+            discriminate.
+          }
         }
-        {
-          inversion H14; subst.
-          discriminate.
-        }
+        (* TODO: similar *)
+        { admit. }
+        { admit. }
+        { admit. }
+        { admit. }
       }
-      (* TODO: similar *)
-      { admit. }
-      { admit. }
-      { admit. }
-      { admit. }
     }
   }
   (* Phi *)
