@@ -371,6 +371,10 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForUnsafeOperation(StateI
     lemmaName = "safe_subtree_instr_op_udiv";
     break;
 
+  case Instruction::SDiv:
+    lemmaName = "safe_subtree_instr_op_sdiv";
+    break;
+
   case Instruction::Shl:
     lemmaName = "safe_subtree_instr_op_shl";
     break;
@@ -423,6 +427,7 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForErrorCondition(StateIn
 
   switch (bo->getOpcode()) {
   case Instruction::UDiv:
+  case Instruction::SDiv:
     if (isa<ConstantInt>(v2)) {
       return new Apply("unsat_false");
     } else {

@@ -241,11 +241,15 @@ ref<CoqTactic> ModuleSupport::getTacticForAssignment(Instruction &inst) {
     std::string lemmaName;
     switch (inst.getOpcode()) {
     case Instruction::UDiv:
-      lemmaName = "IS_INSTR_Op_UDiv";
+      lemmaName = "Is_Unsafe_Op_UDiv";
+      break;
+
+    case Instruction::SDiv:
+      lemmaName = "Is_Unsafe_Op_SDiv";
       break;
 
     case Instruction::Shl:
-      lemmaName = "IS_INSTR_Op_Shl";
+      lemmaName = "Is_Unsafe_Op_Shl";
       break;
 
     default:
@@ -254,9 +258,10 @@ ref<CoqTactic> ModuleSupport::getTacticForAssignment(Instruction &inst) {
 
     return new Block(
       {
-        new Apply(lemmaName),
-        new Apply(leftLemma->name),
-        new Apply(rightLemma->name),
+        new Apply("IS_INSTR_Op_Unsafe"),
+        new Block({new Apply(lemmaName)}),
+        new Block({new Apply(leftLemma->name)}),
+        new Block({new Apply(rightLemma->name)}),
       }
     );
   }
