@@ -678,14 +678,24 @@ Proof.
   { apply ESS_Unreachable. }
   {
     rename se into se2.
-    apply equiv_sym_eval_exp with (ls2 := ls1) (gs2 := gs1) in H5.
-    destruct H5 as [se1 [H5_1 H5_2]].
-    apply ESS_UDivByZero with (se := se1).
+    assert(L :
+      exists se1 : smt_expr,
+        sym_eval_exp ls1 gs1 (Some t) e2 = Some se1 /\ equiv_smt_expr se2 se1
+    ).
+    {
+      eapply equiv_sym_eval_exp.
+      { apply equiv_smt_store_symmetry. eassumption. }
+      { apply equiv_smt_store_symmetry. eassumption. }
+      { assumption. }
+    }
+    destruct L as [se1 [L_1 L_2]].
+    apply ESS_DivisionByZero with (se := se1).
+    { assumption. }
     { assumption. }
     {
       destruct se1 as [sort1 ast1], se2 as [sort2 ast2].
       assert(L : sort1 = sort2).
-      { apply sort_injection in H5_2. symmetry. assumption. }
+      { apply sort_injection in L_2. symmetry. assumption. }
       subst.
       rename sort2 into sort.
       unfold sym_udiv_error_condition in *.
@@ -701,8 +711,6 @@ Proof.
       }
       { assumption. }
     }
-    { apply equiv_smt_store_symmetry. assumption. }
-    { apply equiv_smt_store_symmetry. assumption. }
   }
   {
     rename se into se2.
@@ -938,6 +946,8 @@ Proof.
           { admit. }
         }
       }
+      (* SDiv *)
+      { admit. }
       {
         simpl in H.
         destruct

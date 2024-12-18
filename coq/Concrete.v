@@ -587,6 +587,13 @@ Definition init_state (mdl : llvm_module) (fid : function_id) : option state :=
   end
 .
 
+Inductive is_division : ibinop -> Prop :=
+  | Is_Division_UDiv : forall exact, is_division (UDiv exact)
+  | Is_Division_SDiv : forall exact, is_division (SDiv exact)
+  | Is_Division_URem : is_division URem
+  | Is_Division_SRem : is_division SRem
+.
+
 Definition udiv_error_condition di : bool :=
   di_is_const di 0
 .
@@ -636,13 +643,14 @@ Inductive error_state : state -> Prop :=
           mdl
         )
   (* TODO: add assumptions for e1 e2? safe_llvm_expr? *)
-  | ES_UDivByZero : forall ic cid v exact t e1 e2 cs pbid ls stk gs mdl di,
+  | ES_DivisionByZero : forall ic cid v op t e1 e2 cs pbid ls stk gs mdl di,
+      is_division op ->
       (eval_exp ls gs (Some t) e2) = Some (DV_Int di) ->
       udiv_error_condition di = true ->
       error_state
         (mk_state
           ic
-          (CMD_Inst cid (INSTR_Op v (OP_IBinop (UDiv exact) t e1 e2)))
+          (CMD_Inst cid (INSTR_Op v (OP_IBinop op t e1 e2)))
           cs
           pbid
           ls

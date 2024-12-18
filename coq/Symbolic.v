@@ -681,13 +681,14 @@ Inductive error_sym_state : sym_state -> Prop :=
           pc
           mdl
         )
-  | ESS_UDivByZero : forall ic cid v exact t e1 e2 cs pbid ls stk gs syms pc mdl se,
+  | ESS_DivisionByZero : forall ic cid v op t e1 e2 cs pbid ls stk gs syms pc mdl se,
+      is_division op ->
       (sym_eval_exp ls gs (Some t) e2) = Some se ->
       sat (sym_udiv_error_condition pc se) ->
       error_sym_state
         (mk_sym_state
           ic
-          (CMD_Inst cid (INSTR_Op v (OP_IBinop (UDiv exact) t e1 e2)))
+          (CMD_Inst cid (INSTR_Op v (OP_IBinop op t e1 e2)))
           cs
           pbid
           ls

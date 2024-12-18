@@ -470,6 +470,8 @@ Proof.
           ]
         ).
       }
+      (* SDiv *)
+      { admit. }
       (* Shl *)
       {
         simpl in H14.

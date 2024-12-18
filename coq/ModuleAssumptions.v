@@ -19,16 +19,13 @@ Inductive is_supported_ibinop : ibinop -> Prop :=
   | IS_And : is_supported_ibinop And
   | IS_Or : is_supported_ibinop Or
   | IS_Xor : is_supported_ibinop Xor
-(*
-  | IS_URem : is_supported_ibinop URem
-  | IS_SRem : is_supported_ibinop SRem
-*)
 .
 
-(* TODO: add SDiv, LShr, AShr, URem, SRem *)
+(* TODO: add LShr, AShr, URem, SRem *)
 Inductive is_unsafe_op : ibinop -> Prop :=
-  | IU_Op_UDiv : is_unsafe_op (UDiv false)
-  | IU_Op_Shl : is_unsafe_op (Shl false false)
+  | Is_Unsafe_Op_UDiv : is_unsafe_op (UDiv false)
+  | Is_Unsafe_Op_SDiv : is_unsafe_op (SDiv false)
+  | Is_Unsafe_Op_Shl : is_unsafe_op (Shl false false)
 .
 
 Inductive is_supported_conv : conversion_type -> Prop :=

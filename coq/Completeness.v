@@ -1402,6 +1402,8 @@ Proof.
         { admit. }
         { admit. }
       }
+      (* SDiv *)
+      { admit. }
       (* Shl *)
       {
         simpl in H10.
@@ -1976,7 +1978,12 @@ Proof.
   {
     inversion His; subst.
     inversion H8; subst.
-    { inversion H1; subst. inversion H14. }
+    {
+      inversion H7; subst; (
+        inversion H1; subst;
+        inversion H15
+      ).
+    }
     {
       assert(L :
         over_approx_via_model
@@ -1986,23 +1993,24 @@ Proof.
       ).
       { apply eval_exp_correspondence; assumption. }
       inversion L; subst.
-      { rewrite H6 in H1. discriminate. }
+      { rewrite H13 in H1. discriminate. }
       {
-        apply ESS_UDivByZero with (se := (Expr sort ast)).
+        apply ESS_DivisionByZero with (se := (Expr sort ast)).
+        { assumption. }
         { symmetry. assumption. }
         {
-          rewrite H6 in H0.
+          rewrite H13 in H0.
           inversion H0; subst.
           unfold sat, sym_udiv_error_condition.
           exists m.
           unfold sat_via.
           destruct sort; (
             simpl;
-            simpl in H13;
             rewrite H5;
             unfold smt_eval_cmpop_by_sort, smt_eval_cmpop_generic;
             simpl;
-            rewrite H13;
+            simpl in H14;
+            rewrite H14;
             reflexivity
           ).
         }

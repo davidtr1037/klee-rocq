@@ -57,7 +57,7 @@ Proof.
   intros ic cid v e cs pbid ls stk gs syms pc mdl His.
   intros H.
   inversion H; subst.
-  { inversion His; subst. inversion H7. }
+  { inversion His; subst. inversion H3; subst; inversion H7. }
   { inversion His; subst. inversion H7. }
 Qed.
 
@@ -658,8 +658,8 @@ Proof.
   {
     intros Herr.
     inversion Herr; subst.
-    rewrite Heval_e2 in H1.
-    inversion H1; subst.
+    rewrite Heval_e2 in H15.
+    inversion H15; subst.
     unfold unsat in Hunsat.
     apply Hunsat.
     assumption.
@@ -733,11 +733,14 @@ Proof.
   {
     intros Herr.
     inversion Herr; subst.
-    rewrite Heval_e2 in H1.
-    inversion H1; subst.
-    unfold unsat in Hunsat.
-    apply Hunsat.
-    assumption.
+    { inversion H2. }
+    {
+      rewrite Heval_e2 in H1.
+      inversion H1; subst.
+      unfold unsat in Hunsat.
+      apply Hunsat.
+      assumption.
+    }
   }
   {
     intros s' Hstep.
