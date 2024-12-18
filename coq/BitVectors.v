@@ -467,11 +467,16 @@ Qed.
 
 (* TODO: rename *)
 Lemma eq_zero_zext_i32_i64 : forall n : int32,
-  Int64.eq Int64.zero (Int64.repr (Int32.unsigned n)) = Int32.eq Int32.zero n.
+  Int32.eq Int32.zero n = Int64.eq Int64.zero (Int64.repr (Int32.unsigned n)).
 Proof.
   intro n.
   apply eq_true_iff_eq.
   split; intros Heq.
+  {
+    apply int32_eqb_eq in Heq.
+    subst.
+    reflexivity.
+  }
   {
     destruct n as [x Hx].
     simpl in Heq.
@@ -493,11 +498,6 @@ Proof.
       simpl in Hx.
       lia.
     }
-  }
-  {
-    apply int32_eqb_eq in Heq.
-    subst.
-    reflexivity.
   }
 Qed.
 

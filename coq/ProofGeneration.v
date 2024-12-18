@@ -392,22 +392,24 @@ Proof.
   assumption.
 Qed.
 
-Lemma equiv_smt_expr_div_condition_bv32 : forall ast,
-  equiv_smt_expr
-    (Expr
-      Sort_BV1
-      (AST_CmpOp Sort_BV64 SMT_Eq (AST_Const Sort_BV64 zero) (AST_ZExt Sort_BV32 ast Sort_BV64)))
-    (Expr
-      Sort_BV1
-      (AST_CmpOp Sort_BV32 SMT_Eq (AST_Const Sort_BV32 zero) ast)).
+(* TODO: rename *)
+Lemma equiv_smt_expr_div_condition_bv32 : forall ast m,
+  sat_via
+    (AST_CmpOp Sort_BV32 SMT_Eq (AST_Const Sort_BV32 zero) ast)
+    m ->
+  sat_via
+    (AST_CmpOp Sort_BV64 SMT_Eq (AST_Const Sort_BV64 zero) (AST_ZExt Sort_BV32 ast Sort_BV64))
+    m.
 Proof.
-  intros ast.
-  apply EquivExpr.
-  intros m.
-  simpl.
-  unfold smt_eval_cmpop_by_sort.
-  simpl.
-  rewrite eq_zero_zext_i32_i64.
+  intros ast m Hsat.
+  unfold sat_via in *.
+  simpl in *.
+  unfold smt_eval_cmpop_by_sort in *.
+  simpl in *.
+  destruct (Int32.eq Int32.zero (smt_eval_ast m Sort_BV32 ast)) eqn:E;
+  try discriminate.
+  rewrite eq_zero_zext_i32_i64 in E.
+  rewrite E.
   reflexivity.
 Qed.
 
@@ -430,19 +432,26 @@ Lemma unsat_div_condition_bv32 : forall pc ast,
       (AST_CmpOp Sort_BV32 SMT_Eq ast (AST_Const Sort_BV32 zero))).
 Proof.
   intros pc ast Hunsat.
-  eapply equiv_smt_expr_unsat.
+  unfold unsat.
+  intros Hsat.
+  unfold sat in Hsat.
+  destruct Hsat as [m Hsat].
+  apply sat_and in Hsat.
+  destruct Hsat as [Hsat_1 Hsat_2].
+  apply Hunsat.
+  unfold sat.
+  exists m.
+  apply sat_and_intro.
+  { assumption. }
   {
-    eapply equiv_smt_expr_binop.
-    { apply equiv_smt_expr_refl. }
-    {
-      eapply equiv_smt_expr_transitivity.
-      { apply equiv_smt_expr_div_condition_bv32. }
-      { apply equiv_smt_expr_eq_symmetry. }
-    }
+    apply equiv_smt_expr_div_condition_bv32.
+    eapply equiv_smt_expr_sat_via.
+    { apply equiv_smt_expr_eq_symmetry. }
+    { assumption. }
   }
-  assumption.
 Qed.
 
+(* TODO: rename *)
 Lemma equiv_smt_expr_shift_condition_bv32 : forall ast m,
   sat_via (AST_CmpOp Sort_BV32 SMT_Uge ast (AST_Const Sort_BV32 (repr 32))) m ->
   sat_via
