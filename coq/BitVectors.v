@@ -81,6 +81,9 @@ Class VInt I : Type := {
   signed : I -> Z;
 
   repr : Z -> I;
+
+  (* Lemmas *)
+  eq_sym : forall x y : I, eq x y = eq y x;
 }.
 
 Global Instance VInt1 : VInt Int1.int := {
@@ -132,6 +135,9 @@ Global Instance VInt1 : VInt Int1.int := {
   signed := Int1.signed;
 
   repr := Int1.repr;
+
+  (* Lemmas *)
+  eq_sym := Int1.eq_sym;
 }.
 
 Global Instance VInt8 : VInt Int8.int := {
@@ -183,6 +189,9 @@ Global Instance VInt8 : VInt Int8.int := {
   signed := Int8.signed;
 
   repr := Int8.repr;
+
+  (* Lemmas *)
+  eq_sym := Int8.eq_sym;
 }.
 
 Global Instance VInt16 : VInt Int16.int := {
@@ -234,6 +243,9 @@ Global Instance VInt16 : VInt Int16.int := {
   signed := Int16.signed;
 
   repr := Int16.repr;
+
+  (* Lemmas *)
+  eq_sym := Int16.eq_sym;
 }.
 
 Global Instance VInt32 : VInt Int32.int := {
@@ -285,6 +297,9 @@ Global Instance VInt32 : VInt Int32.int := {
   signed := Int32.signed;
 
   repr := Int32.repr;
+
+  (* Lemmas *)
+  eq_sym := Int32.eq_sym;
 }.
 
 Global Instance VInt64 : VInt Int64.int := {
@@ -336,6 +351,9 @@ Global Instance VInt64 : VInt Int64.int := {
   signed := Int64.signed;
 
   repr := Int64.repr;
+
+  (* Lemmas *)
+  eq_sym := Int64.eq_sym;
 }.
 
 Definition di_is_const (di : dynamic_int) (n : Z) : bool :=

@@ -411,7 +411,15 @@ Lemma equiv_smt_expr_sat_via : forall (ast1 ast2 : smt_ast_bool) (m : smt_model)
   sat_via ast1 m ->
   sat_via ast2 m.
 Proof.
-Admitted.
+  intros ast1 ast2 m Heq Hsat.
+  unfold sat_via in *.
+  inversion Heq; subst.
+  apply inj_pair2 in H1, H2; subst.
+  specialize (H0 m).
+  rewrite Hsat in *.
+  symmetry in H0.
+  assumption.
+Qed.
 
 Lemma equiv_smt_expr_sat : forall (ast1 ast2 : smt_ast_bool),
   equiv_smt_expr (Expr Sort_BV1 ast1) (Expr Sort_BV1 ast2) ->
@@ -419,15 +427,10 @@ Lemma equiv_smt_expr_sat : forall (ast1 ast2 : smt_ast_bool),
   sat ast2.
 Proof.
   intros ast1 ast2 Heq Hsat.
-  unfold sat, sat_via in *.
+  unfold sat in *.
   destruct Hsat as [m Hsat].
   exists m.
-  inversion Heq; subst.
-  apply inj_pair2 in H1, H2; subst.
-  specialize (H0 m).
-  rewrite Hsat in *.
-  symmetry in H0.
-  assumption.
+  eapply equiv_smt_expr_sat_via; eassumption.
 Qed.
 
 Lemma equiv_smt_expr_unsat : forall (ast1 ast2 : smt_ast_bool),
@@ -565,9 +568,40 @@ Proof.
   reflexivity.
 Qed.
 
+(* TODO: refactor *)
 Lemma equiv_smt_expr_eq_symmetry : forall s (ast1 ast2 : smt_ast s),
   equiv_smt_expr
     (Expr Sort_BV1 (AST_CmpOp s SMT_Eq ast1 ast2))
     (Expr Sort_BV1 (AST_CmpOp s SMT_Eq ast2 ast1)).
 Proof.
-Admitted.
+  intros s ast1 ast2.
+  apply EquivExpr.
+  intros m.
+  simpl.
+  destruct s.
+  {
+    unfold smt_eval_cmpop_by_sort.
+    rewrite Int1.eq_sym.
+    reflexivity.
+  }
+  {
+    unfold smt_eval_cmpop_by_sort.
+    rewrite Int8.eq_sym.
+    reflexivity.
+  }
+  {
+    unfold smt_eval_cmpop_by_sort.
+    rewrite Int16.eq_sym.
+    reflexivity.
+  }
+  {
+    unfold smt_eval_cmpop_by_sort.
+    rewrite Int32.eq_sym.
+    reflexivity.
+  }
+  {
+    unfold smt_eval_cmpop_by_sort.
+    rewrite Int64.eq_sym.
+    reflexivity.
+  }
+Qed.
