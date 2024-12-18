@@ -1,3 +1,4 @@
+From Coq Require Import Bool.
 From Coq Require Import List.
 From Coq Require Import Logic.Eqdep.
 From Coq Require Import ZArith.
@@ -391,8 +392,7 @@ Proof.
   assumption.
 Qed.
 
-(* TODO: rename? *)
-Lemma equiv_smt_expr_eq_zero_zext_bv32_bv64 : forall ast,
+Lemma equiv_smt_expr_div_condition_bv32 : forall ast,
   equiv_smt_expr
     (Expr
       Sort_BV1
@@ -436,11 +436,38 @@ Proof.
     { apply equiv_smt_expr_refl. }
     {
       eapply equiv_smt_expr_transitivity.
-      { apply equiv_smt_expr_eq_zero_zext_bv32_bv64. }
+      { apply equiv_smt_expr_div_condition_bv32. }
       { apply equiv_smt_expr_eq_symmetry. }
     }
   }
   assumption.
+Qed.
+
+Lemma equiv_smt_expr_shift_condition_bv32 : forall ast m,
+  sat_via (AST_CmpOp Sort_BV32 SMT_Uge ast (AST_Const Sort_BV32 (repr 32))) m ->
+  sat_via
+    (AST_CmpOp
+      Sort_BV1
+      SMT_Eq
+      (AST_Const Sort_BV1 zero)
+      (AST_CmpOp
+        Sort_BV64
+        SMT_Ult
+        (AST_ZExt Sort_BV32 ast Sort_BV64)
+        (AST_Const Sort_BV64 (repr 32))))
+    m.
+Proof.
+  intros ast m Hsat.
+  unfold sat_via in *.
+  simpl in *.
+  unfold smt_eval_cmpop_by_sort in *.
+  simpl in *.
+  destruct (negb (Int32.ltu (smt_eval_ast m Sort_BV32 ast) (Int32.repr 32))) eqn:E;
+  try discriminate.
+  apply negb_true_iff in E.
+  rewrite ltu_zext_i32_i64 in E.
+  rewrite E.
+  reflexivity.
 Qed.
 
 Lemma unsat_shift_condition_bv32 : forall pc ast,
@@ -465,7 +492,19 @@ Lemma unsat_shift_condition_bv32 : forall pc ast,
       pc
       (AST_CmpOp Sort_BV32 SMT_Uge ast (AST_Const Sort_BV32 (repr 32)))).
 Proof.
-Admitted.
+  intros pc ast Hunsat.
+  unfold unsat.
+  intros Hsat.
+  unfold sat in Hsat.
+  destruct Hsat as [m Hsat].
+  apply sat_and in Hsat.
+  destruct Hsat as [Hsat_1 Hsat_2].
+  apply equiv_smt_expr_shift_condition_bv32 in Hsat_2.
+  apply Hunsat.
+  unfold sat.
+  exists m.
+  apply sat_and_intro; assumption.
+Qed.
 
 Lemma inversion_instr_op : forall ic cid v e c cs pbid ls stk gs syms pc mdl s,
   sym_step

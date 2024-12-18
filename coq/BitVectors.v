@@ -486,3 +486,25 @@ Proof.
     reflexivity.
   }
 Qed.
+
+(* TODO: rename? *)
+Lemma ltu_zext_i32_i64 : forall n,
+  (Int32.ltu n (Int32.repr 32)) =
+  (Int64.ltu (Integers.Int64.repr (Int32.unsigned n)) (Integers.Int64.repr 32)).
+Proof.
+  intros n.
+  destruct n as [x Hx].
+  unfold Int32.ltu.
+  unfold Int64.ltu.
+  simpl.
+  rewrite (Int64.unsigned_repr_eq).
+  rewrite Zmod_small.
+  { reflexivity. }
+  {
+    unfold Int32.modulus, Int32.wordsize, Wordsize_32.wordsize, two_power_nat in Hx.
+    simpl in Hx.
+    unfold Int64.modulus, Int64.wordsize, Wordsize_64.wordsize, two_power_nat.
+    simpl.
+    lia.
+  }
+Qed.

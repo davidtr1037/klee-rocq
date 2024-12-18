@@ -221,6 +221,21 @@ Definition sat (ast : smt_ast_bool) :=
   exists (m : smt_model), sat_via ast m
 .
 
+Lemma sat_and : forall (e1 e2 : smt_ast_bool) (m : smt_model),
+  sat_via (AST_BinOp Sort_BV1 SMT_And e1 e2) m ->
+  (sat_via e1 m /\ sat_via e2 m).
+Proof.
+ intros e1 e2 m Hsat.
+Admitted.
+
+Lemma sat_and_intro : forall (e1 e2 : smt_ast_bool) (m : smt_model),
+  sat_via e1 m ->
+  sat_via e2 m ->
+  sat_via (AST_BinOp Sort_BV1 SMT_And e1 e2) m.
+Proof.
+ intros e1 e2 m Hsat.
+Admitted.
+
 Definition unsat (ast : smt_ast_bool) := ~ sat ast.
 
 Lemma unsat_false :
