@@ -392,6 +392,17 @@ Proof.
   assumption.
 Qed.
 
+Lemma unsat_extension_with_ne_i32 : forall pc n1 n2,
+  eq n1 n2 = false ->
+  unsat
+    (AST_BinOp
+      Sort_BV1
+      SMT_And
+      pc
+      (AST_CmpOp Sort_BV32 SMT_Eq (AST_Const Sort_BV32 n1) (AST_Const Sort_BV32 n2))).
+Proof.
+Admitted.
+
 (* TODO: rename *)
 Lemma equiv_smt_expr_div_condition_bv32 : forall ast m,
   sat_via
