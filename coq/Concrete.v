@@ -594,7 +594,7 @@ Inductive is_division : ibinop -> Prop :=
   | Is_Division_SRem : is_division SRem
 .
 
-Definition udiv_error_condition di : bool :=
+Definition division_error_condition di : bool :=
   di_is_const di 0
 .
 
@@ -646,7 +646,7 @@ Inductive error_state : state -> Prop :=
   | ES_DivisionByZero : forall ic cid v op t e1 e2 cs pbid ls stk gs mdl di,
       is_division op ->
       (eval_exp ls gs (Some t) e2) = Some (DV_Int di) ->
-      udiv_error_condition di = true ->
+      division_error_condition di = true ->
       error_state
         (mk_state
           ic

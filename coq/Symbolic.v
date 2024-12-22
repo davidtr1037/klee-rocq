@@ -619,7 +619,7 @@ Inductive sym_step : sym_state -> sym_state -> Prop :=
 
 Definition multi_sym_step := multi sym_step.
 
-Definition sym_udiv_error_condition pc se :=
+Definition sym_division_error_condition pc se :=
   match se with
   | Expr sort ast =>
       AST_BinOp
@@ -684,7 +684,7 @@ Inductive error_sym_state : sym_state -> Prop :=
   | ESS_DivisionByZero : forall ic cid v op t e1 e2 cs pbid ls stk gs syms pc mdl se,
       is_division op ->
       (sym_eval_exp ls gs (Some t) e2) = Some se ->
-      sat (sym_udiv_error_condition pc se) ->
+      sat (sym_division_error_condition pc se) ->
       error_sym_state
         (mk_sym_state
           ic

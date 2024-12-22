@@ -698,7 +698,7 @@ Proof.
       { apply sort_injection in L_2. symmetry. assumption. }
       subst.
       rename sort2 into sort.
-      unfold sym_udiv_error_condition in *.
+      unfold sym_division_error_condition in *.
       eapply equiv_smt_expr_sat.
       {
         eapply equiv_smt_expr_binop.

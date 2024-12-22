@@ -1502,6 +1502,10 @@ Proof.
         { admit. }
         { admit. }
       }
+      (* URem *)
+      { admit. }
+      (* SRem *)
+      { admit. }
       (* Shl *)
       {
         simpl in H10.
@@ -2099,7 +2103,7 @@ Proof.
         {
           rewrite H13 in H0.
           inversion H0; subst.
-          unfold sat, sym_udiv_error_condition.
+          unfold sat, sym_division_error_condition.
           exists m.
           unfold sat_via.
           destruct sort; (
