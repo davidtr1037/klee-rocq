@@ -425,76 +425,52 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForErrorCondition(StateIn
   BinaryOperator *bo = cast<BinaryOperator>(si.inst);
   Value *v2 = bo->getOperand(1);
 
+  std::string lemmaName;
   switch (bo->getOpcode()) {
   case Instruction::UDiv:
   case Instruction::SDiv:
-    if (isa<ConstantInt>(v2)) {
-      return new Block(
-        {
-          new Apply("unsat_extension_with_ne_i32"),
-          new Reflexivity(),
-        }
-      );
-    } else {
-      /* in this case, we are supposed to pass through klee_div_zero_check */
-      assert(!hint.lastUnsatAxiomName.empty());
-      return new Block(
-        {
-          new Concat(
-            {
-              new Try(
-                {
-                  new Apply("unsat_extension_with_ne_i32"),
-                  new Reflexivity(),
-                }
-              ),
-              new Try(
-                {
-                  new Apply("unsat_div_condition_bv32"),
-                  new Apply(hint.lastUnsatAxiomName),
-                }
-              )
-            }
-          )
-        }
-      );
-    }
+    lemmaName = "unsat_div_condition_bv32";
+    break;
 
-  /* TODO: avoid code duplication */
   case Instruction::Shl:
-    if (isa<ConstantInt>(v2)) {
-      return new Block(
-        {
-          new Apply("unsat_extension_with_ne_i32"),
-          new Reflexivity(),
-        }
-      );
-    } else {
-      assert(!hint.lastUnsatAxiomName.empty());
-      return new Block(
-        {
-          new Concat(
-            {
-              new Try(
-                {
-                  new Apply("unsat_extension_with_ne_i32"),
-                  new Reflexivity(),
-                }
-              ),
-              new Try(
-                {
-                  new Apply("unsat_shift_condition_bv32"),
-                  new Apply(hint.lastUnsatAxiomName),
-                }
-              )
-            }
-          )
-        }
-      );
-    }
+    lemmaName = "unsat_shift_condition_bv32";
+    break;
 
   default:
-    return nullptr;
+    assert(false);
+  }
+
+  if (isa<ConstantInt>(v2)) {
+    return new Block(
+      {
+        new Apply("unsat_and_right"),
+        new Apply("unsat_false"),
+      }
+    );
+  } else {
+    /* in this case, we are supposed to pass through klee_div_zero_check */
+    assert(!hint.lastUnsatAxiomName.empty());
+    return new Block(
+      {
+        new Concat(
+          {
+            /* this block should come first, otherwise the failing tactic is slow... */
+            new Try(
+              {
+                new Apply(lemmaName),
+                new Apply(hint.lastUnsatAxiomName),
+              }
+            ),
+            new Try(
+              {
+                new Apply("unsat_and_right"),
+                new Apply("unsat_false"),
+              }
+            ),
+          }
+        )
+      }
+    );
   }
 }
 
