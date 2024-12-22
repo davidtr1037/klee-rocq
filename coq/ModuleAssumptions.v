@@ -10,8 +10,6 @@ From SE Require Import LLVMAst.
 From SE Require Import LLVMUtils.
 From SE Require Import Symbolic.
 
-(* TODO: uncomment stuff *)
-
 Inductive is_supported_ibinop : ibinop -> Prop :=
   | IS_Add : is_supported_ibinop (Add false false)
   | IS_Sub : is_supported_ibinop (Sub false false)

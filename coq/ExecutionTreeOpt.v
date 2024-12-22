@@ -844,6 +844,96 @@ Proof.
   { right. right. assumption. }
 Qed.
 
+Definition ibinop_to_smt_binop (op : ibinop) : smt_binop :=
+  match op with
+  | Add _ _ => SMT_Add
+  | Sub _ _ => SMT_Sub
+  | Mul _ _ => SMT_Mul
+  | Shl _ _ => SMT_Shl
+  | UDiv _ => SMT_UDiv
+  | SDiv _ => SMT_SDiv
+  | LShr _ => SMT_LShr
+  | AShr _ => SMT_AShr
+  | URem => SMT_URem
+  | SRem => SMT_SRem
+  | And => SMT_And
+  | Or => SMT_Or
+  | Xor => SMT_Xor
+  end
+.
+
+Lemma equiv_sym_state_on_ibinop_step : forall s1 s1' s2 cid v op w e1 e2,
+  equiv_sym_state s1 s2 ->
+  sym_cmd s1 = CMD_Inst cid (INSTR_Op v (OP_IBinop op (TYPE_I w) e1 e2)) ->
+  is_supported_exp e1 ->
+  is_supported_exp e2 ->
+  sym_step s1 s1' ->
+  (exists s2', sym_step s2 s2' /\ equiv_sym_state s1' s2').
+Proof.
+  intros s1 s1' s2 cid v op w e1 e2 Heq Hcmd His1 His2 Hs1.
+  inversion Hs1; inversion H0; subst;
+  try discriminate.
+  inversion Hcmd; subst.
+  inversion Heq; subst.
+  rename ls into ls1, stk into stk1, gs into gs1, pc into pc1.
+  simpl in H.
+  destruct
+    (sym_eval_exp ls1 gs1 (Some (TYPE_I w)) e1) as [se1_1 | ] eqn:Ee1,
+    (sym_eval_exp ls1 gs1 (Some (TYPE_I w)) e2) as [se2_1 | ] eqn:Ee2;
+  try discriminate H.
+  assert(L1 :
+    exists se1_2,
+      (sym_eval_exp ls2 gs2 (Some (TYPE_I w)) e1 = Some se1_2 /\ equiv_smt_expr se1_1 se1_2)
+  ).
+  { eapply equiv_sym_eval_exp; eassumption. }
+  assert(L2 :
+    exists se2_2,
+      (sym_eval_exp ls2 gs2 (Some (TYPE_I w)) e2 = Some se2_2 /\ equiv_smt_expr se2_1 se2_2)
+  ).
+  { eapply equiv_sym_eval_exp; eassumption. }
+  destruct L1 as [se1_2 [L1_1 L1_2]].
+  destruct L2 as [se2_2 [L2_1 L2_2]].
+  destruct se1_1 as [sort1_1 ast1_1], se2_1 as [sort2_1 ast2_1].
+  destruct se1_2 as [sort1_2 ast1_2], se2_2 as [sort2_2 ast2_2].
+  destruct sort1_1, sort2_1; try discriminate H.
+  {
+    inversion L1_2; subst.
+    inversion L2_2; subst.
+    exists
+      (mk_sym_state
+        (next_inst_counter ic c)
+        c
+        cs
+        pbid
+        (v !-> Some (Expr Sort_BV1 (AST_BinOp Sort_BV1 (ibinop_to_smt_binop op) ast1_2 ast2_2)); ls2)
+        stk2
+        gs2
+        syms
+        pc2
+        mdl
+      ).
+    split.
+    {
+      apply Sym_Step_OP.
+      simpl.
+      rewrite L1_1, L2_1.
+      reflexivity.
+    }
+    {
+      apply EquivSymState; try assumption.
+      apply equiv_smt_store_update. try assumption.
+      simpl in H.
+      inversion H; subst.
+      apply equiv_smt_expr_binop; assumption.
+    }
+  }
+  (* TODO: similar *)
+  { admit. }
+  { admit. }
+  { admit. }
+  { admit. }
+Admitted.
+
 (* TODO: remove is_supported_sym_state? *)
 Lemma equiv_sym_state_on_step: forall s1 s1' s2,
   equiv_sym_state s1 s2 ->
@@ -883,191 +973,12 @@ Proof.
         }
       }
     }
+    (* unsafe operations *)
     {
-      inversion H4; subst.
-      (* UDiv *)
-      {
-        simpl in H.
-        destruct
-          (sym_eval_exp ls1 gs1 (Some (TYPE_I w)) e1) as [se1_1 | ] eqn:Ee1,
-          (sym_eval_exp ls1 gs1 (Some (TYPE_I w)) e2) as [se2_1 | ] eqn:Ee2;
-        try discriminate H.
-        {
-          assert(L1 :
-            exists se1_2,
-              (sym_eval_exp ls2 gs2 (Some (TYPE_I w)) e1 = Some se1_2 /\ equiv_smt_expr se1_1 se1_2)
-          ).
-          { eapply equiv_sym_eval_exp; eassumption. }
-          assert(L2 :
-            exists se2_2,
-              (sym_eval_exp ls2 gs2 (Some (TYPE_I w)) e2 = Some se2_2 /\ equiv_smt_expr se2_1 se2_2)
-          ).
-          { eapply equiv_sym_eval_exp; eassumption. }
-          destruct L1 as [se1_2 [L1_1 L1_2]].
-          destruct L2 as [se2_2 [L2_1 L2_2]].
-          destruct se1_1 as [sort1_1 ast1_1], se2_1 as [sort2_1 ast2_1].
-          destruct se1_2 as [sort1_2 ast1_2], se2_2 as [sort2_2 ast2_2].
-          destruct sort1_1, sort2_1; try discriminate H.
-          {
-            inversion L1_2; subst.
-            inversion L2_2; subst.
-            exists
-              (mk_sym_state
-                (next_inst_counter ic c)
-                c
-                cs
-                pbid
-                (v !-> Some (Expr Sort_BV1 (AST_BinOp Sort_BV1 SMT_UDiv ast1_2 ast2_2)); ls2)
-                stk2
-                gs2
-                syms
-                pc2
-                mdl
-              ).
-            split.
-            {
-              apply Sym_Step_OP.
-              simpl.
-              rewrite L1_1, L2_1.
-              reflexivity.
-            }
-            {
-              apply EquivSymState; try assumption.
-              apply equiv_smt_store_update. try assumption.
-              simpl in H.
-              inversion H; subst.
-              apply equiv_smt_expr_binop; assumption.
-            }
-          }
-          (* TODO: similar *)
-          { admit. }
-          { admit. }
-          { admit. }
-          { admit. }
-        }
-      }
-      (* SDiv *)
-      (* TODO: very similar to UDiv *)
-      {
-        simpl in H.
-        destruct
-          (sym_eval_exp ls1 gs1 (Some (TYPE_I w)) e1) as [se1_1 | ] eqn:Ee1,
-          (sym_eval_exp ls1 gs1 (Some (TYPE_I w)) e2) as [se2_1 | ] eqn:Ee2;
-        try discriminate H.
-        {
-          assert(L1 :
-            exists se1_2,
-              (sym_eval_exp ls2 gs2 (Some (TYPE_I w)) e1 = Some se1_2 /\ equiv_smt_expr se1_1 se1_2)
-          ).
-          { eapply equiv_sym_eval_exp; eassumption. }
-          assert(L2 :
-            exists se2_2,
-              (sym_eval_exp ls2 gs2 (Some (TYPE_I w)) e2 = Some se2_2 /\ equiv_smt_expr se2_1 se2_2)
-          ).
-          { eapply equiv_sym_eval_exp; eassumption. }
-          destruct L1 as [se1_2 [L1_1 L1_2]].
-          destruct L2 as [se2_2 [L2_1 L2_2]].
-          destruct se1_1 as [sort1_1 ast1_1], se2_1 as [sort2_1 ast2_1].
-          destruct se1_2 as [sort1_2 ast1_2], se2_2 as [sort2_2 ast2_2].
-          destruct sort1_1, sort2_1; try discriminate H.
-          {
-            inversion L1_2; subst.
-            inversion L2_2; subst.
-            exists
-              (mk_sym_state
-                (next_inst_counter ic c)
-                c
-                cs
-                pbid
-                (v !-> Some (Expr Sort_BV1 (AST_BinOp Sort_BV1 SMT_SDiv ast1_2 ast2_2)); ls2)
-                stk2
-                gs2
-                syms
-                pc2
-                mdl
-              ).
-            split.
-            {
-              apply Sym_Step_OP.
-              simpl.
-              rewrite L1_1, L2_1.
-              reflexivity.
-            }
-            {
-              apply EquivSymState; try assumption.
-              apply equiv_smt_store_update. try assumption.
-              simpl in H.
-              inversion H; subst.
-              apply equiv_smt_expr_binop; assumption.
-            }
-          }
-          (* TODO: similar *)
-          { admit. }
-          { admit. }
-          { admit. }
-          { admit. }
-        }
-      }
-      {
-        simpl in H.
-        destruct
-          (sym_eval_exp ls1 gs1 (Some (TYPE_I w)) e1) as [se1_1 | ] eqn:Ee1,
-          (sym_eval_exp ls1 gs1 (Some (TYPE_I w)) e2) as [se2_1 | ] eqn:Ee2;
-        try discriminate H.
-        {
-          assert(L1 :
-            exists se1_2,
-              (sym_eval_exp ls2 gs2 (Some (TYPE_I w)) e1 = Some se1_2 /\ equiv_smt_expr se1_1 se1_2)
-          ).
-          { eapply equiv_sym_eval_exp; eassumption. }
-          assert(L2 :
-            exists se2_2,
-              (sym_eval_exp ls2 gs2 (Some (TYPE_I w)) e2 = Some se2_2 /\ equiv_smt_expr se2_1 se2_2)
-          ).
-          { eapply equiv_sym_eval_exp; eassumption. }
-          destruct L1 as [se1_2 [L1_1 L1_2]].
-          destruct L2 as [se2_2 [L2_1 L2_2]].
-          destruct se1_1 as [sort1_1 ast1_1], se2_1 as [sort2_1 ast2_1].
-          destruct se1_2 as [sort1_2 ast1_2], se2_2 as [sort2_2 ast2_2].
-          destruct sort1_1, sort2_1; try discriminate H.
-          {
-            inversion L1_2; subst.
-            inversion L2_2; subst.
-            exists
-              (mk_sym_state
-                (next_inst_counter ic c)
-                c
-                cs
-                pbid
-                (v !-> Some (Expr Sort_BV1 (AST_BinOp Sort_BV1 SMT_Shl ast1_2 ast2_2)); ls2)
-                stk2
-                gs2
-                syms
-                pc2
-                mdl
-              ).
-            split.
-            {
-              apply Sym_Step_OP.
-              simpl.
-              rewrite L1_1, L2_1.
-              reflexivity.
-            }
-            {
-              apply EquivSymState; try assumption.
-              apply equiv_smt_store_update. try assumption.
-              simpl in H.
-              inversion H; subst.
-              apply equiv_smt_expr_binop; assumption.
-            }
-          }
-          (* TODO: similar *)
-          { admit. }
-          { admit. }
-          { admit. }
-          { admit. }
-        }
-      }
+      eapply equiv_sym_state_on_ibinop_step
+        with (cid := cid) (v := v) (op := op) (w := w) (e1 := e1) (e2 := e2);
+      try eassumption.
+      reflexivity.
     }
   }
   {
@@ -1326,7 +1237,7 @@ Proof.
       apply equiv_smt_expr_refl.
     }
   }
-Admitted.
+Qed.
 
 Lemma safe_subtree_equiv: forall s1 s2 l,
   equiv_sym_state s1 s2 ->
