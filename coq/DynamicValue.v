@@ -119,9 +119,9 @@ Definition eval_ibinop_generic {Int} `{VInt Int} `{ConvertToDV Int} (op : ibinop
      else
        Some (to_dvalue (shr x y))
   | URem =>
-      if (unsigned y =? 0)%Z then None else Some (to_dvalue (divu x y))
+      if (unsigned y =? 0)%Z then None else Some (to_dvalue (modu x y))
   | SRem =>
-      if (signed y =? 0)%Z then None else Some (to_dvalue (divs x y))
+      if (signed y =? 0)%Z then None else Some (to_dvalue (mods x y))
   | And => Some (to_dvalue (and x y))
   | Or => Some (to_dvalue (or x y))
   | Xor => Some (to_dvalue (xor x y))
