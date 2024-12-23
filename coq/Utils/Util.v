@@ -1642,3 +1642,13 @@ Proof.
   f_equal.
   assumption.
 Qed.
+
+Lemma some_not_equal : forall (A : Type) (x y : A),
+  x <> y -> Some x <> Some y.
+Proof.
+  intros A x y H.
+  intros Hf.
+  apply H.
+  inversion Hf; subst.
+  reflexivity.
+Qed.
