@@ -692,8 +692,80 @@ Proof.
         }
         { eapply eval_binop_not_poison_right_none; try eassumption. }
       }
-      { admit. }
-      { admit. }
+      (* LShr *)
+      {
+        destruct (eval_exp ls gs (Some (TYPE_I w)) e2) as [dv2 | ] eqn:E2.
+        {
+          destruct dv2 as [di2 | | ] eqn:Edv2.
+          {
+            apply has_no_poison_eval_exp_shift
+              with (ls := ls) (gs := gs) (op := LShr false) (w := w) (e1 := e1) (e2 := e2) (di := di2);
+            try assumption.
+            { apply Is_Unsafe_Shift_LShr. }
+            {
+              inversion Hsafe; subst.
+              eapply shift_error_negation; try eassumption.
+              apply Is_Unsafe_Shift_LShr.
+            }
+          }
+          {
+            eapply eval_binop_not_poison_right_undef; try eassumption.
+            destruct (eval_exp ls gs (Some (TYPE_I w)) e1) as [dv1 | ] eqn:E1.
+            {
+              apply some_not_equal.
+              apply has_no_poison_eval_exp
+                with (ls := ls) (gs := gs) (ot := Some (TYPE_I w)) (e := e1);
+              try assumption.
+            }
+            { discriminate. }
+          }
+          {
+            apply has_no_poison_eval_exp
+              with (ls := ls) (gs := gs) (ot := Some (TYPE_I w)) (e := e2) (dv := DV_Poison) in H8;
+            try assumption.
+            destruct H8.
+            reflexivity.
+          }
+        }
+        { eapply eval_binop_not_poison_right_none; try eassumption. }
+      }
+      (* AShr *)
+      {
+        destruct (eval_exp ls gs (Some (TYPE_I w)) e2) as [dv2 | ] eqn:E2.
+        {
+          destruct dv2 as [di2 | | ] eqn:Edv2.
+          {
+            apply has_no_poison_eval_exp_shift
+              with (ls := ls) (gs := gs) (op := AShr false) (w := w) (e1 := e1) (e2 := e2) (di := di2);
+            try assumption.
+            { apply Is_Unsafe_Shift_AShr. }
+            {
+              inversion Hsafe; subst.
+              eapply shift_error_negation; try eassumption.
+              apply Is_Unsafe_Shift_AShr.
+            }
+          }
+          {
+            eapply eval_binop_not_poison_right_undef; try eassumption.
+            destruct (eval_exp ls gs (Some (TYPE_I w)) e1) as [dv1 | ] eqn:E1.
+            {
+              apply some_not_equal.
+              apply has_no_poison_eval_exp
+                with (ls := ls) (gs := gs) (ot := Some (TYPE_I w)) (e := e1);
+              try assumption.
+            }
+            { discriminate. }
+          }
+          {
+            apply has_no_poison_eval_exp
+              with (ls := ls) (gs := gs) (ot := Some (TYPE_I w)) (e := e2) (dv := DV_Poison) in H8;
+            try assumption.
+            destruct H8.
+            reflexivity.
+          }
+        }
+        { eapply eval_binop_not_poison_right_none; try eassumption. }
+      }
     }
   }
   (* Phi *)
@@ -828,7 +900,7 @@ Proof.
   {
     apply Has_No_Poison; try assumption.
   }
-Admitted.
+Qed.
 
 Lemma ns_step_relative_completeness : forall s1 s2,
   is_supported_state s1 ->
