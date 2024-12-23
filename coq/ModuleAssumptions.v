@@ -32,7 +32,6 @@ Inductive is_unsafe_shift : ibinop -> Prop :=
   | Is_Unsafe_Shift_AShr : is_unsafe_shift (AShr false)
 .
 
-(* TODO: add missing ops *)
 Inductive is_unsafe_op : ibinop -> Prop :=
   | Is_Unsafe_Op_UDiv : is_unsafe_op (UDiv false)
   | Is_Unsafe_Op_SDiv : is_unsafe_op (SDiv false)
