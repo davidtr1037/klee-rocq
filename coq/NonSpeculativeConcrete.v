@@ -433,12 +433,11 @@ Proof.
 Qed.
 
 Lemma eval_binop_not_poison_right_none : forall ls gs op w e1 e2 dv,
-  is_unsafe_shift op ->
   eval_exp ls gs (Some (TYPE_I w)) e2 = None ->
   eval_exp ls gs None (OP_IBinop op (TYPE_I w) e1 e2) = Some dv ->
   dv <> DV_Poison.
 Proof.
-  intros ls gs op w e1 e2 dv Hop Heval2 Heval.
+  intros ls gs op w e1 e2 dv Heval2 Heval.
   simpl in Heval.
   rewrite Heval2 in Heval.
   destruct (eval_exp ls gs (Some (TYPE_I w)) e1) as [dv1 | ] eqn:E1;
@@ -446,13 +445,12 @@ Proof.
 Qed.
 
 Lemma eval_binop_not_poison_right_undef : forall ls gs op w e1 e2 dv,
-  is_unsafe_shift op ->
   eval_exp ls gs (Some (TYPE_I w)) e1 <> Some DV_Poison ->
   eval_exp ls gs (Some (TYPE_I w)) e2 = Some DV_Undef ->
   eval_exp ls gs None (OP_IBinop op (TYPE_I w) e1 e2) = Some dv ->
   dv <> DV_Poison.
 Proof.
-  intros ls gs op w e1 e2 dv Hop Heval1 Heval2 Heval.
+  intros ls gs op w e1 e2 dv Heval1 Heval2 Heval.
   destruct
     (eval_exp ls gs (Some (TYPE_I w)) e1) as [dv1 | ] eqn:E1,
     (eval_exp ls gs (Some (TYPE_I w)) e2) as [dv2 | ] eqn:E2;
@@ -675,17 +673,14 @@ Proof.
           }
           {
             eapply eval_binop_not_poison_right_undef; try eassumption.
-            { apply Is_Unsafe_Shift_Shl. }
+            destruct (eval_exp ls gs (Some (TYPE_I w)) e1) as [dv1 | ] eqn:E1.
             {
-              destruct (eval_exp ls gs (Some (TYPE_I w)) e1) as [dv1 | ] eqn:E1.
-              {
-                apply some_not_equal.
-                apply has_no_poison_eval_exp
-                  with (ls := ls) (gs := gs) (ot := Some (TYPE_I w)) (e := e1);
-                try assumption.
-              }
-              { discriminate. }
+              apply some_not_equal.
+              apply has_no_poison_eval_exp
+                with (ls := ls) (gs := gs) (ot := Some (TYPE_I w)) (e := e1);
+              try assumption.
             }
+            { discriminate. }
           }
           {
             apply has_no_poison_eval_exp
@@ -695,10 +690,7 @@ Proof.
             reflexivity.
           }
         }
-        {
-          eapply eval_binop_not_poison_right_none; try eassumption.
-          apply Is_Unsafe_Shift_Shl.
-        }
+        { eapply eval_binop_not_poison_right_none; try eassumption. }
       }
       { admit. }
       { admit. }
