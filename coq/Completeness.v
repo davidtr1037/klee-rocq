@@ -1574,8 +1574,66 @@ Proof.
             { symmetry. apply int1_lt_one. assumption. }
           }
         }
-        { admit. }
-        { admit. }
+        (* LShr *)
+        {
+          rewrite <- H11.
+          simpl.
+          destruct (Int1.unsigned n2 >=? 1)%Z eqn:En2.
+          {
+            simpl in H11.
+            rewrite En2 in H11.
+            inversion H11; subst.
+            inversion H0; subst.
+            inversion H20; subst.
+            specialize (H3 v).
+            rewrite update_map_eq in H3.
+            destruct H3.
+            reflexivity.
+          }
+          {
+            eapply OA_Some; try reflexivity.
+            simpl.
+            replace n2 with (Int1.repr 0) in H12.
+            {
+              inversion H12; subst.
+              rewrite H10.
+              rewrite Int1.shru_zero.
+              inversion H9; subst.
+              reflexivity.
+            }
+            { symmetry. apply int1_lt_one. assumption. }
+          }
+        }
+        (* AShr *)
+        {
+          rewrite <- H11.
+          simpl.
+          destruct (Int1.unsigned n2 >=? 1)%Z eqn:En2.
+          {
+            simpl in H11.
+            rewrite En2 in H11.
+            inversion H11; subst.
+            inversion H0; subst.
+            inversion H20; subst.
+            specialize (H3 v).
+            rewrite update_map_eq in H3.
+            destruct H3.
+            reflexivity.
+          }
+          {
+            eapply OA_Some; try reflexivity.
+            simpl.
+            replace n2 with (Int1.repr 0) in H12.
+            {
+              inversion H12; subst.
+              rewrite H10.
+              rewrite Int1.shr_zero.
+              inversion H9; subst.
+              reflexivity.
+            }
+            { symmetry. apply int1_lt_one. assumption. }
+          }
+        }
       }
     }
     (* TODO: those are similar to the Sort_BV1 case *)
