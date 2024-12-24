@@ -1544,6 +1544,7 @@ Proof.
         apply OAV_State; try assumption.
         apply store_update_correspondence; try assumption.
         destruct op; inversion Hop; subst.
+        (* Shl *)
         {
           rewrite <- H11.
           simpl.
@@ -1560,27 +1561,24 @@ Proof.
             reflexivity.
           }
           {
-            eapply OA_Some.
-            { reflexivity. }
+            eapply OA_Some; try reflexivity.
+            simpl.
+            replace n2 with (Int1.repr 0) in H12.
             {
-              simpl.
-              simpl in H11.
-              rewrite En2 in H11.
-              inversion H11; subst.
-              assert(Ln2 : n2 = Int1.repr 0).
-              { apply int1_lt_one. assumption. }
               inversion H12; subst.
               rewrite H10.
               rewrite Int1.shl_zero.
               inversion H9; subst.
               reflexivity.
             }
+            { symmetry. apply int1_lt_one. assumption. }
           }
         }
         { admit. }
         { admit. }
       }
     }
+    (* TODO: those are similar to the Sort_BV1 case *)
     { admit. }
     { admit. }
     { admit. }
@@ -2142,7 +2140,7 @@ Proof.
       }
     }
   }
-Admitted.
+Qed.
 
 (* TODO: can we prove without additional assumptions? *)
 Lemma error_correspondence: forall c s,
