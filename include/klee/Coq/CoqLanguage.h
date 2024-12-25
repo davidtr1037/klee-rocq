@@ -336,6 +336,14 @@ public:
 
 };
 
+class EAssumption : public BasicTactic {
+
+public:
+
+  EAssumption() : BasicTactic("eassumption") {}
+
+};
+
 class Exists : public CoqTactic {
 
 public:
@@ -463,7 +471,7 @@ public:
 
 };
 
-class Apply : public CoqTactic {
+class BaseApply : public CoqTactic {
 
 public:
 
@@ -475,21 +483,67 @@ public:
 
   std::string in;
 
-  Apply(const std::string &name) : name(name) {}
+  virtual std::string getTacticName() const = 0;
 
-  Apply(const std::string &name, const std::string &in) : name(name), in(in) {}
+  BaseApply(const std::string &name) : name(name) {}
 
-  Apply(const std::string &name, const std::vector<ref<CoqExpr>> &args) :
+  BaseApply(const std::string &name, const std::string &in) : name(name), in(in) {}
+
+  BaseApply(const std::string &name, const std::vector<ref<CoqExpr>> &args) :
     name(name), args(args) {}
 
-  Apply(const std::string &name,
-        const std::map<std::string, ref<CoqExpr>> &kwargs,
-        const std::string &in) :
+  BaseApply(const std::string &name,
+            const std::map<std::string, ref<CoqExpr>> &kwargs,
+            const std::string &in) :
     name(name), kwargs(kwargs), in(in) {}
 
   std::string dump(int indent) const;
 
   std::string dump(int indent, bool end) const;
+
+};
+
+class Apply : public BaseApply {
+
+public:
+
+  std::string getTacticName() const {
+    return "apply";
+  }
+
+  Apply(const std::string &name) : BaseApply(name) {}
+
+  Apply(const std::string &name, const std::string &in) : BaseApply(name, in) {}
+
+  Apply(const std::string &name, const std::vector<ref<CoqExpr>> &args) :
+    BaseApply(name, args) {}
+
+  Apply(const std::string &name,
+        const std::map<std::string, ref<CoqExpr>> &kwargs,
+        const std::string &in) :
+    BaseApply(name, kwargs, in) {}
+
+};
+
+class EApply : public BaseApply {
+
+public:
+
+  std::string getTacticName() const {
+    return "eapply";
+  }
+
+  EApply(const std::string &name) : BaseApply(name) {}
+
+  EApply(const std::string &name, const std::string &in) : BaseApply(name, in) {}
+
+  EApply(const std::string &name, const std::vector<ref<CoqExpr>> &args) :
+    BaseApply(name, args) {}
+
+  EApply(const std::string &name,
+        const std::map<std::string, ref<CoqExpr>> &kwargs,
+        const std::string &in) :
+    BaseApply(name, kwargs, in) {}
 
 };
 

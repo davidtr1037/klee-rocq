@@ -392,15 +392,15 @@ string Block::dump(int indent) const {
   return os.str();
 }
 
-string Apply::dump(int indent) const {
+string BaseApply::dump(int indent) const {
   return dump(indent, true);
 }
 
-string Apply::dump(int indent, bool end) const {
+string BaseApply::dump(int indent, bool end) const {
   ostringstream os;
   os << space(indent);
   if (!args.empty()) {
-    os << "apply " << "(" << name;
+    os << getTacticName() << " " << "(" << name;
     for (ref<CoqExpr> e : args) {
       os << " " << "(" << e->dump() << ")";
     }
@@ -409,7 +409,7 @@ string Apply::dump(int indent, bool end) const {
       os << " in " << in;
     }
   } else if (!kwargs.empty()) {
-    os << "apply " << name << " with";
+    os << getTacticName() << " " << name << " with";
     for (auto i : kwargs) {
       string var = i.first;
       ref<CoqExpr> value = i.second;
@@ -419,7 +419,7 @@ string Apply::dump(int indent, bool end) const {
       os << " in " << in;
     }
   } else {
-    os << "apply " << name;
+    os << getTacticName() << " " << name;
     if (!in.empty()) {
       os << " in " << in;
     }
