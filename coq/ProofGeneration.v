@@ -38,6 +38,18 @@ Proof.
   apply in_eq.
 Qed.
 
+Lemma sat_unsat_contradiction : forall ast,
+  sat ast ->
+  unsat ast ->
+  False.
+Proof.
+  intros ast Hsat Hunsat.
+  unfold unsat in Hunsat.
+  unfold not in Hunsat.
+  apply Hunsat.
+  assumption.
+Qed.
+
 Lemma not_error_instr_op : forall ic cid v e cs pbid ls stk gs syms pc mdl,
   is_supported_exp e ->
   ~ error_sym_state
