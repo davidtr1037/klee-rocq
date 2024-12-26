@@ -324,6 +324,12 @@ Definition simplify_binop_bv32 op (ast1 ast2 : smt_ast Sort_BV32) :=
             ast
           else
             AST_BinOp Sort_BV32 op ast1 ast2
+      | SMT_Or => if (eq n1 zero) then ast2 else AST_BinOp Sort_BV32 op ast1 ast2
+      | _ => AST_BinOp Sort_BV32 op ast1 ast2
+      end
+  | ast1, AST_Const Sort_BV32 n2 =>
+      match op with
+      | SMT_Or => if (eq n2 zero) then ast1 else AST_BinOp Sort_BV32 op ast1 ast2
       | _ => AST_BinOp Sort_BV32 op ast1 ast2
       end
   | _, _ => AST_BinOp Sort_BV32 op ast1 ast2
@@ -1577,6 +1583,28 @@ Proof.
   }
 Qed.
 
+Lemma equiv_smt_expr_or_zero_left_bv32 : forall n ast,
+  equiv_smt_expr
+    (Expr Sort_BV32
+       (if Int32.eq n Int32.zero
+          then ast
+        else
+         AST_BinOp Sort_BV32 SMT_Or (AST_Const Sort_BV32 n) ast))
+    (Expr Sort_BV32 (AST_BinOp Sort_BV32 SMT_Or (AST_Const Sort_BV32 n) ast)).
+Proof.
+Admitted.
+
+Lemma equiv_smt_expr_or_zero_right_bv32 : forall n ast,
+  equiv_smt_expr
+    (Expr Sort_BV32
+       (if Int32.eq n Int32.zero
+          then ast
+        else
+         AST_BinOp Sort_BV32 SMT_Or ast (AST_Const Sort_BV32 n)))
+    (Expr Sort_BV32 (AST_BinOp Sort_BV32 SMT_Or ast (AST_Const Sort_BV32 n))).
+Proof.
+Admitted.
+
 Lemma equiv_smt_expr_simplify_binop_bv32 : forall op (ast1 ast2 : smt_ast Sort_BV32),
   equiv_smt_expr
     (Expr Sort_BV32 (simplify_binop_bv32 op ast1 ast2))
@@ -1584,14 +1612,24 @@ Lemma equiv_smt_expr_simplify_binop_bv32 : forall op (ast1 ast2 : smt_ast Sort_B
 Proof.
   intros op ast1 ast2.
   dependent destruction ast1;
-  try apply equiv_smt_expr_refl.
+  try (
+    destruct op;
+    try (
+      dependent destruction ast2;
+      try apply equiv_smt_expr_refl
+    );
+    apply equiv_smt_expr_or_zero_right_bv32
+  ).
   (* const *)
   {
     dependent destruction ast2;
     try (
+      simpl;
       destruct op;
-      try apply equiv_smt_expr_refl;
-      apply equiv_smt_expr_add_zero_bv32
+      try apply equiv_smt_expr_refl; [
+        apply equiv_smt_expr_add_zero_bv32 |
+        apply equiv_smt_expr_or_zero_left_bv32
+      ]
     ).
     (* const *)
     {
