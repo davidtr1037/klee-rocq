@@ -885,44 +885,24 @@ Proof.
   destruct L2 as [se2_2 [L2_1 L2_2]].
   destruct se1_1 as [sort1_1 ast1_1], se2_1 as [sort2_1 ast2_1].
   destruct se1_2 as [sort1_2 ast1_2], se2_2 as [sort2_2 ast2_2].
-  destruct sort1_1, sort2_1; try discriminate H.
-  {
-    inversion L1_2; subst.
-    inversion L2_2; subst.
-    exists
-      (mk_sym_state
-        (next_inst_counter ic c)
-        c
-        cs
-        pbid
-        (v !-> Some (Expr Sort_BV1 (AST_BinOp Sort_BV1 (ibinop_to_smt_binop op) ast1_2 ast2_2)); ls2)
-        stk2
-        gs2
-        syms
-        pc2
-        mdl
-      ).
-    split.
-    {
-      apply Sym_Step_OP.
-      simpl.
-      rewrite L1_1, L2_1.
-      reflexivity.
-    }
-    {
-      apply EquivSymState; try assumption.
-      apply equiv_smt_store_update. try assumption.
-      simpl in H.
-      inversion H; subst.
-      apply equiv_smt_expr_binop; assumption.
-    }
-  }
-  (* TODO: similar *)
-  { admit. }
-  { admit. }
-  { admit. }
-  { admit. }
-Admitted.
+  destruct sort1_1, sort2_1; try discriminate H;
+  (
+    inversion L1_2; subst;
+    inversion L2_2; subst;
+    eexists;
+    split; [
+      apply Sym_Step_OP;
+      simpl;
+      rewrite L1_1, L2_1;
+      reflexivity |
+      apply EquivSymState; try assumption;
+      apply equiv_smt_store_update; try assumption;
+      simpl in H;
+      inversion H; subst;
+      apply equiv_smt_expr_binop; assumption
+    ]
+  ).
+Qed.
 
 (* TODO: remove is_supported_sym_state? *)
 Lemma equiv_sym_state_on_step: forall s1 s1' s2,
