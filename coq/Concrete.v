@@ -686,18 +686,16 @@ Inductive error_state : state -> Prop :=
 Definition safe_successors (R : relation state) (s : state) :=
   (forall s', (multi R) s s' -> ~ error_state s').
 
-(* TODO: rename? *)
-Definition safe_state (R : relation state) (s : state) :=
+Definition safe_origin (R : relation state) (s : state) :=
   ~ error_state s /\ safe_successors R s.
 
-(* TODO: rename? *)
-Lemma safe_state_preserved_on_reachability : forall R s s',
-  safe_state R s ->
+Lemma safe_origin_preserved_on_reachability : forall R s s',
+  safe_origin R s ->
   (multi R) s s' ->
-  safe_state R s'.
+  safe_origin R s'.
 Proof.
   intros R s s' Hsafe Hms.
-  unfold safe_state in *.
+  unfold safe_origin in *.
   destruct Hsafe as [Hne Hss].
   split.
   {

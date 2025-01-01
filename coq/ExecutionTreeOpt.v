@@ -1407,7 +1407,7 @@ Proof.
   split.
   { assumption. }
   {
-    unfold safe_state.
+    unfold safe_origin.
     intros c' Hms.
     assert(L2 : multi_ns_step init_c c').
     {
@@ -1433,7 +1433,7 @@ Proof.
       { eapply has_no_poison_init_state. eassumption. }
       { assumption. }
     }
-    unfold safe_state in Hsafe.
+    unfold safe_origin in Hsafe.
     apply Hsafe.
     assumption.
   }

@@ -713,7 +713,7 @@ Qed.
 
 Lemma has_no_poison_step : forall s1 s2,
   is_supported_state s1 ->
-  safe_state ns_step s1 ->
+  safe_origin ns_step s1 ->
   has_no_poison s1 ->
   step s1 s2 ->
   has_no_poison s2.
@@ -1010,7 +1010,7 @@ Qed.
 
 Lemma ns_step_relative_completeness : forall s1 s2,
   is_supported_state s1 ->
-  safe_state ns_step s1 ->
+  safe_origin ns_step s1 ->
   has_no_poison s1 ->
   step s1 s2 ->
   ns_step s1 s2.
@@ -1023,7 +1023,7 @@ Qed.
 
 Lemma multi_ns_step_relative_completeness : forall s1 s2,
   is_supported_state s1 ->
-  safe_state ns_step s1 ->
+  safe_origin ns_step s1 ->
   has_no_poison s1 ->
   multi_step s1 s2 ->
   multi_ns_step s1 s2.
@@ -1036,9 +1036,9 @@ Proof.
     assumption.
   }
   {
-    assert(Ls' : safe_state ns_step s').
+    assert(Ls' : safe_origin ns_step s').
     {
-      apply safe_state_preserved_on_reachability with (s := s).
+      apply safe_origin_preserved_on_reachability with (s := s).
       { assumption. }
       { apply IHHms; assumption. }
     }
