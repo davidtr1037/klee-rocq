@@ -712,7 +712,52 @@ Proof.
       { assumption. }
     }
   }
-  { admit. }
+  {
+    assert(L1 :
+      exists se1' : smt_expr,
+        sym_eval_exp ls1 gs1 (Some t) e1 = Some se1' /\ equiv_smt_expr se1 se1'
+    ).
+    {
+      eapply equiv_sym_eval_exp.
+      { apply equiv_smt_store_symmetry. eassumption. }
+      { apply equiv_smt_store_symmetry. eassumption. }
+      { assumption. }
+    }
+    assert(L2 :
+      exists se2' : smt_expr,
+        sym_eval_exp ls1 gs1 (Some t) e2 = Some se2' /\ equiv_smt_expr se2 se2'
+    ).
+    {
+      eapply equiv_sym_eval_exp.
+      { apply equiv_smt_store_symmetry. eassumption. }
+      { apply equiv_smt_store_symmetry. eassumption. }
+      { assumption. }
+    }
+    destruct L1 as [se1' [L1_1 L1_2]].
+    destruct L2 as [se2' [L2_1 L2_2]].
+    apply ESS_DivisionOverflow with (se1 := se1') (se2 := se2').
+    { assumption. }
+    { assumption. }
+    {
+      destruct se1 as [sort1 ast1], se1' as [sort1' ast1'].
+      assert(Ls1 : sort1 = sort1').
+      { apply sort_injection in L1_2. assumption. }
+      destruct se2 as [sort2 ast2], se2' as [sort2' ast2'].
+      assert(Ls2 : sort2 = sort2').
+      { apply sort_injection in L2_2. assumption. }
+      subst.
+      destruct H15 as [m Hsat].
+      exists m.
+      unfold sat_via in *.
+      destruct sort1', sort2'; simpl in Hsat;
+      try (
+        rewrite Int1.and_zero in Hsat;
+        discriminate Hsat
+      ).
+      { admit. }
+      { admit. }
+    }
+  }
   {
     rename se into se2.
     assert(L :
