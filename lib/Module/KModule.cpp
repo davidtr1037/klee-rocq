@@ -201,8 +201,11 @@ void KModule::optimiseAndPrepare(
     llvm::ArrayRef<const char *> preservedFunctions) {
   // Add internal functions which are not used to check if instructions
   // have been already visited
-  if (opts.CheckDivZero)
+  if (opts.CheckDivZero) {
     addInternalFunction("klee_div_zero_check");
+    addInternalFunction("klee_sdiv_check_32");
+    addInternalFunction("klee_sdiv_check_64");
+  }
   if (opts.CheckOvershift)
     addInternalFunction("klee_overshift_check");
 

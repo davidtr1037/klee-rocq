@@ -12,6 +12,7 @@ set(SRC_FILES
         dso_handle.c
         klee_choose.c
         klee_div_zero_check.c
+        klee_sdiv_check.c
         klee_int.c
         klee_is_replay.c
         klee_overshift_check.c

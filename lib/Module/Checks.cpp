@@ -64,6 +64,11 @@ bool DivCheckPass::runOnModule(Module &M) {
         // Check if the operand is already checked by "klee_div_zero_check"
         if (KleeIRMetaData::hasAnnotation(I, "klee.check.div", "True"))
           continue;
+
+        // Check if the operand is already checked by "klee_sdiv_check_*"
+        if (KleeIRMetaData::hasAnnotation(I, "klee.check.sdiv", "True"))
+          continue;
+
         divInstruction.push_back(binOp);
       }
     }
@@ -78,15 +83,41 @@ bool DivCheckPass::runOnModule(Module &M) {
   auto divZeroCheckFunction =
       M.getOrInsertFunction("klee_div_zero_check", Type::getVoidTy(ctx),
                             Type::getInt64Ty(ctx));
+  auto sdivCheck32Function =
+      M.getOrInsertFunction("klee_sdiv_check_32",
+                            Type::getVoidTy(ctx),
+                            Type::getInt32Ty(ctx),
+                            Type::getInt32Ty(ctx));
+  auto sdivCheck64Function =
+      M.getOrInsertFunction("klee_sdiv_check_64",
+                            Type::getVoidTy(ctx),
+                            Type::getInt64Ty(ctx),
+                            Type::getInt64Ty(ctx));
 
   for (auto &divInst : divInstruction) {
-    llvm::IRBuilder<> Builder(divInst /* Inserts before divInst*/);
-    auto denominator =
-        Builder.CreateIntCast(divInst->getOperand(1), Type::getInt64Ty(ctx),
-                              false, /* sign doesn't matter */
-                              "int_cast_to_i64");
-    Builder.CreateCall(divZeroCheckFunction, denominator);
-    md.addAnnotation(*divInst, "klee.check.div", "True");
+    Type *opType = divInst->getType();
+
+    if (divInst->getOpcode() == Instruction::SDiv &&
+        (opType->isIntegerTy(32) || opType->isIntegerTy(64))) {
+      Value *v1 = divInst->getOperand(0);
+      Value *v2 = divInst->getOperand(1);
+      llvm::IRBuilder<> Builder(divInst);
+      if (opType->isIntegerTy(32)) {
+        Builder.CreateCall(sdivCheck32Function, {v1, v2});
+      } else {
+        Builder.CreateCall(sdivCheck64Function, {v1, v2});
+      }
+      md.addAnnotation(*divInst, "klee.check.sdiv", "True");
+    } else {
+      llvm::IRBuilder<> Builder(divInst /* Inserts before divInst*/);
+      auto denominator =
+          Builder.CreateIntCast(divInst->getOperand(1),
+                                Type::getInt64Ty(ctx),
+                                false, /* sign doesn't matter */
+                                "int_cast_to_i64");
+      Builder.CreateCall(divZeroCheckFunction, denominator);
+      md.addAnnotation(*divInst, "klee.check.div", "True");
+    }
   }
 
   return true;
