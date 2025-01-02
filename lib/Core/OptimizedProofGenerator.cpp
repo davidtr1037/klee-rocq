@@ -350,7 +350,7 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForUnsafeOperation(StateI
   ref<CoqTactic> unsatTactic = getTacticForErrorCondition(si, successor, hint);
   assert(!unsatTactic.isNull());
 
-  ref<CoqExpr> ast = new CoqApplication(
+  ref<CoqExpr> ast2 = new CoqApplication(
     new CoqVariable("extract_smt_expr"),
     {
       new CoqApplication(
@@ -365,14 +365,64 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForUnsafeOperation(StateI
     }
   );
 
+  if (bo->getOpcode() == Instruction::SDiv) {
+    ref<CoqExpr> ast1 = new CoqApplication(
+      new CoqVariable("extract_smt_expr"),
+      {
+        new CoqApplication(
+          new CoqVariable("sym_eval_exp"),
+          {
+            stateTranslator->getLocalStoreAlias(si.stepID),
+            stateTranslator->createGlobalStore(),
+            createSome(moduleTranslator->translateType(v2->getType())),
+            moduleTranslator->translateValue(v1),
+          }
+        ),
+      }
+    );
+
+    return new Block(
+      {
+        new Apply(
+          "safe_subtree_instr_op_sdiv",
+          {
+            stateTranslator->getICAlias(si.stepID),
+            createNat(moduleTranslator->getInstID(si.inst)),
+            createPlaceHolder(), /* var */
+            createPlaceHolder(), /* optional type */
+            createPlaceHolder(), /* e1 */
+            createPlaceHolder(), /* e2 */
+            createPlaceHolder(),
+            createPlaceHolder(),
+            stateTranslator->getPrevBIDAlias(si.stepID),
+            stateTranslator->getLocalStoreAlias(si.stepID),
+            stateTranslator->getStackAlias(si.stepID),
+            stateTranslator->createGlobalStore(),
+            stateTranslator->getSymbolicsAlias(si.stepID),
+            stateTranslator->getPCAlias(si.stepID),
+            stateTranslator->createModule(),
+            stateTranslator->getLocalStoreAlias(successor.stepID),
+            ast1,
+            ast2,
+            getTreeAlias(successor.stepID),
+          }
+        ),
+        t1, /* is_supported_exp e1 */
+        t2, /* is_supported_exp e2 */
+        getTacticForEquivStore(si),
+        new Block({new Reflexivity()}),
+        new Block({new Reflexivity()}),
+        unsatTactic, /* unsat */
+        new Block({new Reflexivity()}),
+        new Block({new Apply("L_" + to_string(successor.stepID))}),
+      }
+    );
+  }
+
   std::string lemmaName;
   switch (bo->getOpcode()) {
   case Instruction::UDiv:
     lemmaName = "safe_subtree_instr_op_udiv";
-    break;
-
-  case Instruction::SDiv:
-    lemmaName = "safe_subtree_instr_op_sdiv";
     break;
 
   case Instruction::URem:
@@ -420,7 +470,7 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForUnsafeOperation(StateI
           stateTranslator->getPCAlias(si.stepID),
           stateTranslator->createModule(),
           stateTranslator->getLocalStoreAlias(successor.stepID),
-          ast,
+          ast2,
           getTreeAlias(successor.stepID),
         }
       ),
@@ -441,10 +491,13 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForErrorCondition(StateIn
   BinaryOperator *bo = cast<BinaryOperator>(si.inst);
   Value *v2 = bo->getOperand(1);
 
+  if (bo->getOpcode() == Instruction::SDiv) {
+    return new Block({new Admit()});
+  }
+
   std::string lemmaName;
   switch (bo->getOpcode()) {
   case Instruction::UDiv:
-  case Instruction::SDiv:
   case Instruction::URem:
   case Instruction::SRem:
     lemmaName = "unsat_div_condition_bv32";
