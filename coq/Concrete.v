@@ -606,9 +606,10 @@ Definition division_error_condition di : bool :=
 
 Definition division_overflow_error_condition di1 di2 : bool :=
   match di1, di2 with
-  | DI_I32 n1, DI_I32 n2
+  | DI_I32 n1, DI_I32 n2 =>
+      eq n1 (repr (-2147483648)) && eq n2 (repr (-1))
   | DI_I64 n1, DI_I64 n2 =>
-      eq n1 (repr min_signed) && eq n2 (repr (-1))
+      eq n1 (repr (-9223372036854775808)) && eq n2 (repr (-1))
   | _, _ => false
   end
 .

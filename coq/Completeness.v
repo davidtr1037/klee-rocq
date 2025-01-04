@@ -2292,7 +2292,98 @@ Proof.
       }
     }
   }
-  { admit. }
+  {
+    inversion His; subst.
+    inversion H8; subst.
+    { inversion H1; subst. inversion H15. }
+    {
+      inversion H9; subst.
+      assert(L1 :
+        over_approx_via_model
+          (eval_exp c_ls c_gs (Some (TYPE_I w)) e1)
+          (sym_eval_exp s_ls s_gs (Some (TYPE_I w)) e1)
+          m
+      ).
+      { apply eval_exp_correspondence; assumption. }
+      assert(L2 :
+        over_approx_via_model
+          (eval_exp c_ls c_gs (Some (TYPE_I w)) e2)
+          (sym_eval_exp s_ls s_gs (Some (TYPE_I w)) e2)
+          m
+      ).
+      { apply eval_exp_correspondence; assumption. }
+      inversion L1; subst.
+      { rewrite H7 in H1. discriminate H1. }
+      {
+        inversion L2; subst.
+        { rewrite H13 in H10. discriminate H10. }
+        {
+          destruct
+            di1 as [n1 | n1 | n1 | n1 | n1] eqn:Edi1, di2 as [n2 | n2 | n2 | n2 | n2] eqn:Edi2;
+          try (simpl in H14; discriminate H14).
+          {
+            rewrite H7 in H0.
+            destruct sort;
+            try (simpl in H0; discriminate H0).
+            rewrite H13 in H6.
+            destruct sort0;
+            try (simpl in H6; discriminate H6).
+            rename ast into ast1, ast0 into ast2.
+            eapply ESS_DivisionOverflow.
+            { symmetry. apply H1. }
+            { symmetry. apply H10. }
+            {
+              unfold sat.
+              exists m.
+              unfold sat_via.
+              simpl.
+              rewrite H5.
+              simpl in H14.
+              injection H0; intros Hn1.
+              injection H6; intros Hn2.
+              rewrite Hn1, Hn2.
+              unfold smt_eval_cmpop_by_sort.
+              simpl.
+              apply andb_true_iff in H14.
+              destruct H14 as [H14_1 H14_2].
+              rewrite H14_1, H14_2.
+              reflexivity.
+            }
+          }
+          (* TODO: avoid duplication *)
+          {
+            rewrite H7 in H0.
+            destruct sort;
+            try (simpl in H0; discriminate H0).
+            rewrite H13 in H6.
+            destruct sort0;
+            try (simpl in H6; discriminate H6).
+            rename ast into ast1, ast0 into ast2.
+            eapply ESS_DivisionOverflow.
+            { symmetry. apply H1. }
+            { symmetry. apply H10. }
+            {
+              unfold sat.
+              exists m.
+              unfold sat_via.
+              simpl.
+              rewrite H5.
+              simpl in H14.
+              injection H0; intros Hn1.
+              injection H6; intros Hn2.
+              rewrite Hn1, Hn2.
+              unfold smt_eval_cmpop_by_sort.
+              simpl.
+              apply andb_true_iff in H14.
+              destruct H14 as [H14_1 H14_2].
+              rewrite H14_1, H14_2.
+              reflexivity.
+            }
+          }
+        }
+      }
+    }
+  }
   {
     inversion His; subst.
     inversion H8; subst.
@@ -2335,7 +2426,7 @@ Proof.
       }
     }
   }
-Admitted.
+Qed.
 
 Lemma init_state_correspondence : forall mdl fid,
   (exists c, (init_state mdl fid) = Some c) <-> (exists s, (init_sym_state mdl fid) = Some s).
