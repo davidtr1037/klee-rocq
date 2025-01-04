@@ -464,6 +464,24 @@ Proof.
   { subst. simpl in H. discriminate H. }
 Qed.
 
+Lemma int1_or_one_left : forall (n : Int1.int),
+  Int1.or Int1.one n = Int1.one.
+Proof.
+  intros n.
+  assert(L: n = Int1.zero \/ n = Int1.one).
+  { apply int1_destruct. }
+  destruct L; subst; reflexivity.
+Qed.
+
+Lemma int1_or_one_right : forall (n : Int1.int),
+  Int1.or n Int1.one = Int1.one.
+Proof.
+  intros n.
+  assert(L: n = Int1.zero \/ n = Int1.one).
+  { apply int1_destruct. }
+  destruct L; subst; reflexivity.
+Qed.
+
 Lemma int32_eqb_eq : forall (x y : Int32.int),
   Int32.eq x y = true -> x = y.
 Proof.

@@ -804,7 +804,19 @@ Proof.
       inversion H15; subst.
       unfold unsat in Hunsat.
       apply Hunsat.
-      admit.
+      unfold sat in *.
+      destruct H16 as [m H16].
+      exists m.
+      unfold sat_via in *.
+      simpl in H16.
+      simpl.
+      assert(L1 : (smt_eval_ast m Sort_BV1 pc) = Int1.one).
+      { apply int1_and_one_left in H16. assumption. }
+      assert(L2 : smt_eval_ast m Sort_BV1 (sym_division_error_condition se) = Int1.one).
+      { apply int1_and_one_right in H16. assumption. }
+      rewrite L1, L2.
+      rewrite int1_or_one_left.
+      reflexivity.
     }
     {
       rewrite Heval_e1 in H2.
@@ -813,7 +825,19 @@ Proof.
       inversion H15; subst.
       unfold unsat in Hunsat.
       apply Hunsat.
-      admit.
+      unfold sat in *.
+      destruct H16 as [m H16].
+      exists m.
+      unfold sat_via in *.
+      simpl in H16.
+      simpl.
+      assert(L1 : (smt_eval_ast m Sort_BV1 pc) = Int1.one).
+      { apply int1_and_one_left in H16. assumption. }
+      assert(L2 : smt_eval_ast m Sort_BV1 (sym_division_overflow_error_condition se0 se3) = Int1.one).
+      { apply int1_and_one_right in H16. assumption. }
+      rewrite L1, L2.
+      rewrite int1_or_one_right.
+      reflexivity.
     }
     { inversion H2. }
   }
@@ -842,7 +866,7 @@ Proof.
       }
     }
   }
-Admitted.
+Qed.
 
 Lemma safe_subtree_instr_op_urem : forall ic cid v et e1 e2 c cs pbid ls stk gs syms pc mdl ls_opt se2 t,
   let s_init :=
