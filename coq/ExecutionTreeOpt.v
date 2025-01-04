@@ -753,9 +753,16 @@ Proof.
       try (
         rewrite Int1.and_zero in Hsat;
         discriminate Hsat
+      );
+      try (
+        apply equiv_smt_expr_property with (m := m) in L1_2;
+        apply equiv_smt_expr_property with (m := m) in L2_2;
+        apply equiv_smt_expr_property with (m := m) in H2;
+        simpl;
+        rewrite <- L1_2, <- L2_2;
+        rewrite H2;
+        assumption
       ).
-      { admit. }
-      { admit. }
     }
   }
   {
@@ -794,7 +801,7 @@ Proof.
       { assumption. }
     }
   }
-Admitted.
+Qed.
 
 Inductive safe_et_opt : execution_tree -> Prop :=
   | Safe_Leaf_RetVoid: forall ic cid pbid ls gs syms pc mdl,

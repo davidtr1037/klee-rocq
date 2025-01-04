@@ -377,6 +377,19 @@ Inductive equiv_smt_expr : smt_expr -> smt_expr -> Prop :=
       equiv_smt_expr (Expr s ast1) (Expr s ast2)
 .
 
+Lemma equiv_smt_expr_property : forall s (ast1 ast2 :smt_ast s),
+  equiv_smt_expr (Expr s ast1) (Expr s ast2) ->
+  (forall m, smt_eval_ast m s ast1 = smt_eval_ast m s ast2).
+Proof.
+  intros s ast1 ast2 Heq.
+  inversion Heq; subst.
+  intros m.
+  apply inj_pair2 in H1.
+  apply inj_pair2 in H2.
+  subst.
+  apply H0.
+Qed.
+
 Lemma sort_injection : forall sort1 sort2 ast1 ast2,
   equiv_smt_expr (Expr sort1 ast1) (Expr sort2 ast2) ->
   sort1 = sort2.
