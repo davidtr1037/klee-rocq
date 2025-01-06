@@ -23,6 +23,16 @@ From SE.SMT Require Import Model.
 From SE.Utils Require Import IDMap.
 From SE.Utils Require Import Util.
 
+Lemma injection_expr : forall (sort : smt_sort) (ast1 ast2 : smt_ast sort),
+  Expr sort ast1 = Expr sort ast2 ->
+  ast1 = ast2.
+Proof.
+  intros sort ast1 ast2 H.
+  inversion H.
+  apply inj_pair2.
+  assumption.
+Qed.
+
 Lemma in_list_0 : forall (t : execution_tree) l,
   In t (t :: l).
 Proof.
@@ -393,16 +403,6 @@ Proof.
     { assumption. }
   }
   { assumption. }
-Qed.
-
-Lemma injection_expr : forall (sort : smt_sort) (ast1 ast2 : smt_ast sort),
-  Expr sort ast1 = Expr sort ast2 ->
-  ast1 = ast2.
-Proof.
-  intros sort ast1 ast2 H.
-  inversion H.
-  apply inj_pair2.
-  assumption.
 Qed.
 
 (* TODO: rename *)
