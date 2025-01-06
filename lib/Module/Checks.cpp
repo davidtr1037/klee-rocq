@@ -54,11 +54,27 @@ bool DivCheckPass::runOnModule(Module &M) {
             opcode != Instruction::SRem && opcode != Instruction::URem)
           continue;
 
-        // Check if the operand is constant and not zero, skip in that case.
-        const auto &operand = binOp->getOperand(1);
-        if (const auto &coOp = dyn_cast<llvm::Constant>(operand)) {
-          if (!coOp->isZeroValue())
-            continue;
+        if (opcode == Instruction::SDiv) {
+          llvm::ConstantInt *v2 = dyn_cast<llvm::ConstantInt>(binOp->getOperand(1));
+          if (v2) {
+            if (!v2->isZeroValue()) {
+              if (v2->getSExtValue() != (int64_t)(-1)) {
+                continue;
+              }
+
+              llvm::ConstantInt *v1 = dyn_cast<llvm::ConstantInt>(binOp->getOperand(0));
+              if (v1 && v1->getSExtValue() != (int64_t)(INT32_MIN)) {
+                continue;
+              }
+            }
+          }
+        } else {
+          // Check if the operand is constant and not zero, skip in that case.
+          const auto &operand = binOp->getOperand(1);
+          if (const auto &coOp = dyn_cast<llvm::Constant>(operand)) {
+            if (!coOp->isZeroValue())
+              continue;
+          }
         }
 
         // Check if the operand is already checked by "klee_div_zero_check"
