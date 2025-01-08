@@ -405,129 +405,6 @@ Proof.
   { assumption. }
 Qed.
 
-(* TODO: rename *)
-Lemma equiv_smt_expr_div_condition_bv32 : forall ast m,
-  sat_via
-    (AST_CmpOp Sort_BV32 SMT_Eq (AST_Const Sort_BV32 zero) ast)
-    m ->
-  sat_via
-    (AST_CmpOp Sort_BV64 SMT_Eq (AST_Const Sort_BV64 zero) (AST_ZExt Sort_BV32 ast Sort_BV64))
-    m.
-Proof.
-  intros ast m Hsat.
-  unfold sat_via in *.
-  simpl in *.
-  unfold smt_eval_cmpop_by_sort in *.
-  simpl in *.
-  destruct (Int32.eq Int32.zero (smt_eval_ast m Sort_BV32 ast)) eqn:E;
-  try discriminate.
-  rewrite eq_zero_zext_i32_i64 in E.
-  rewrite E.
-  reflexivity.
-Qed.
-
-Lemma unsat_div_condition_bv32 : forall pc ast,
-  unsat
-    (AST_BinOp
-      Sort_BV1
-      SMT_And
-      pc
-      (AST_CmpOp
-        Sort_BV64
-        SMT_Eq
-        (AST_Const Sort_BV64 zero)
-        (AST_ZExt Sort_BV32 ast Sort_BV64))) ->
-  unsat
-    (AST_BinOp
-      Sort_BV1
-      SMT_And
-      pc
-      (AST_CmpOp Sort_BV32 SMT_Eq ast (AST_Const Sort_BV32 zero))).
-Proof.
-  intros pc ast Hunsat.
-  unfold unsat.
-  intros Hsat.
-  unfold sat in Hsat.
-  destruct Hsat as [m Hsat].
-  apply sat_and in Hsat.
-  destruct Hsat as [Hsat_1 Hsat_2].
-  apply Hunsat.
-  unfold sat.
-  exists m.
-  apply sat_and_intro.
-  { assumption. }
-  {
-    apply equiv_smt_expr_div_condition_bv32.
-    eapply equiv_smt_expr_sat_via.
-    { apply equiv_smt_expr_eq_symmetry. }
-    { assumption. }
-  }
-Qed.
-
-(* TODO: rename *)
-Lemma equiv_smt_expr_shift_condition_bv32 : forall ast m,
-  sat_via (AST_CmpOp Sort_BV32 SMT_Uge ast (AST_Const Sort_BV32 (repr 32))) m ->
-  sat_via
-    (AST_CmpOp
-      Sort_BV1
-      SMT_Eq
-      (AST_Const Sort_BV1 zero)
-      (AST_CmpOp
-        Sort_BV64
-        SMT_Ult
-        (AST_ZExt Sort_BV32 ast Sort_BV64)
-        (AST_Const Sort_BV64 (repr 32))))
-    m.
-Proof.
-  intros ast m Hsat.
-  unfold sat_via in *.
-  simpl in *.
-  unfold smt_eval_cmpop_by_sort in *.
-  simpl in *.
-  destruct (negb (Int32.ltu (smt_eval_ast m Sort_BV32 ast) (Int32.repr 32))) eqn:E;
-  try discriminate.
-  apply negb_true_iff in E.
-  rewrite ltu_zext_i32_i64 in E.
-  rewrite E.
-  reflexivity.
-Qed.
-
-Lemma unsat_shift_condition_bv32 : forall pc ast,
-  unsat
-    (AST_BinOp
-      Sort_BV1
-      SMT_And
-      pc
-      (AST_CmpOp
-        Sort_BV1
-        SMT_Eq
-        (AST_Const Sort_BV1 zero)
-        (AST_CmpOp
-          Sort_BV64
-          SMT_Ult
-          (AST_ZExt Sort_BV32 ast Sort_BV64)
-          (AST_Const Sort_BV64 (repr 32))))) ->
-  unsat
-    (AST_BinOp
-      Sort_BV1
-      SMT_And
-      pc
-      (AST_CmpOp Sort_BV32 SMT_Uge ast (AST_Const Sort_BV32 (repr 32)))).
-Proof.
-  intros pc ast Hunsat.
-  unfold unsat.
-  intros Hsat.
-  unfold sat in Hsat.
-  destruct Hsat as [m Hsat].
-  apply sat_and in Hsat.
-  destruct Hsat as [Hsat_1 Hsat_2].
-  apply equiv_smt_expr_shift_condition_bv32 in Hsat_2.
-  apply Hunsat.
-  unfold sat.
-  exists m.
-  apply sat_and_intro; assumption.
-Qed.
-
 Lemma inversion_instr_op : forall ic cid v e c cs pbid ls stk gs syms pc mdl s,
   sym_step
     (mk_sym_state
@@ -709,7 +586,78 @@ Proof.
   }
 Qed.
 
-Lemma safe_subtree_instr_op_udiv : forall ic cid v et e1 e2 c cs pbid ls stk gs syms pc mdl ls_opt se2 t,
+Definition sym_division_error_condition_opt se :=
+  match se with
+  | Expr sort ast =>
+      (AST_CmpOp Sort_BV64 SMT_Eq (AST_Const Sort_BV64 (repr 0)) (AST_ZExt sort ast Sort_BV64))
+  end
+.
+
+Lemma equiv_smt_expr_division_error_condition : forall se,
+  equiv_smt_expr
+    (Expr Sort_BV1 (sym_division_error_condition se))
+    (Expr Sort_BV1 (sym_division_error_condition_opt se)).
+Proof.
+Admitted.
+
+Lemma safe_subtree_instr_op_division_opt : forall ic cid v op et e1 e2 c cs pbid ls stk gs syms pc mdl ls_opt se2 cond t,
+  let s_init :=
+    (mk_sym_state
+      ic
+      (CMD_Inst cid (INSTR_Op v (OP_IBinop op et e1 e2)))
+      (c :: cs)
+      pbid
+      ls
+      stk
+      gs
+      syms
+      pc
+      mdl
+    ) in
+  is_unsafe_division_non_sdiv op ->
+  is_supported_exp e1 ->
+  is_supported_exp e2 ->
+  equiv_smt_store (v !-> (sym_eval_exp ls gs None (OP_IBinop op et e1 e2)); ls) ls_opt ->
+  sym_eval_exp ls gs (Some et) e2 = Some se2 ->
+  equiv_smt_expr
+    (Expr Sort_BV1 (AST_BinOp Sort_BV1 SMT_And pc (sym_division_error_condition_opt se2)))
+    (Expr Sort_BV1 cond) ->
+  unsat cond ->
+  (root t =
+    (mk_sym_state
+      (next_inst_counter ic c)
+      c
+      cs
+      pbid
+      ls_opt
+      stk
+      gs
+      syms
+      pc
+      mdl
+    )
+  ) ->
+  (safe_et_opt t) ->
+  (safe_et_opt (t_subtree s_init [t])).
+Proof.
+  intros ic cid v op et e1 e2 c cs pbid ls stk gs syms pc mdl ls_opt se2 cond t.
+  intros s_init Hop His1 His2 Heq Heval_e2 Hcond Hunsat Ht Hsafe.
+  eapply safe_subtree_instr_op_division; try eassumption.
+  eapply equiv_smt_expr_unsat.
+  {
+    eapply equiv_smt_expr_transitivity.
+    { eapply equiv_smt_expr_symmetry. apply Hcond. }
+    {
+      eapply equiv_smt_expr_symmetry.
+      apply equiv_smt_expr_binop.
+      { apply equiv_smt_expr_refl. }
+      { apply equiv_smt_expr_division_error_condition. }
+    }
+  }
+  { assumption. }
+Qed.
+
+Lemma safe_subtree_instr_op_udiv : forall ic cid v et e1 e2 c cs pbid ls stk gs syms pc mdl ls_opt se2 cond t,
   let s_init :=
     (mk_sym_state
       ic
@@ -727,7 +675,10 @@ Lemma safe_subtree_instr_op_udiv : forall ic cid v et e1 e2 c cs pbid ls stk gs 
   is_supported_exp e2 ->
   equiv_smt_store (v !-> (sym_eval_exp ls gs None (OP_IBinop (UDiv false) et e1 e2)); ls) ls_opt ->
   sym_eval_exp ls gs (Some et) e2 = Some se2 ->
-  unsat (AST_BinOp Sort_BV1 SMT_And pc (sym_division_error_condition se2)) ->
+  equiv_smt_expr
+    (Expr Sort_BV1 (AST_BinOp Sort_BV1 SMT_And pc (sym_division_error_condition_opt se2)))
+    (Expr Sort_BV1 cond) ->
+  unsat cond ->
   (root t =
     (mk_sym_state
       (next_inst_counter ic c)
@@ -745,130 +696,13 @@ Lemma safe_subtree_instr_op_udiv : forall ic cid v et e1 e2 c cs pbid ls stk gs 
   (safe_et_opt t) ->
   (safe_et_opt (t_subtree s_init [t])).
 Proof.
-  intros ic cid v et e1 e2 c cs pbid ls stk gs syms pc mdl ls_opt se2 t.
-  intros s_init His1 His2 Heq Heval_e2 Hunsat Ht Hsafe.
-  eapply safe_subtree_instr_op_division; try eassumption.
+  intros ic cid v et e1 e2 c cs pbid ls stk gs syms pc mdl ls_opt se2 cond t.
+  intros s_init His1 His2 Heq Heval_e2 Hcond Hunsat Ht Hsafe.
+  eapply safe_subtree_instr_op_division_opt; try eassumption.
   apply Is_Unsafe_Division_Non_SDiv_UDiv.
 Qed.
 
-Lemma safe_subtree_instr_op_sdiv : forall ic cid v et e1 e2 c cs pbid ls stk gs syms pc mdl ls_opt se1 se2 t,
-  let s_init :=
-    (mk_sym_state
-      ic
-      (CMD_Inst cid (INSTR_Op v (OP_IBinop (SDiv false) et e1 e2)))
-      (c :: cs)
-      pbid
-      ls
-      stk
-      gs
-      syms
-      pc
-      mdl
-    ) in
-  is_supported_exp e1 ->
-  is_supported_exp e2 ->
-  equiv_smt_store (v !-> (sym_eval_exp ls gs None (OP_IBinop (SDiv false) et e1 e2)); ls) ls_opt ->
-  sym_eval_exp ls gs (Some et) e1 = Some se1 ->
-  sym_eval_exp ls gs (Some et) e2 = Some se2 ->
-  unsat
-    (AST_BinOp Sort_BV1 SMT_And
-      pc
-      (AST_BinOp Sort_BV1 SMT_Or
-        (sym_division_error_condition se2)
-        (sym_division_overflow_error_condition se1 se2))) ->
-  (root t =
-    (mk_sym_state
-      (next_inst_counter ic c)
-      c
-      cs
-      pbid
-      ls_opt
-      stk
-      gs
-      syms
-      pc
-      mdl
-    )
-  ) ->
-  (safe_et_opt t) ->
-  (safe_et_opt (t_subtree s_init [t])).
-Proof.
-  intros ic cid v et e1 e2 c cs pbid ls stk gs syms pc mdl ls_opt se1 se2 t.
-  intros s_init His1 His2 Heq Heval_e1 Heval_e2 Hunsat Ht Hsafe.
-  apply Safe_Subtree.
-  {
-    intros Herr.
-    inversion Herr; subst.
-    {
-      rewrite Heval_e2 in H15.
-      inversion H15; subst.
-      unfold unsat in Hunsat.
-      apply Hunsat.
-      unfold sat in *.
-      destruct H16 as [m H16].
-      exists m.
-      unfold sat_via in *.
-      simpl in H16.
-      simpl.
-      assert(L1 : (smt_eval_ast m Sort_BV1 pc) = Int1.one).
-      { apply int1_and_one_left in H16. assumption. }
-      assert(L2 : smt_eval_ast m Sort_BV1 (sym_division_error_condition se) = Int1.one).
-      { apply int1_and_one_right in H16. assumption. }
-      rewrite L1, L2.
-      rewrite int1_or_one_left.
-      reflexivity.
-    }
-    {
-      rewrite Heval_e1 in H2.
-      inversion H2; subst.
-      rewrite Heval_e2 in H15.
-      inversion H15; subst.
-      unfold unsat in Hunsat.
-      apply Hunsat.
-      unfold sat in *.
-      destruct H16 as [m H16].
-      exists m.
-      unfold sat_via in *.
-      simpl in H16.
-      simpl.
-      assert(L1 : (smt_eval_ast m Sort_BV1 pc) = Int1.one).
-      { apply int1_and_one_left in H16. assumption. }
-      assert(L2 : smt_eval_ast m Sort_BV1 (sym_division_overflow_error_condition se0 se3) = Int1.one).
-      { apply int1_and_one_right in H16. assumption. }
-      rewrite L1, L2.
-      rewrite int1_or_one_right.
-      reflexivity.
-    }
-    { inversion H2. }
-  }
-  {
-    intros s' Hstep.
-    left.
-    exists t.
-    split.
-    { apply in_list_0. }
-    {
-      split.
-      { assumption. }
-      {
-        apply inversion_instr_op in Hstep.
-        destruct Hstep as [se [Heval Hs]].
-        rewrite Hs.
-        rewrite Ht.
-        apply EquivSymState.
-        {
-          rewrite <- Heval.
-          assumption.
-        }
-        { apply equiv_sym_stack_refl. }
-        { apply equiv_smt_store_refl. }
-        { apply equiv_smt_expr_refl. }
-      }
-    }
-  }
-Qed.
-
-Lemma safe_subtree_instr_op_urem : forall ic cid v et e1 e2 c cs pbid ls stk gs syms pc mdl ls_opt se2 t,
+Lemma safe_subtree_instr_op_urem : forall ic cid v et e1 e2 c cs pbid ls stk gs syms pc mdl ls_opt se2 cond t,
   let s_init :=
     (mk_sym_state
       ic
@@ -886,7 +720,10 @@ Lemma safe_subtree_instr_op_urem : forall ic cid v et e1 e2 c cs pbid ls stk gs 
   is_supported_exp e2 ->
   equiv_smt_store (v !-> (sym_eval_exp ls gs None (OP_IBinop URem et e1 e2)); ls) ls_opt ->
   sym_eval_exp ls gs (Some et) e2 = Some se2 ->
-  unsat (AST_BinOp Sort_BV1 SMT_And pc (sym_division_error_condition se2)) ->
+  equiv_smt_expr
+    (Expr Sort_BV1 (AST_BinOp Sort_BV1 SMT_And pc (sym_division_error_condition_opt se2)))
+    (Expr Sort_BV1 cond) ->
+  unsat cond ->
   (root t =
     (mk_sym_state
       (next_inst_counter ic c)
@@ -904,13 +741,13 @@ Lemma safe_subtree_instr_op_urem : forall ic cid v et e1 e2 c cs pbid ls stk gs 
   (safe_et_opt t) ->
   (safe_et_opt (t_subtree s_init [t])).
 Proof.
-  intros ic cid v et e1 e2 c cs pbid ls stk gs syms pc mdl ls_opt se2 t.
-  intros s_init His1 His2 Heq Heval_e2 Hunsat Ht Hsafe.
-  eapply safe_subtree_instr_op_division; try eassumption.
+  intros ic cid v et e1 e2 c cs pbid ls stk gs syms pc mdl ls_opt se2 cond t.
+  intros s_init His1 His2 Heq Heval_e2 Hcond Hunsat Ht Hsafe.
+  eapply safe_subtree_instr_op_division_opt; try eassumption.
   apply Is_Unsafe_Division_Non_SDiv_URem.
 Qed.
 
-Lemma safe_subtree_instr_op_srem : forall ic cid v et e1 e2 c cs pbid ls stk gs syms pc mdl ls_opt se2 t,
+Lemma safe_subtree_instr_op_srem : forall ic cid v et e1 e2 c cs pbid ls stk gs syms pc mdl ls_opt se2 cond t,
   let s_init :=
     (mk_sym_state
       ic
@@ -928,7 +765,10 @@ Lemma safe_subtree_instr_op_srem : forall ic cid v et e1 e2 c cs pbid ls stk gs 
   is_supported_exp e2 ->
   equiv_smt_store (v !-> (sym_eval_exp ls gs None (OP_IBinop SRem et e1 e2)); ls) ls_opt ->
   sym_eval_exp ls gs (Some et) e2 = Some se2 ->
-  unsat (AST_BinOp Sort_BV1 SMT_And pc (sym_division_error_condition se2)) ->
+  equiv_smt_expr
+    (Expr Sort_BV1 (AST_BinOp Sort_BV1 SMT_And pc (sym_division_error_condition_opt se2)))
+    (Expr Sort_BV1 cond) ->
+  unsat cond ->
   (root t =
     (mk_sym_state
       (next_inst_counter ic c)
@@ -946,9 +786,9 @@ Lemma safe_subtree_instr_op_srem : forall ic cid v et e1 e2 c cs pbid ls stk gs 
   (safe_et_opt t) ->
   (safe_et_opt (t_subtree s_init [t])).
 Proof.
-  intros ic cid v et e1 e2 c cs pbid ls stk gs syms pc mdl ls_opt se2 t.
-  intros s_init His1 His2 Heq Heval_e2 Hunsat Ht Hsafe.
-  eapply safe_subtree_instr_op_division; try eassumption.
+  intros ic cid v et e1 e2 c cs pbid ls stk gs syms pc mdl ls_opt se2 cond t.
+  intros s_init His1 His2 Heq Heval_e2 Hcond Hunsat Ht Hsafe.
+  eapply safe_subtree_instr_op_division_opt; try eassumption.
   apply Is_Unsafe_Division_Non_SDiv_SRem.
 Qed.
 
@@ -1032,7 +872,86 @@ Proof.
   }
 Qed.
 
-Lemma safe_subtree_instr_op_shl : forall ic cid v et e1 e2 c cs pbid ls stk gs syms pc mdl ls_opt se2 t,
+Definition sym_shift_error_condition_opt se :=
+  match se with
+  | Expr sort ast =>
+     (AST_CmpOp
+        Sort_BV1
+        SMT_Eq
+        (AST_Const Sort_BV1 zero)
+        (AST_CmpOp
+          Sort_BV64
+          SMT_Ult
+          (AST_ZExt sort ast Sort_BV64)
+          (AST_Const Sort_BV64 (create_int_by_sort Sort_BV64 (Zpos (smt_sort_to_width sort))))))
+  end
+.
+
+Lemma equiv_smt_expr_shift_error_condition : forall se,
+  equiv_smt_expr
+    (Expr Sort_BV1 (sym_shift_error_condition se))
+    (Expr Sort_BV1 (sym_shift_error_condition_opt se)).
+Proof.
+Admitted.
+
+Lemma safe_subtree_instr_op_shift_opt : forall ic cid v op et e1 e2 c cs pbid ls stk gs syms pc mdl ls_opt se2 cond t,
+  let s_init :=
+    (mk_sym_state
+      ic
+      (CMD_Inst cid (INSTR_Op v (OP_IBinop op et e1 e2)))
+      (c :: cs)
+      pbid
+      ls
+      stk
+      gs
+      syms
+      pc
+      mdl
+    ) in
+  is_unsafe_shift op ->
+  is_supported_exp e1 ->
+  is_supported_exp e2 ->
+  equiv_smt_store (v !-> (sym_eval_exp ls gs None (OP_IBinop op et e1 e2)); ls) ls_opt ->
+  sym_eval_exp ls gs (Some et) e2 = Some se2 ->
+  equiv_smt_expr
+    (Expr Sort_BV1 (AST_BinOp Sort_BV1 SMT_And pc (sym_shift_error_condition_opt se2)))
+    (Expr Sort_BV1 cond) ->
+  unsat cond ->
+  (root t =
+    (mk_sym_state
+      (next_inst_counter ic c)
+      c
+      cs
+      pbid
+      ls_opt
+      stk
+      gs
+      syms
+      pc
+      mdl
+    )
+  ) ->
+  (safe_et_opt t) ->
+  (safe_et_opt (t_subtree s_init [t])).
+Proof.
+  intros ic cid v op et e1 e2 c cs pbid ls stk gs syms pc mdl ls_opt se2 cond t.
+  intros s_init Hop His1 His2 Heq Heval_e2 Hcond Hunsat Ht Hsafe.
+  eapply safe_subtree_instr_op_shift; try eassumption.
+  eapply equiv_smt_expr_unsat.
+  {
+    eapply equiv_smt_expr_transitivity.
+    { eapply equiv_smt_expr_symmetry. apply Hcond. }
+    {
+      eapply equiv_smt_expr_symmetry.
+      apply equiv_smt_expr_binop.
+      { apply equiv_smt_expr_refl. }
+      { apply equiv_smt_expr_shift_error_condition. }
+    }
+  }
+  { assumption. }
+Qed.
+
+Lemma safe_subtree_instr_op_shl : forall ic cid v et e1 e2 c cs pbid ls stk gs syms pc mdl ls_opt se2 cond t,
   let s_init :=
     (mk_sym_state
       ic
@@ -1050,7 +969,10 @@ Lemma safe_subtree_instr_op_shl : forall ic cid v et e1 e2 c cs pbid ls stk gs s
   is_supported_exp e2 ->
   equiv_smt_store (v !-> (sym_eval_exp ls gs None (OP_IBinop (Shl false false) et e1 e2)); ls) ls_opt ->
   sym_eval_exp ls gs (Some et) e2 = Some se2 ->
-  unsat (AST_BinOp Sort_BV1 SMT_And pc (sym_shift_error_condition se2)) ->
+  equiv_smt_expr
+    (Expr Sort_BV1 (AST_BinOp Sort_BV1 SMT_And pc (sym_shift_error_condition_opt se2)))
+    (Expr Sort_BV1 cond) ->
+  unsat cond ->
   (root t =
     (mk_sym_state
       (next_inst_counter ic c)
@@ -1068,13 +990,13 @@ Lemma safe_subtree_instr_op_shl : forall ic cid v et e1 e2 c cs pbid ls stk gs s
   (safe_et_opt t) ->
   (safe_et_opt (t_subtree s_init [t])).
 Proof.
-  intros ic cid v et e1 e2 c cs pbid ls stk gs syms pc mdl ls_opt se2 t.
+  intros ic cid v et e1 e2 c cs pbid ls stk gs syms pc mdl ls_opt se2 cond t.
   intros s_init His1 His2 Heq Heval_e2 Hunsat Ht Hsafe.
-  eapply safe_subtree_instr_op_shift; try eassumption.
+  eapply safe_subtree_instr_op_shift_opt; try eassumption.
   apply Is_Unsafe_Shift_Shl.
 Qed.
 
-Lemma safe_subtree_instr_op_lshr : forall ic cid v et e1 e2 c cs pbid ls stk gs syms pc mdl ls_opt se2 t,
+Lemma safe_subtree_instr_op_lshr : forall ic cid v et e1 e2 c cs pbid ls stk gs syms pc mdl ls_opt se2 cond t,
   let s_init :=
     (mk_sym_state
       ic
@@ -1092,7 +1014,10 @@ Lemma safe_subtree_instr_op_lshr : forall ic cid v et e1 e2 c cs pbid ls stk gs 
   is_supported_exp e2 ->
   equiv_smt_store (v !-> (sym_eval_exp ls gs None (OP_IBinop (LShr false) et e1 e2)); ls) ls_opt ->
   sym_eval_exp ls gs (Some et) e2 = Some se2 ->
-  unsat (AST_BinOp Sort_BV1 SMT_And pc (sym_shift_error_condition se2)) ->
+  equiv_smt_expr
+    (Expr Sort_BV1 (AST_BinOp Sort_BV1 SMT_And pc (sym_shift_error_condition_opt se2)))
+    (Expr Sort_BV1 cond) ->
+  unsat cond ->
   (root t =
     (mk_sym_state
       (next_inst_counter ic c)
@@ -1110,13 +1035,13 @@ Lemma safe_subtree_instr_op_lshr : forall ic cid v et e1 e2 c cs pbid ls stk gs 
   (safe_et_opt t) ->
   (safe_et_opt (t_subtree s_init [t])).
 Proof.
-  intros ic cid v et e1 e2 c cs pbid ls stk gs syms pc mdl ls_opt se2 t.
-  intros s_init His1 His2 Heq Heval_e2 Hunsat Ht Hsafe.
-  eapply safe_subtree_instr_op_shift; try eassumption.
+  intros ic cid v et e1 e2 c cs pbid ls stk gs syms pc mdl ls_opt se2 cond t.
+  intros s_init His1 His2 Heq Heval_e2 Hcond Hunsat Ht Hsafe.
+  eapply safe_subtree_instr_op_shift_opt; try eassumption.
   apply Is_Unsafe_Shift_LShr.
 Qed.
 
-Lemma safe_subtree_instr_op_ashr : forall ic cid v et e1 e2 c cs pbid ls stk gs syms pc mdl ls_opt se2 t,
+Lemma safe_subtree_instr_op_ashr : forall ic cid v et e1 e2 c cs pbid ls stk gs syms pc mdl ls_opt se2 cond t,
   let s_init :=
     (mk_sym_state
       ic
@@ -1134,7 +1059,10 @@ Lemma safe_subtree_instr_op_ashr : forall ic cid v et e1 e2 c cs pbid ls stk gs 
   is_supported_exp e2 ->
   equiv_smt_store (v !-> (sym_eval_exp ls gs None (OP_IBinop (AShr false) et e1 e2)); ls) ls_opt ->
   sym_eval_exp ls gs (Some et) e2 = Some se2 ->
-  unsat (AST_BinOp Sort_BV1 SMT_And pc (sym_shift_error_condition se2)) ->
+  equiv_smt_expr
+    (Expr Sort_BV1 (AST_BinOp Sort_BV1 SMT_And pc (sym_shift_error_condition_opt se2)))
+    (Expr Sort_BV1 cond) ->
+  unsat cond ->
   (root t =
     (mk_sym_state
       (next_inst_counter ic c)
@@ -1152,9 +1080,9 @@ Lemma safe_subtree_instr_op_ashr : forall ic cid v et e1 e2 c cs pbid ls stk gs 
   (safe_et_opt t) ->
   (safe_et_opt (t_subtree s_init [t])).
 Proof.
-  intros ic cid v et e1 e2 c cs pbid ls stk gs syms pc mdl ls_opt se2 t.
-  intros s_init His1 His2 Heq Heval_e2 Hunsat Ht Hsafe.
-  eapply safe_subtree_instr_op_shift; try eassumption.
+  intros ic cid v et e1 e2 c cs pbid ls stk gs syms pc mdl ls_opt se2 cond t.
+  intros s_init His1 His2 Heq Heval_e2 Hcond Hunsat Ht Hsafe.
+  eapply safe_subtree_instr_op_shift_opt; try eassumption.
   apply Is_Unsafe_Shift_AShr.
 Qed.
 
