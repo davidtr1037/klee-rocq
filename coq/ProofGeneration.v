@@ -928,7 +928,23 @@ Lemma unsat_sym_shift_error_condition : forall pc se cond,
   unsat cond ->
   unsat (AST_BinOp Sort_BV1 SMT_And pc (sym_shift_error_condition se)).
 Proof.
-Admitted.
+  intros pc se cond Heq Hunsat.
+  eapply equiv_smt_expr_unsat.
+  {
+    apply equiv_smt_expr_symmetry.
+    eapply equiv_smt_expr_binop.
+    { apply equiv_smt_expr_refl. }
+    { apply equiv_smt_expr_shift_error_condition. }
+  }
+  {
+    eapply equiv_smt_expr_unsat.
+    {
+      apply equiv_smt_expr_symmetry.
+      eassumption.
+    }
+    { assumption. }
+  }
+Qed.
 
 Lemma safe_subtree_instr_op_shift_opt : forall ic cid v op et e1 e2 c cs pbid ls stk gs syms pc mdl ls_opt se2 cond t,
   let s_init :=
