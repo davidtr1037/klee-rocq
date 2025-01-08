@@ -241,6 +241,8 @@ public:
   ref<CoqExpr> getTheorem();
 
   void generateDebugScript(llvm::raw_ostream &output);
+
+  bool isInstrumented(llvm::Instruction *inst);
 };
 
 }

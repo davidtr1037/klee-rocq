@@ -1079,3 +1079,23 @@ void ProofGenerator::generateDebugScript(llvm::raw_ostream &output) {
     output << "Print " << lemma->name << ".\n";
   }
 }
+
+bool ProofGenerator::isInstrumented(Instruction *inst) {
+  static set<string> functions = {
+    "klee_check_div_zero",
+    "klee_sdiv_check_32",
+    "klee_sdiv_check_64",
+    "klee_overshift_check",
+  };
+
+  Instruction *prevInst = inst->getPrevNode();
+  if (prevInst && isa<CallInst>(prevInst)) {
+    CallInst *callInst = cast<CallInst>(prevInst);
+    Function *f = callInst->getCalledFunction();
+    if (f && functions.find(f->getName().str()) != functions.end()) {
+      return true;
+    }
+  }
+
+  return false;
+}

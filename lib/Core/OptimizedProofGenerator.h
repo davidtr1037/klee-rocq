@@ -78,9 +78,9 @@ public:
                                              ExecutionState &successor,
                                              const ExternalProofHint &hint);
 
-  ref<CoqTactic> getTacticForErrorCondition(StateInfo &si,
-                                            ExecutionState &successor,
-                                            const ExternalProofHint &hint);
+  ref<CoqTactic> getTacticForSDiv(StateInfo &si,
+                                  ExecutionState &successor,
+                                  const ExternalProofHint &hint);
 
   ref<CoqTactic> getTacticForSubtreePHI(StateInfo &si,
                                         ExecutionState &successor);
@@ -105,6 +105,9 @@ public:
                                      SuccessorInfo &successor1,
                                      SuccessorInfo &successor2,
                                      ProofGenerationOutput &output);
+
+  ref<CoqExpr> getEvaluatedSMTExpr(StateInfo &stateInfo,
+                                   llvm::Value *v);
 
 };
 
