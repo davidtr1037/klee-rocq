@@ -264,6 +264,7 @@ Fixpoint normalize (s : smt_sort) (ast : smt_ast s) : smt_ast s :=
       normalize_sext sort (normalize sort ast) cast_sort
   | AST_Extract sort ast cast_sort =>
       normalize_extract sort (normalize sort ast) cast_sort
+  | AST_Select sort cond ast1 ast2 => AST_Select sort cond ast1 ast2
   end
 .
 
@@ -469,6 +470,7 @@ Fixpoint simplify (s : smt_sort) (ast : smt_ast s) : smt_ast s :=
       simplify_sext sort (simplify sort ast) cast_sort
   | AST_Extract sort ast cast_sort =>
       simplify_extract sort (simplify sort ast) cast_sort
+  | AST_Select sort cond ast1 ast2 => AST_Select sort cond ast1 ast2
   end
 .
 
@@ -1159,6 +1161,7 @@ Proof.
     apply equiv_smt_expr_extract.
     assumption.
   }
+  { apply equiv_smt_expr_refl.  }
 Qed.
 
 Definition sort_to_add s : (smt_sort_to_int_type s) -> (smt_sort_to_int_type s) -> (smt_sort_to_int_type s) :=
@@ -1911,6 +1914,7 @@ Proof.
       assumption.
     }
   }
+  { apply equiv_smt_expr_refl. }
 Qed.
 
 Lemma equiv_smt_expr_normalize_simplify: forall s (ast : smt_ast s),

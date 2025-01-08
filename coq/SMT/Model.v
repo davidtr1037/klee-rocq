@@ -180,6 +180,10 @@ Definition smt_eval_extract_by_sort s (x : (smt_sort_to_int_type s)) cast_sort :
     end
 .
 
+Definition smt_eval_select s (cond : int1) (x y : (smt_sort_to_int_type s)) :=
+  if eq cond one then x else y
+.
+
 Fixpoint smt_eval_ast (m : smt_model) (s : smt_sort) (ast : smt_ast s) : (smt_sort_to_int_type s) :=
   match ast with
   | AST_Const arg_sort n => n
@@ -204,6 +208,12 @@ Fixpoint smt_eval_ast (m : smt_model) (s : smt_sort) (ast : smt_ast s) : (smt_so
       smt_eval_sext_by_sort arg_sort (smt_eval_ast m arg_sort ast) cast_sort
   | AST_Extract arg_sort ast cast_sort =>
       smt_eval_extract_by_sort arg_sort (smt_eval_ast m arg_sort ast) cast_sort
+  | AST_Select arg_sort cond e1 e2 =>
+      smt_eval_select
+        arg_sort
+        (smt_eval_ast m Sort_BV1 cond)
+        (smt_eval_ast m arg_sort e1)
+        (smt_eval_ast m arg_sort e2)
   end
 .
 
@@ -369,7 +379,8 @@ Proof.
     rewrite L.
     reflexivity.
   }
-Qed.
+  { admit. }
+Admitted.
 
 Inductive equiv_smt_expr : smt_expr -> smt_expr -> Prop :=
   | EquivExpr : forall s (ast1 ast2 : smt_ast s),

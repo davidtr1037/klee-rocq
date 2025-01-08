@@ -81,6 +81,8 @@ Inductive smt_ast : smt_sort -> Type :=
       forall (s : smt_sort) (e : smt_ast s) (cast_sort : smt_sort), smt_ast cast_sort
   | AST_Extract :
       forall (s : smt_sort) (e : smt_ast s) (cast_sort : smt_sort), smt_ast cast_sort
+  | AST_Select :
+      forall (s : smt_sort) (cond : smt_ast Sort_BV1) (e1 e2 : smt_ast s), smt_ast s
 .
 
 Definition smt_ast_bool := smt_ast Sort_BV1.
@@ -168,6 +170,15 @@ Inductive subexpr : smt_expr -> smt_expr -> Prop :=
   | SubExpr_Extract : forall e sort (a : (smt_ast sort)) cast_sort,
       subexpr e (Expr sort a) ->
       subexpr e (Expr cast_sort (AST_Extract sort a cast_sort))
+  | SubExpr_Select_Cond : forall e sort cond (ast1 ast2 : (smt_ast sort)),
+      subexpr e (Expr Sort_BV1 cond) ->
+      subexpr e (Expr sort (AST_Select sort cond ast1 ast2))
+  | SubExpr_Select_L : forall e sort cond (ast1 ast2 : (smt_ast sort)),
+      subexpr e (Expr sort ast1) ->
+      subexpr e (Expr sort (AST_Select sort cond ast1 ast2))
+  | SubExpr_Select_R : forall e sort cond (ast1 ast2 : (smt_ast sort)),
+      subexpr e (Expr sort ast2) ->
+      subexpr e (Expr sort (AST_Select sort cond ast1 ast2))
 .
 
 Inductive contains_var : smt_expr -> string -> Prop :=

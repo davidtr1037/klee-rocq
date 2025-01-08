@@ -221,6 +221,26 @@ Definition sym_eval_convert (conv : conversion_type) t1 (e : smt_expr) t2 : opti
   end
 .
 
+Definition sym_eval_select (e1 e2 e3 : smt_expr) : option smt_expr :=
+  match e1 with
+  | (Expr Sort_BV1 ast1) =>
+      match e2, e3 with
+      | (Expr Sort_BV1 ast2), (Expr Sort_BV1 ast3) =>
+          Some (Expr Sort_BV1 (AST_Select Sort_BV1 ast1 ast2 ast3))
+      | (Expr Sort_BV8 ast2), (Expr Sort_BV8 ast3) =>
+          Some (Expr Sort_BV8 (AST_Select Sort_BV8 ast1 ast2 ast3))
+      | (Expr Sort_BV16 ast2), (Expr Sort_BV16 ast3) =>
+          Some (Expr Sort_BV16 (AST_Select Sort_BV16 ast1 ast2 ast3))
+      | (Expr Sort_BV32 ast2), (Expr Sort_BV32 ast3) =>
+          Some (Expr Sort_BV32 (AST_Select Sort_BV32 ast1 ast2 ast3))
+      | (Expr Sort_BV64 ast2), (Expr Sort_BV64 ast3) =>
+          Some (Expr Sort_BV64 (AST_Select Sort_BV64 ast1 ast2 ast3))
+      | _, _ => None
+      end
+  | _ => None
+  end
+.
+
 Fixpoint sym_eval_exp (s : smt_store) (g : smt_store) (t : option typ) (e : llvm_exp) : option smt_expr :=
   match e with
   | EXP_Ident id => sym_eval_ident s g t id
@@ -249,7 +269,14 @@ Fixpoint sym_eval_exp (s : smt_store) (g : smt_store) (t : option typ) (e : llvm
       | Some e => sym_eval_convert conv t1 e t2
       | _ => None
       end
-  | OP_Select _ _ _ => None
+  | OP_Select (t1, v1) (t2, v2) (t3, v3) =>
+      match (sym_eval_exp s g (Some t1) v1,
+             sym_eval_exp s g (Some t2) v2,
+             sym_eval_exp s g (Some t3) v3) with
+      | (Some e1, Some e2, Some e3) =>
+          sym_eval_select e1 e2 e3
+      | _ => None
+      end
   end
 .
 

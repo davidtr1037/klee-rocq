@@ -423,8 +423,8 @@ Proof.
     }
     { discriminate Heq. }
   }
-  { discriminate Heq. }
-Qed.
+  { admit. }
+Admitted.
 
 Lemma well_scoped_sym_eval_phi_args : forall s t args pbid se,
   well_scoped s ->

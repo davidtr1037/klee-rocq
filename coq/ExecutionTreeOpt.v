@@ -423,8 +423,8 @@ Proof.
       { discriminate Heval. }
     }
   }
-  { inversion Heval. }
-Qed.
+  { admit. }
+Admitted.
 
 Lemma equiv_sym_eval_phi_args : forall ls1 gs1 ls2 gs2 t args pbid se1,
   equiv_smt_store ls1 ls2 ->

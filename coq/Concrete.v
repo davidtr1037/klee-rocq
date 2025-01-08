@@ -119,7 +119,15 @@ Fixpoint eval_exp (s : dv_store) (g : dv_store) (t : option typ) (e : llvm_exp) 
       | Some dv => convert conv dv t1 t2
       | _ => None
       end
-  | OP_Select _ _ _ => None
+  | OP_Select (t1, e1) (t2, e2) (t3, e3) =>
+      match eval_exp s g (Some t1) e1 with
+      | Some (DV_Int (DI_I1 n)) =>
+          if eq n one then
+            eval_exp s g (Some t2) e2
+          else
+            eval_exp s g (Some t3) e3
+      | _ => None
+      end
   end
 .
 

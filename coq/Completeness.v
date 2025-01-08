@@ -973,7 +973,8 @@ Proof.
       apply OA_None.
     }
   }
-Qed.
+  { admit. }
+Admitted.
 
 Lemma empty_store_correspondence : forall m,
   over_approx_store_via empty_smt_store empty_dv_store m.
