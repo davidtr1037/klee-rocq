@@ -269,7 +269,7 @@ Fixpoint sym_eval_exp (s : smt_store) (g : smt_store) (t : option typ) (e : llvm
       | Some e => sym_eval_convert conv t1 e t2
       | _ => None
       end
-  | OP_Select (t1, v1) (t2, v2) (t3, v3) =>
+  | OP_Select t1 v1 t2 v2 t3 v3 =>
       match (sym_eval_exp s g (Some t1) v1,
              sym_eval_exp s g (Some t2) v2,
              sym_eval_exp s g (Some t3) v3) with

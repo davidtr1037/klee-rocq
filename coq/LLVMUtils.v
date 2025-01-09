@@ -16,11 +16,11 @@ Inductive llvm_subexpr : llvm_exp -> llvm_exp -> Prop :=
   | LLVM_SubExpr_Conversion : forall conv t1 t2 e,
       llvm_subexpr e (OP_Conversion conv t1 e t2)
   | LLVM_SubExpr_Select_Cond : forall t1 e1 t2 e2 t3 e3,
-      llvm_subexpr e1 (OP_Select (t1, e1) (t2, e2) (t3, e3))
+      llvm_subexpr e1 (OP_Select t1 e1 t2 e2 t3 e3)
   | LLVM_SubExpr_Select_L : forall t1 e1 t2 e2 t3 e3,
-      llvm_subexpr e2 (OP_Select (t1, e1) (t2, e2) (t3, e3))
+      llvm_subexpr e2 (OP_Select t1 e1 t2 e2 t3 e3)
   | LLVM_SubExpr_Select_R : forall t1 e1 t2 e2 t3 e3,
-      llvm_subexpr e3 (OP_Select (t1, e1) (t2, e2) (t3, e3))
+      llvm_subexpr e3 (OP_Select t1 e1 t2 e2 t3 e3)
 .
 
 Inductive llvm_contains_ibinop : llvm_exp -> ibinop -> Prop :=

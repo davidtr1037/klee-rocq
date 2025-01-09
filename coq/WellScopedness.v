@@ -169,7 +169,18 @@ Lemma contains_var_select : forall x e1 e2 e3 e4,
   contains_var e4 x ->
   contains_var e1 x \/ contains_var e2 x \/ contains_var e3 x.
 Proof.
-Admitted.
+  intros x e1 e2 e3 e4 Heq Hc.
+  destruct e1 as [s1 ast1].
+  destruct e2 as [s2 ast2].
+  destruct e3 as [s3 ast3].
+  destruct s1; try discriminate Heq.
+  destruct s2, s3; try discriminate Heq; (
+    simpl in Heq;
+    inversion Heq; subst;
+    apply contains_var_select;
+    assumption
+  ).
+Qed.
 
 Lemma well_scoped_smt_expr_extended_syms : forall se sym syms,
   well_scoped_smt_expr se syms ->
@@ -431,9 +442,6 @@ Proof.
     { discriminate Heq. }
   }
   {
-    destruct cnd as [t1 e1].
-    destruct v1 as [t2 e2].
-    destruct v2 as [t3 e3].
     destruct (sym_eval_exp ls gs (Some t1) e1) as [se1 | ] eqn:E1;
     try discriminate Heq.
     destruct (sym_eval_exp ls gs (Some t2) e2) as [se2 | ] eqn:E2;
@@ -444,9 +452,30 @@ Proof.
     intros n Hse.
     apply contains_var_select with (e1 := se1) (e2 := se2) (e3 := se3) in Hse;
     try assumption.
-    admit.
+    destruct Hse as [Hse | [Hse | Hse]].
+    {
+      assert(L : well_scoped_smt_expr se1 syms).
+      { eapply IHe1. eassumption. }
+      inversion L; subst.
+      apply H.
+      assumption.
+    }
+    {
+      assert(L : well_scoped_smt_expr se2 syms).
+      { eapply IHe2. eassumption. }
+      inversion L; subst.
+      apply H.
+      assumption.
+    }
+    {
+      assert(L : well_scoped_smt_expr se3 syms).
+      { eapply IHe3. eassumption. }
+      inversion L; subst.
+      apply H.
+      assumption.
+    }
   }
-Admitted.
+Qed.
 
 Lemma well_scoped_sym_eval_phi_args : forall s t args pbid se,
   well_scoped s ->

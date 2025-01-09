@@ -426,7 +426,7 @@ Inductive exp : Set :=
   | OP_IBinop (op : ibinop) (t : T) (v1 : exp) (v2 : exp)
   | OP_ICmp (op : icmp) (t : T) (v1 : exp) (v2 : exp)
   | OP_Conversion (conv : conversion_type) (t1 : T) (v : exp) (t2 : T)
-  | OP_Select (cnd : (T * exp)) (v1 : (T * exp)) (v2 : (T * exp))
+  | OP_Select (t1 : T) (e1 : exp) (t2 : T) (e2 : exp) (t3 : T) (e3 : exp)
 .
 
 (* Set Elimination Schemes. *)

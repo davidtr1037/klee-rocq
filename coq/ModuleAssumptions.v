@@ -82,7 +82,7 @@ Inductive is_supported_exp : llvm_exp -> Prop :=
       is_supported_exp cond ->
       is_supported_exp e1 ->
       is_supported_exp e2 ->
-      is_supported_exp (OP_Select ((TYPE_I 1), cond) (t1, e1) (t2, e2))
+      is_supported_exp (OP_Select (TYPE_I 1) cond t1 e1 t2 e2)
 .
 
 Inductive is_supported_function_arg : function_arg -> Prop :=
