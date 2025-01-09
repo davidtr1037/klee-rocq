@@ -17,7 +17,7 @@ function run_klee {
         -cache-register-expr \
         -cache-stack-expr \
         -cache-sym-names \
-        $1 &> /dev/null
+        $1
     time coqc -Q ${ROOT}/coq SE ${output}
     ls -lh ${output}
 }
