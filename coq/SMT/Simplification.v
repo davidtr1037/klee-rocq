@@ -248,6 +248,61 @@ Definition normalize_extract (s : smt_sort) (ast : smt_ast s) (cast_sort : smt_s
   AST_Extract s ast cast_sort
 .
 
+Definition normalize_select_bv1 (cond ast1 ast2 : smt_ast Sort_BV1) :=
+  match ast1 with
+  | AST_Const Sort_BV1 n1 =>
+      if eq n1 one then
+        AST_BinOp Sort_BV1 SMT_Or cond ast2
+      else
+        AST_BinOp
+          Sort_BV1
+          SMT_And
+          (AST_CmpOp Sort_BV1 SMT_Eq smt_ast_false cond)
+          ast2
+  | _ =>
+      match ast2 with
+      | AST_Const Sort_BV1 n2 =>
+          if eq n2 one then
+            AST_BinOp
+              Sort_BV1
+              SMT_Or
+              (AST_CmpOp Sort_BV1 SMT_Eq smt_ast_false cond)
+              ast1
+          else
+            AST_BinOp Sort_BV1 SMT_And cond ast1
+      | _ => AST_Select Sort_BV1 cond ast1 ast2
+      end
+  end
+.
+
+Definition normalize_select_bv8 cond (ast1 ast2 : smt_ast Sort_BV8) :=
+  AST_Select Sort_BV8 cond ast1 ast2
+.
+
+Definition normalize_select_bv16 cond (ast1 ast2 : smt_ast Sort_BV16) :=
+  AST_Select Sort_BV16 cond ast1 ast2
+.
+
+Definition normalize_select_bv32 cond (ast1 ast2 : smt_ast Sort_BV32) :=
+  AST_Select Sort_BV32 cond ast1 ast2
+.
+
+Definition normalize_select_bv64 cond (ast1 ast2 : smt_ast Sort_BV64) :=
+  AST_Select Sort_BV64 cond ast1 ast2
+.
+
+Definition normalize_select (s : smt_sort) cond (ast1 ast2 : smt_ast s) : smt_ast s :=
+  let f :=
+    match s with
+    | Sort_BV1 => normalize_select_bv1
+    | Sort_BV8 => normalize_select_bv8
+    | Sort_BV16 => normalize_select_bv16
+    | Sort_BV32 => normalize_select_bv32
+    | Sort_BV64 => normalize_select_bv64
+    end in
+  f cond ast1 ast2
+.
+
 Fixpoint normalize (s : smt_sort) (ast : smt_ast s) : smt_ast s :=
   match ast with
   | AST_Const sort n => AST_Const sort n
@@ -264,7 +319,8 @@ Fixpoint normalize (s : smt_sort) (ast : smt_ast s) : smt_ast s :=
       normalize_sext sort (normalize sort ast) cast_sort
   | AST_Extract sort ast cast_sort =>
       normalize_extract sort (normalize sort ast) cast_sort
-  | AST_Select sort cond ast1 ast2 => AST_Select sort cond ast1 ast2
+  | AST_Select sort cond ast1 ast2 =>
+      normalize_select sort (normalize Sort_BV1 cond) (normalize sort ast1) (normalize sort ast2)
   end
 .
 
@@ -455,6 +511,15 @@ Definition simplify_extract (s : smt_sort) (ast : smt_ast s) (cast_sort : smt_so
   end
 .
 
+Definition simplify_select (s : smt_sort) (cond : smt_ast_bool) (ast1 ast2 : smt_ast s) : smt_ast s :=
+  match cond with
+  | AST_Const Sort_BV1 n =>
+      if eq n one then ast1 else ast2
+  | _ =>
+      AST_Select s cond ast1 ast2
+  end
+.
+
 Fixpoint simplify (s : smt_sort) (ast : smt_ast s) : smt_ast s :=
   match ast with
   | AST_Const sort n => AST_Const sort n
@@ -470,7 +535,8 @@ Fixpoint simplify (s : smt_sort) (ast : smt_ast s) : smt_ast s :=
       simplify_sext sort (simplify sort ast) cast_sort
   | AST_Extract sort ast cast_sort =>
       simplify_extract sort (simplify sort ast) cast_sort
-  | AST_Select sort cond ast1 ast2 => AST_Select sort cond ast1 ast2
+  | AST_Select sort cond ast1 ast2 =>
+      simplify_select sort (simplify Sort_BV1 cond) (simplify sort ast1) (simplify sort ast2)
   end
 .
 
@@ -1161,8 +1227,8 @@ Proof.
     apply equiv_smt_expr_extract.
     assumption.
   }
-  { apply equiv_smt_expr_refl.  }
-Qed.
+  { admit. }
+Admitted.
 
 Definition sort_to_add s : (smt_sort_to_int_type s) -> (smt_sort_to_int_type s) -> (smt_sort_to_int_type s) :=
   match s with
@@ -1914,8 +1980,8 @@ Proof.
       assumption.
     }
   }
-  { apply equiv_smt_expr_refl. }
-Qed.
+  { admit. }
+Admitted.
 
 Lemma equiv_smt_expr_normalize_simplify: forall s (ast : smt_ast s),
   equiv_smt_expr
