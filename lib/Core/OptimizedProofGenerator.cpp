@@ -303,6 +303,12 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtreeAssignment(Stat
     expr = moduleTranslator->translateCastInstExpr(ci);
   }
 
+  if (isa<SelectInst>(si.inst)) {
+    SelectInst *selectInst = cast<SelectInst>(si.inst);
+    var = moduleTranslator->translateSelectInstName(selectInst);
+    expr = moduleTranslator->translateSelectInstExpr(selectInst);
+  }
+
   ref<CoqTactic> exprTactic = moduleSupport->getTacticForAssignmentExprCached(*si.inst);
   assert(!exprTactic.isNull());
 
@@ -440,7 +446,8 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSDiv(StateInfo &si,
   ref<CoqTactic> t1 = moduleSupport->getTacticForValueCached(v1);
   ref<CoqTactic> t2 = moduleSupport->getTacticForValueCached(v2);
 
-  ref<CoqTactic> unsatTactic = nullptr;
+  /* TODO: ... */
+  ref<CoqTactic> unsatTactic = new Block({new Admit()});
 
   ref<CoqExpr> ast1 = getEvaluatedSMTExpr(si, v1);
   ref<CoqExpr> ast2 = getEvaluatedSMTExpr(si, v2);

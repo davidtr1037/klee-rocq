@@ -111,6 +111,12 @@ public:
 
   ref<CoqExpr> translateCastInstExpr(llvm::CastInst *inst);
 
+  ref<CoqExpr> translateSelectInst(llvm::SelectInst *inst);
+
+  ref<CoqExpr> translateSelectInstName(llvm::SelectInst *inst);
+
+  ref<CoqExpr> translateSelectInstExpr(llvm::SelectInst *inst);
+
   ref<CoqExpr> translateBranchInst(llvm::BranchInst *inst);
 
   ref<CoqExpr> translateBranchInstExpr(llvm::BranchInst *inst);

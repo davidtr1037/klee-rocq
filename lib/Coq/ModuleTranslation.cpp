@@ -288,6 +288,10 @@ ref<CoqExpr> ModuleTranslator::translateInst(Instruction &inst) {
     return translateCastInst(dyn_cast<CastInst>(&inst));
   }
 
+  if (isa<SelectInst>(&inst)) {
+    return translateSelectInst(dyn_cast<SelectInst>(&inst));
+  }
+
   if (isa<BranchInst>(&inst)) {
     return translateBranchInst(dyn_cast<BranchInst>(&inst));
   }
@@ -576,6 +580,40 @@ ref<CoqExpr> ModuleTranslator::translateCastInstExpr(CastInst *inst) {
       translateType(inst->getSrcTy()),
       translateValue(inst->getOperand(0)),
       translateType(inst->getDestTy()),
+    }
+  );
+}
+
+ref<CoqExpr> ModuleTranslator::translateSelectInst(SelectInst *inst) {
+  return createCMDInst(
+    getInstID(inst),
+    createInstrOp(
+      translateSelectInstName(inst),
+      translateSelectInstExpr(inst)
+    )
+  );
+}
+
+ref<CoqExpr> ModuleTranslator::translateSelectInstName(SelectInst *inst) {
+  return createName(inst->getName().str());
+}
+
+ref<CoqExpr> ModuleTranslator::translateSelectInstExpr(SelectInst *inst) {
+  return new CoqApplication(
+    new CoqVariable("OP_Select"),
+    {
+      new CoqPair(
+        translateType(inst->getCondition()->getType()),
+        translateValue(inst->getCondition())
+      ),
+      new CoqPair(
+        translateType(inst->getTrueValue()->getType()),
+        translateValue(inst->getTrueValue())
+      ),
+      new CoqPair(
+        translateType(inst->getFalseValue()->getType()),
+        translateValue(inst->getFalseValue())
+      ),
     }
   );
 }
@@ -958,7 +996,10 @@ uint64_t ModuleTranslator::getInstID(Instruction *inst) {
 }
 
 bool ModuleTranslator::isAssignment(Instruction &inst) {
-  return isa<BinaryOperator>(&inst) || isa<CmpInst>(&inst) || isa<CastInst>(&inst);
+  return isa<BinaryOperator>(inst) ||
+         isa<CmpInst>(inst) ||
+         isa<CastInst>(inst) ||
+         isa<SelectInst>(inst);
 }
 
 ModuleTranslator::~ModuleTranslator() {

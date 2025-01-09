@@ -198,7 +198,7 @@ ref<CoqLemma> ModuleSupport::getLemmaForInst(Instruction &inst) {
 }
 
 ref<CoqTactic> ModuleSupport::getTacticForInst(Instruction &inst) {
-  if (isa<BinaryOperator>(&inst) || isa<CmpInst>(&inst) || isa<CastInst>(&inst)) {
+  if (moduleTranslator.isAssignment(inst)) {
     return getTacticForAssignment(inst);
   }
 
@@ -305,6 +305,9 @@ ref<CoqLemma> ModuleSupport::getLemmaForAssignmentExpr(Instruction &inst) {
   if (isa<CastInst>(&inst)) {
     expr = moduleTranslator.translateCastInstExpr(dyn_cast<CastInst>(&inst));
   }
+  if (isa<SelectInst>(&inst)) {
+    expr = moduleTranslator.translateSelectInstExpr(dyn_cast<SelectInst>(&inst));
+  }
 
   assert(expr);
 
@@ -336,6 +339,10 @@ ref<CoqTactic> ModuleSupport::getTacticForAssignmentExpr(Instruction &inst) {
 
   if (isa<CastInst>(&inst)) {
     return getTacticForCastExpr(dyn_cast<CastInst>(&inst));
+  }
+
+  if (isa<SelectInst>(&inst)) {
+    return getTacticForSelectExpr(dyn_cast<SelectInst>(&inst));
   }
 
   assert(false);
@@ -494,6 +501,17 @@ ref<CoqTactic> ModuleSupport::getTacticForCastExpr(CastInst *inst) {
       new Apply("IS_OP_Conversion"),
       new Block({new Apply(constructor)}),
       getTacticForValue(inst->getOperand(0)),
+    }
+  );
+}
+
+ref<CoqTactic> ModuleSupport::getTacticForSelectExpr(SelectInst *inst) {
+  return new Block(
+    {
+      new Apply("IS_OP_Select"),
+      getTacticForValue(inst->getCondition()),
+      getTacticForValue(inst->getTrueValue()),
+      getTacticForValue(inst->getFalseValue()),
     }
   );
 }

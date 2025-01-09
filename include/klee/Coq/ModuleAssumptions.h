@@ -77,6 +77,8 @@ public:
 
   ref<CoqTactic> getTacticForCastExpr(llvm::CastInst *inst);
 
+  ref<CoqTactic> getTacticForSelectExpr(llvm::SelectInst *inst);
+
   ref<CoqTactic> getTacticForBranchInst(llvm::BranchInst *inst);
 
   ref<CoqTactic> getTacticForPHINode(llvm::PHINode *inst);
