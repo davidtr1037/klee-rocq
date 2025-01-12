@@ -442,6 +442,70 @@ Proof.
   reflexivity.
 Qed.
 
+Lemma safe_subtree_instr_op_generic : forall ic cid v e c cs pbid ls stk gs syms pc mdl ls_opt t,
+  let s_init :=
+    (mk_sym_state
+      ic
+      (CMD_Inst cid (INSTR_Op v e))
+      (c :: cs)
+      pbid
+      ls
+      stk
+      gs
+      syms
+      pc
+      mdl
+    ) in
+  equiv_smt_store (v !-> (sym_eval_exp ls gs None e); ls) ls_opt ->
+  (root t =
+    (mk_sym_state
+      (next_inst_counter ic c)
+      c
+      cs
+      pbid
+      ls_opt
+      stk
+      gs
+      syms
+      pc
+      mdl
+    )
+  ) ->
+  ~ error_sym_state s_init ->
+  (safe_et_opt t) ->
+  (safe_et_opt (t_subtree s_init [t])).
+Proof.
+  intros ic cid v e c cs pbid ls stk gs syms pc mdl ls_opt t.
+  intros s_init Heq Ht Hne Hsafe.
+  apply Safe_Subtree.
+  { assumption. }
+  {
+    intros s' Hstep.
+    left.
+    exists t.
+    split.
+    { apply in_list_0. }
+    {
+      split.
+      { assumption. }
+      {
+        apply inversion_instr_op in Hstep.
+        destruct Hstep as [se [Heval Hs]].
+        rewrite Hs.
+        rewrite Ht.
+        apply EquivSymState.
+        {
+          rewrite <- Heval.
+          assumption.
+        }
+        { apply equiv_sym_stack_refl. }
+        { apply equiv_smt_store_refl. }
+        { apply equiv_smt_expr_refl. }
+      }
+    }
+  }
+Qed.
+
 Lemma safe_subtree_instr_op : forall ic cid v e c cs pbid ls stk gs syms pc mdl ls_opt t,
   let s_init :=
     (mk_sym_state
@@ -477,33 +541,9 @@ Lemma safe_subtree_instr_op : forall ic cid v e c cs pbid ls stk gs syms pc mdl 
 Proof.
   intros ic cid v e c cs pbid ls stk gs syms pc mdl ls_opt t.
   intros s_init His Heq Ht Hsafe.
-  apply Safe_Subtree.
-  { apply not_error_instr_op. assumption. }
-  {
-    intros s' Hstep.
-    left.
-    exists t.
-    split.
-    { apply in_list_0. }
-    {
-      split.
-      { assumption. }
-      {
-        apply inversion_instr_op in Hstep.
-        destruct Hstep as [se [Heval Hs]].
-        rewrite Hs.
-        rewrite Ht.
-        apply EquivSymState.
-        {
-          rewrite <- Heval.
-          assumption.
-        }
-        { apply equiv_sym_stack_refl. }
-        { apply equiv_smt_store_refl. }
-        { apply equiv_smt_expr_refl. }
-      }
-    }
-  }
+  eapply safe_subtree_instr_op_generic; try eassumption.
+  apply not_error_instr_op.
+  assumption.
 Qed.
 
 Lemma safe_subtree_instr_op_division : forall ic cid v op et e1 e2 c cs pbid ls stk gs syms pc mdl ls_opt se2 t,
@@ -545,45 +585,18 @@ Lemma safe_subtree_instr_op_division : forall ic cid v op et e1 e2 c cs pbid ls 
 Proof.
   intros ic cid v op et e1 e2 c cs pbid ls stk gs syms pc mdl ls_opt se2 t.
   intros s_init Hop His1 His2 Heq Heval_e2 Hunsat Ht Hsafe.
-  apply Safe_Subtree.
+  eapply safe_subtree_instr_op_generic; try eassumption.
+  intros Herr.
+  inversion Herr; subst.
   {
-    intros Herr.
-    inversion Herr; subst.
-    {
-      rewrite Heval_e2 in H15.
-      inversion H15; subst.
-      unfold unsat in Hunsat.
-      apply Hunsat.
-      assumption.
-    }
-    { inversion Hop. }
-    { inversion Hop; inversion H2; subst; try discriminate. }
+    rewrite Heval_e2 in H15.
+    inversion H15; subst.
+    unfold unsat in Hunsat.
+    apply Hunsat.
+    assumption.
   }
-  {
-    intros s' Hstep.
-    left.
-    exists t.
-    split.
-    { apply in_list_0. }
-    {
-      split.
-      { assumption. }
-      {
-        apply inversion_instr_op in Hstep.
-        destruct Hstep as [se [Heval Hs]].
-        rewrite Hs.
-        rewrite Ht.
-        apply EquivSymState.
-        {
-          rewrite <- Heval.
-          assumption.
-        }
-        { apply equiv_sym_stack_refl. }
-        { apply equiv_smt_store_refl. }
-        { apply equiv_smt_expr_refl. }
-      }
-    }
-  }
+  { inversion Hop. }
+  { inversion Hop; inversion H2; subst; try discriminate. }
 Qed.
 
 Definition sym_division_error_condition_opt se :=
@@ -850,13 +863,6 @@ Definition sym_division_overflow_error_condition_opt se1 se2 :=
   end
 .
 
-Lemma equiv_smt_expr_division_overflow_error_condition : forall se1 se2,
-  equiv_smt_expr
-    (Expr Sort_BV1 (sym_division_overflow_error_condition se1 se2))
-    (Expr Sort_BV1 (sym_division_overflow_error_condition_opt se1 se2)).
-Proof.
-Admitted.
-
 Lemma safe_subtree_instr_op_sdiv : forall ic cid v et e1 e2 c cs pbid ls stk gs syms pc mdl ls_opt se1 se2 cond t,
   let s_init :=
     (mk_sym_state
@@ -899,6 +905,34 @@ Lemma safe_subtree_instr_op_sdiv : forall ic cid v et e1 e2 c cs pbid ls stk gs 
 Proof.
   intros ic cid v et e1 e2 c cs pbid ls stk gs syms pc mdl ls_opt se1 se2 cond t.
   intros s_init His1 His2 Heq Heval_e1 Heval_e2 Hcond Hunsat Ht Hsafe.
+  eapply safe_subtree_instr_op_generic; try eassumption.
+  intros Herr.
+  inversion Herr; subst.
+  {
+    rewrite Heval_e2 in H15.
+    inversion H15; subst.
+    rename se into se2.
+    assert(L :
+      unsat (AST_BinOp Sort_BV1 SMT_And pc (sym_division_error_condition se2))
+    ).
+    { admit. }
+    apply L.
+    assumption.
+  }
+  {
+    rewrite Heval_e1 in H2.
+    rewrite Heval_e2 in H15.
+    inversion H2; subst.
+    inversion H15; subst.
+    rename se0 into se1, se3 into se2.
+    assert(L :
+      unsat (AST_BinOp Sort_BV1 SMT_And pc (sym_division_overflow_error_condition se1 se2))
+    ).
+    { admit. }
+    apply L.
+    assumption.
+  }
+  { inversion H2. }
 Admitted.
 
 Lemma safe_subtree_instr_op_shift : forall ic cid v op et e1 e2 c cs pbid ls stk gs syms pc mdl ls_opt se2 t,
