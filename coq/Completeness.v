@@ -1001,13 +1001,64 @@ Proof.
           rename sort into sort2, ast into ast2.
           inversion H7; subst.
           rename sort into sort3, ast into ast3.
-          unfold eval_select.
           destruct (make_dynamic_int sort1 (smt_eval_ast m sort1 ast1)) eqn:Edi1.
           {
             assert(L : sort1 = Sort_BV1).
             { apply infer_sort_generic in Edi1. assumption. }
             subst.
-            admit.
+            unfold eval_select.
+            destruct
+              (make_dynamic_int sort2 (smt_eval_ast m sort2 ast2)) eqn:Edi2,
+              (make_dynamic_int sort3 (smt_eval_ast m sort3 ast3)) eqn:Edi3;
+            try (
+              apply infer_sort_generic in Edi2;
+              apply infer_sort_generic in Edi3;
+              subst;
+              simpl;
+              apply OA_None
+            ).
+            {
+              assert(Ls2 : sort2 = Sort_BV1).
+              { apply infer_sort_generic in Edi2. assumption. }
+              assert(Ls3 : sort3 = Sort_BV1).
+              { apply infer_sort_generic in Edi3. assumption. }
+              subst.
+              assert(L: n = zero \/ n = one).
+              { apply int1_destruct. }
+              destruct L as [L | L]; rewrite L.
+              {
+                unfold sym_eval_select.
+                simpl.
+                eapply OA_Some.
+                { reflexivity. }
+                {
+                  simpl.
+                  inversion Edi1; subst.
+                  rewrite H4.
+                  unfold smt_eval_select.
+                  simpl.
+                  assumption.
+                }
+              }
+              {
+                unfold sym_eval_select.
+                simpl.
+                eapply OA_Some.
+                { reflexivity. }
+                {
+                  simpl.
+                  inversion Edi1; subst.
+                  rewrite H4.
+                  unfold smt_eval_select.
+                  simpl.
+                  assumption.
+                }
+              }
+            }
+            { admit. }
+            { admit. }
+            { admit. }
+            { admit. }
           }
           {
             assert(L : sort1 = Sort_BV8).

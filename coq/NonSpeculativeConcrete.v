@@ -310,20 +310,36 @@ Proof.
     }
   }
   {
+    rename t3 into t.
     destruct
       (eval_exp ls gs (Some (TYPE_I 1)) e1) as [dv1 | ] eqn:E1,
-      (eval_exp ls gs (Some t2) e2) as [dv2 | ] eqn:E2,
-      (eval_exp ls gs (Some t3) e3) as [dv3 | ] eqn:E3;
+      (eval_exp ls gs (Some t) e2) as [dv2 | ] eqn:E2,
+      (eval_exp ls gs (Some t) e3) as [dv3 | ] eqn:E3;
     try discriminate Heval.
     apply IHe1 with (dv := dv1) (ot := Some (TYPE_I 1)) in H2; try assumption.
-    apply IHe2 with (dv := dv2) (ot := Some t2) in H6; try assumption.
-    apply IHe3 with (dv := dv3) (ot := Some t3) in H7; try assumption.
+    apply IHe2 with (dv := dv2) (ot := Some t) in H6; try assumption.
+    apply IHe3 with (dv := dv3) (ot := Some t) in H7; try assumption.
     unfold eval_select in Heval.
     destruct dv1 as [di1 | | ] eqn:Edv1; try discriminate Heval.
     destruct di1 as [n1 | n1 | n1 | n1 | n1]; try discriminate Heval.
-    destruct (eq n1 one) eqn:Eeq.
-    { inversion Heval; subst. assumption. }
-    { inversion Heval; subst. assumption. }
+    destruct dv2 as [di2 | | ] eqn:Edv2.
+    {
+      destruct di2 as [n2 | n2 | n2 | n2 | n2]; (
+        destruct dv3 as [di3 | | ] eqn:Edv3; try discriminate Heval;
+        try (destruct H7; reflexivity);
+        (
+          destruct di3 as [n3 | n3 | n3 | n3 | n3]; (
+            destruct (eq n1 one) eqn:Eeq; (inversion Heval; subst; assumption)
+          )
+        )
+      ).
+    }
+    {
+      destruct dv3 as [di3 | | ] eqn:Edv3; try discriminate Heval.
+      destruct H7.
+      reflexivity.
+    }
+    { destruct H6. reflexivity. }
   }
 Qed.
 

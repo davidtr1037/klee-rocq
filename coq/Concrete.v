@@ -93,7 +93,18 @@ Definition eval_ident (s : dv_store) (g : dv_store) (ot : option typ) (id : iden
 Definition eval_select cond dv1 dv2 : option dynamic_value :=
   match cond with
   | DV_Int (DI_I1 n) =>
-      if eq n one then Some dv1 else Some dv2
+      match dv1, dv2 with
+      | DV_Int (DI_I1 n1),  DV_Int (DI_I1 n2)
+      | DV_Int (DI_I8 n1),  DV_Int (DI_I8 n2)
+      | DV_Int (DI_I16 n1), DV_Int (DI_I16 n2)
+      | DV_Int (DI_I32 n1), DV_Int (DI_I32 n2)
+      | DV_Int (DI_I64 n1), DV_Int (DI_I64 n2) =>
+          if eq n one then Some dv1 else Some dv2
+      | DV_Poison, _
+      | _, DV_Poison =>
+          if eq n one then Some dv1 else Some dv2
+      | _, _ => None
+      end
   | _ => None
   end
 .
