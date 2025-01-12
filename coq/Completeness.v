@@ -1002,12 +1002,10 @@ Proof.
           inversion H7; subst.
           rename sort into sort3, ast into ast3.
           destruct sort1; try apply OA_None.
-          destruct sort2, sort3; try apply OA_None.
-          {
-            simpl.
-            remember (smt_eval_ast m Sort_BV1 ast1) as n.
-            assert(L: n = zero \/ n = one).
-            { apply int1_destruct. }
+          destruct sort2, sort3; try apply OA_None; (
+            simpl;
+            remember (smt_eval_ast m Sort_BV1 ast1) as n;
+            pose proof (int1_destruct n) as L;
             destruct L as [L | L]; rewrite L; (
               simpl;
               eapply OA_Some; [
@@ -1017,12 +1015,8 @@ Proof.
                 rewrite L;
                 reflexivity
               ]
-            ).
-          }
-          { admit. }
-          { admit. }
-          { admit. }
-          { admit. }
+            )
+          ).
         }
         {
           inversion H2; subst.
@@ -1042,7 +1036,7 @@ Proof.
       apply OA_None.
     }
   }
-Admitted.
+Qed.
 
 Lemma empty_store_correspondence : forall m,
   over_approx_store_via empty_smt_store empty_dv_store m.
