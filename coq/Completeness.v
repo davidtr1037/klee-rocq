@@ -1001,7 +1001,13 @@ Proof.
           rename sort into sort2, ast into ast2.
           inversion H7; subst.
           rename sort into sort3, ast into ast3.
-          destruct (make_dynamic_int sort1 (smt_eval_ast m sort1 ast1)) eqn:Edi1.
+          destruct (make_dynamic_int sort1 (smt_eval_ast m sort1 ast1)) eqn:Edi1;
+          try (
+            apply infer_sort_generic in Edi1;
+            subst;
+            simpl;
+            apply OA_None
+          ).
           {
             assert(L : sort1 = Sort_BV1).
             { apply infer_sort_generic in Edi1. assumption. }
@@ -1059,34 +1065,6 @@ Proof.
             { admit. }
             { admit. }
             { admit. }
-          }
-          {
-            assert(L : sort1 = Sort_BV8).
-            { apply infer_sort_generic in Edi1. assumption. }
-            subst.
-            unfold sym_eval_select.
-            apply OA_None.
-          }
-          {
-            assert(L : sort1 = Sort_BV16).
-            { apply infer_sort_generic in Edi1. assumption. }
-            subst.
-            unfold sym_eval_select.
-            apply OA_None.
-          }
-          {
-            assert(L : sort1 = Sort_BV32).
-            { apply infer_sort_generic in Edi1. assumption. }
-            subst.
-            unfold sym_eval_select.
-            apply OA_None.
-          }
-          {
-            assert(L : sort1 = Sort_BV64).
-            { apply infer_sort_generic in Edi1. assumption. }
-            subst.
-            unfold sym_eval_select.
-            apply OA_None.
           }
         }
         {

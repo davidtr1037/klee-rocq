@@ -78,6 +78,7 @@ Inductive is_supported_exp : llvm_exp -> Prop :=
       is_supported_conv conv ->
       is_supported_exp e ->
       is_supported_exp (OP_Conversion conv t1 e t2)
+  (* TODO: use t1 and t2? *)
   | IS_OP_Select : forall cond t e1 e2,
       is_supported_exp cond ->
       is_supported_exp e1 ->
