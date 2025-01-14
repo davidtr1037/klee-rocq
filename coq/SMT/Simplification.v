@@ -1845,7 +1845,17 @@ Lemma equiv_smt_expr_or_zero_right_bv32 : forall n ast,
          AST_BinOp Sort_BV32 SMT_Or ast (AST_Const Sort_BV32 n)))
     (Expr Sort_BV32 (AST_BinOp Sort_BV32 SMT_Or ast (AST_Const Sort_BV32 n))).
 Proof.
-Admitted.
+  intros n ast.
+  destruct (Int32.eq n Int32.zero) eqn:E.
+  {
+    pose proof (equiv_smt_expr_or_zero_left_bv32 n ast) as L.
+    rewrite E in *.
+    eapply equiv_smt_expr_transitivity.
+    { eassumption. }
+    { apply equiv_smt_expr_or_comm. }
+  }
+  { apply equiv_smt_expr_refl. }
+Qed.
 
 Lemma equiv_smt_expr_simplify_binop_bv32 : forall op (ast1 ast2 : smt_ast Sort_BV32),
   equiv_smt_expr
