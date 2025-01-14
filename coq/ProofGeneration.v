@@ -962,19 +962,17 @@ Proof.
   intros ic cid v et e1 e2 c cs pbid ls stk gs syms pc mdl ls_opt se1 se2 cond t.
   intros s_init His1 His2 Heq Heval_e1 Heval_e2 Hcond Hunsat Ht Hsafe.
   eapply safe_subtree_instr_op_generic; try eassumption.
-  assert(L :
-    unsat (AST_BinOp Sort_BV1 SMT_And pc (sym_sdiv_error_condition_opt se1 se2))
-  ).
-  { admit. }
+  apply equiv_smt_expr_symmetry in Hcond.
+  apply equiv_smt_expr_unsat in Hcond; try assumption.
   intros Herr.
   inversion Herr; subst.
   {
     rewrite Heval_e2 in H15.
     inversion H15; subst.
     rename se into se2.
-    apply sym_sdiv_error_condition_implies in L.
-    destruct L as [L _].
-    apply L.
+    apply sym_sdiv_error_condition_implies in Hcond.
+    destruct Hcond as [Hcond _].
+    apply Hcond.
     assumption.
   }
   {
@@ -983,13 +981,13 @@ Proof.
     inversion H2; subst.
     inversion H15; subst.
     rename se0 into se1, se3 into se2.
-    apply sym_sdiv_error_condition_implies in L.
-    destruct L as [_ L].
-    apply L.
+    apply sym_sdiv_error_condition_implies in Hcond.
+    destruct Hcond as [_ Hcond].
+    apply Hcond.
     assumption.
   }
   { inversion H2. }
-Admitted.
+Qed.
 
 Lemma safe_subtree_instr_op_shift : forall ic cid v op et e1 e2 c cs pbid ls stk gs syms pc mdl ls_opt se2 t,
   let s_init :=
