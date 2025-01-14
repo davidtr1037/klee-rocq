@@ -1155,21 +1155,54 @@ Lemma equiv_smt_expr_select_property_1 : forall ast1 ast2,
     (Expr Sort_BV1
        (AST_Select Sort_BV1 ast1 (AST_Const Sort_BV1 Int1.zero) ast2)).
 Proof.
-Admitted.
+  intros ast1 ast2.
+  apply EquivExpr.
+  intros m.
+  simpl.
+  unfold smt_eval_cmpop_by_sort, smt_eval_select.
+  simpl.
+  remember (smt_eval_ast m Sort_BV1 ast1) as n1.
+  remember (smt_eval_ast m Sort_BV1 ast2) as n2.
+  pose proof (int1_destruct n1) as Ln1.
+  pose proof (int1_destruct n2) as Ln2.
+  destruct Ln1 as [Ln1 | Ln1], Ln2 as [Ln2 | Ln2]; rewrite Ln1, Ln2; reflexivity.
+Qed.
 
 Lemma equiv_smt_expr_select_property_2 : forall ast1 ast2,
   equiv_smt_expr (Expr Sort_BV1 (AST_BinOp Sort_BV1 SMT_Or ast1 ast2))
     (Expr Sort_BV1
        (AST_Select Sort_BV1 ast1 (AST_Const Sort_BV1 Int1.one) ast2)).
 Proof.
-Admitted.
+  intros ast1 ast2.
+  apply EquivExpr.
+  intros m.
+  simpl.
+  unfold smt_eval_select.
+  simpl.
+  remember (smt_eval_ast m Sort_BV1 ast1) as n1.
+  remember (smt_eval_ast m Sort_BV1 ast2) as n2.
+  pose proof (int1_destruct n1) as Ln1.
+  pose proof (int1_destruct n2) as Ln2.
+  destruct Ln1 as [Ln1 | Ln1], Ln2 as [Ln2 | Ln2]; rewrite Ln1, Ln2; reflexivity.
+Qed.
 
 Lemma equiv_smt_expr_select_property_3 : forall ast1 ast2,
   equiv_smt_expr
     (Expr Sort_BV1 (AST_BinOp Sort_BV1 SMT_And ast1 ast2))
     (Expr Sort_BV1 (AST_Select Sort_BV1 ast1 ast2 (AST_Const Sort_BV1 Int1.zero))).
 Proof.
-Admitted.
+  intros ast1 ast2.
+  apply EquivExpr.
+  intros m.
+  simpl.
+  unfold smt_eval_select.
+  simpl.
+  remember (smt_eval_ast m Sort_BV1 ast1) as n1.
+  remember (smt_eval_ast m Sort_BV1 ast2) as n2.
+  pose proof (int1_destruct n1) as Ln1.
+  pose proof (int1_destruct n2) as Ln2.
+  destruct Ln1 as [Ln1 | Ln1], Ln2 as [Ln2 | Ln2]; rewrite Ln1, Ln2; reflexivity.
+Qed.
 
 Lemma equiv_smt_expr_select_property_4 : forall ast1 ast2,
   equiv_smt_expr
@@ -1180,7 +1213,18 @@ Lemma equiv_smt_expr_select_property_4 : forall ast1 ast2,
       Sort_BV1
       (AST_Select Sort_BV1 ast1 ast2 (AST_Const Sort_BV1 Int1.one))).
 Proof.
-Admitted.
+  intros ast1 ast2.
+  apply EquivExpr.
+  intros m.
+  simpl.
+  unfold smt_eval_select.
+  simpl.
+  remember (smt_eval_ast m Sort_BV1 ast1) as n1.
+  remember (smt_eval_ast m Sort_BV1 ast2) as n2.
+  pose proof (int1_destruct n1) as Ln1.
+  pose proof (int1_destruct n2) as Ln2.
+  destruct Ln1 as [Ln1 | Ln1], Ln2 as [Ln2 | Ln2]; rewrite Ln1, Ln2; reflexivity.
+Qed.
 
 Lemma equiv_smt_expr_normalize_select_bv1_const_l : forall n ast1 ast2,
   equiv_smt_expr
