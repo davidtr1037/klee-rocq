@@ -1710,20 +1710,12 @@ Proof.
   intros n ast.
   apply EquivExpr.
   intros m.
-  simpl.
-  assert(L: n = Int1.zero \/ n = Int1.one).
-  { apply int1_destruct. }
-  destruct L as [L | L]; subst; simpl.
-  {
-    rewrite Int1.and_zero_l.
-    reflexivity.
-  }
+  pose proof (int1_destruct n) as Ln.
+  destruct Ln as [Ln | Ln]; rewrite Ln; simpl.
+  { rewrite Int1.and_zero_l. reflexivity. }
   {
     replace Int1.one with Int1.mone.
-    {
-      rewrite Int1.and_mone_l.
-      reflexivity.
-    }
+    { rewrite Int1.and_mone_l. reflexivity. }
     { apply int1_eqb_eq. reflexivity. }
   }
 Qed.
@@ -1735,7 +1727,14 @@ Lemma equiv_smt_expr_simplify_or_bv1 : forall n ast,
     (Expr Sort_BV1
        (AST_BinOp Sort_BV1 SMT_Or (AST_Const Sort_BV1 n) ast)).
 Proof.
-Admitted.
+  intros n ast.
+  apply EquivExpr.
+  intros m.
+  pose proof (int1_destruct n) as Ln.
+  destruct Ln as [Ln | Ln]; rewrite Ln; simpl.
+  { rewrite Int1.or_zero_l. reflexivity. }
+  { rewrite int1_or_one_left. reflexivity. }
+Qed.
 
 Lemma equiv_smt_expr_simplify_binop_bv1_consts : forall op n1 n2,
   equiv_smt_expr
