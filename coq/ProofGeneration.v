@@ -1091,6 +1091,26 @@ Lemma equiv_smt_expr_shift_error_condition : forall se,
     (Expr Sort_BV1 (sym_shift_error_condition se))
     (Expr Sort_BV1 (sym_shift_error_condition_opt se)).
 Proof.
+  intros se.
+  destruct se as [sort ast].
+  simpl.
+  apply EquivExpr.
+  intros m.
+  simpl.
+  destruct sort.
+  { admit. }
+  { admit. }
+  { admit. }
+  {
+    unfold smt_eval_cmpop_by_sort.
+    unfold smt_eval_cmpop_generic.
+    simpl.
+    rewrite ltu_zext_i32_i64.
+    remember
+      (Int64.ltu (Int64.repr (Int32.unsigned (smt_eval_ast m Sort_BV32 ast))) (Int64.repr 32)).
+    destruct b; reflexivity.
+  }
+  { admit. }
 Admitted.
 
 (* used in the non-optimized mode *)
