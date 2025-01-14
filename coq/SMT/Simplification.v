@@ -1728,6 +1728,48 @@ Proof.
   }
 Qed.
 
+Lemma equiv_smt_expr_simplify_or_bv1 : forall n ast,
+  equiv_smt_expr
+    (Expr Sort_BV1
+       (if Int1.eq n Int1.one then smt_ast_true else ast))
+    (Expr Sort_BV1
+       (AST_BinOp Sort_BV1 SMT_Or (AST_Const Sort_BV1 n) ast)).
+Proof.
+Admitted.
+
+Lemma equiv_smt_expr_simplify_binop_bv1_consts : forall op n1 n2,
+  equiv_smt_expr
+    (Expr Sort_BV1
+       (simplify_binop_bv1 op (AST_Const Sort_BV1 n1) (AST_Const Sort_BV1 n2)))
+    (Expr Sort_BV1
+       (AST_BinOp Sort_BV1 op (AST_Const Sort_BV1 n1) (AST_Const Sort_BV1 n2))).
+Proof.
+  intros op n1 n2.
+  destruct op;
+  try apply equiv_smt_expr_refl.
+  { apply equiv_smt_expr_add_fold_consts. }
+  { apply equiv_smt_expr_sub_fold_consts. }
+  { apply equiv_smt_expr_mul_fold_consts. }
+  { apply equiv_smt_expr_and_fold_consts. }
+  { apply equiv_smt_expr_or_fold_consts. }
+Qed.
+
+Lemma equiv_smt_expr_simplify_binop_bv1_const_l : forall op n ast,
+  equiv_smt_expr
+    (Expr Sort_BV1 (simplify_binop_bv1 op (AST_Const Sort_BV1 n) ast))
+    (Expr Sort_BV1 (AST_BinOp Sort_BV1 op (AST_Const Sort_BV1 n) ast)).
+Proof.
+  intros op n ast.
+  dependent destruction ast;
+  try apply equiv_smt_expr_simplify_binop_bv1_consts;
+  try (
+    simpl;
+    destruct op; try apply equiv_smt_expr_refl;
+    try apply equiv_smt_expr_simplify_and_bv1;
+    try apply equiv_smt_expr_simplify_or_bv1
+  ).
+Qed.
+
 Lemma equiv_smt_expr_simplify_binop_bv1 : forall op (ast1 ast2 : smt_ast Sort_BV1),
   equiv_smt_expr
     (Expr Sort_BV1 (simplify_binop_bv1 op ast1 ast2))
@@ -1735,50 +1777,26 @@ Lemma equiv_smt_expr_simplify_binop_bv1 : forall op (ast1 ast2 : smt_ast Sort_BV
 Proof.
   intros op ast1 ast2.
   dependent destruction ast1;
+  try apply equiv_smt_expr_simplify_binop_bv1_const_l;
   try (
     dependent destruction ast2;
     try apply equiv_smt_expr_refl;
     (
       destruct op;
       try apply equiv_smt_expr_refl;
-      (
+      try (
         simpl;
         eapply equiv_smt_expr_transitivity;
         [ apply equiv_smt_expr_simplify_and_bv1 | apply equiv_smt_expr_and_comm ]
+      );
+      try (
+        simpl;
+        eapply equiv_smt_expr_transitivity;
+        [ apply equiv_smt_expr_simplify_or_bv1 | apply equiv_smt_expr_or_comm ]
       )
     )
   ).
-  (* const *)
-  {
-    dependent destruction ast2.
-    (* TODO: fix this block *)
-    try (
-      simpl;
-      destruct op;
-      try apply equiv_smt_expr_refl;
-      apply equiv_smt_expr_simplify_and_bv1
-    ).
-    (* const *)
-    {
-      simpl.
-      destruct op;
-      try apply equiv_smt_expr_refl.
-      { apply equiv_smt_expr_add_fold_consts. }
-      { apply equiv_smt_expr_sub_fold_consts. }
-      { apply equiv_smt_expr_mul_fold_consts. }
-      { apply equiv_smt_expr_and_fold_consts. }
-      { apply equiv_smt_expr_or_fold_consts. }
-    }
-    { admit. }
-    { admit. }
-    { admit. }
-    { admit. }
-    { admit. }
-    { admit. }
-    { admit. }
-    { admit. }
-  }
-Admitted.
+Qed.
 
 Lemma equiv_smt_expr_add_zero_bv32 : forall n ast,
   equiv_smt_expr
