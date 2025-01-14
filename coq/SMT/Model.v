@@ -379,8 +379,20 @@ Proof.
     rewrite L.
     reflexivity.
   }
-  { admit. }
-Admitted.
+  {
+    assert(L1 : ~ contains_var (Expr Sort_BV1 ast1) x).
+    { intros Hse. apply H. apply contains_var_select_intro_cond. assumption. }
+    assert(L2 : ~ contains_var (Expr s ast2) x).
+    { intros Hse. apply H. apply contains_var_select_intro_l. assumption. }
+    assert(L3 : ~ contains_var (Expr s ast3) x).
+    { intros Hse. apply H. apply contains_var_select_intro_r. assumption. }
+    apply IHast1 in L1.
+    apply IHast2 in L2.
+    apply IHast3 in L3.
+    rewrite L1, L2, L3.
+    reflexivity.
+  }
+Qed.
 
 Inductive equiv_smt_expr : smt_expr -> smt_expr -> Prop :=
   | EquivExpr : forall s (ast1 ast2 : smt_ast s),

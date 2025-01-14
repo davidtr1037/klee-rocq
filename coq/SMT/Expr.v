@@ -393,3 +393,36 @@ Proof.
     eassumption.
   }
 Qed.
+
+Lemma contains_var_select_intro_cond : forall sort cond (ast1 ast2 : smt_ast sort) x,
+  contains_var (Expr Sort_BV1 cond) x ->
+  contains_var (Expr sort (AST_Select sort cond ast1 ast2)) x.
+Proof.
+  intros sort cond ast1 ast2 x Hc.
+  inversion Hc; subst.
+  eapply ContainsVar.
+  apply SubExpr_Select_Cond.
+  eassumption.
+Qed.
+
+Lemma contains_var_select_intro_l : forall sort cond (ast1 ast2 : smt_ast sort) x,
+  contains_var (Expr sort ast1) x ->
+  contains_var (Expr sort (AST_Select sort cond ast1 ast2)) x.
+Proof.
+  intros sort cond ast1 ast2 x Hc.
+  inversion Hc; subst.
+  eapply ContainsVar.
+  apply SubExpr_Select_L.
+  eassumption.
+Qed.
+
+Lemma contains_var_select_intro_r : forall sort cond (ast1 ast2 : smt_ast sort) x,
+  contains_var (Expr sort ast2) x ->
+  contains_var (Expr sort (AST_Select sort cond ast1 ast2)) x.
+Proof.
+  intros sort cond ast1 ast2 x Hc.
+  inversion Hc; subst.
+  eapply ContainsVar.
+  apply SubExpr_Select_R.
+  eassumption.
+Qed.
