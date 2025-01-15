@@ -723,6 +723,19 @@ Proof.
 Qed.
 Global Hint Resolve repr_signed: ints.
 
+Lemma repr_mod_modulus:
+  forall (n : Z), repr n = repr (Z_mod_modulus n).
+Proof.
+  intros n.
+  unfold repr.
+  apply mkint_eq.
+  rewrite Z_mod_modulus_eq, Z_mod_modulus_eq.
+  symmetry.
+  apply Zmod_small.
+  apply Z_mod_lt.
+  apply modulus_pos.
+Qed.
+
 Opaque repr.
 
 Lemma eqm_repr_eq: forall x y, eqm x (unsigned y) -> repr x = y.
