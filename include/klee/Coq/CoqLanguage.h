@@ -547,6 +547,18 @@ public:
 
 };
 
+class Idtac : public CoqTactic {
+
+public:
+
+  std::string message;
+
+  Idtac(const std::string &message) : message(message) {}
+
+  std::string dump(int indent) const;
+
+};
+
 class CoqLemma : public CoqExpr {
 
 public:

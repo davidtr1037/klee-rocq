@@ -584,6 +584,12 @@ string Try::dump(int indent, bool end) const {
   return os.str();
 }
 
+string Idtac::dump(int indent) const {
+  ostringstream os;
+  os << space(indent) << "idtac " << "\"" << message << "\".";
+  return os.str();
+}
+
 CoqLemma::CoqLemma(const string &name,
                    const ref<CoqExpr> &body,
                    const ref<CoqTactic> &proof,
