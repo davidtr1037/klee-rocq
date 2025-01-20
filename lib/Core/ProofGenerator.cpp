@@ -227,6 +227,10 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForSafety(StateInfo &si,
     if (moduleSupport->isUnsafeInstruction(*si.inst)) {
       BinaryOperator *bo = cast<BinaryOperator>(si.inst);
 
+      if (bo->getOpcode() == Instruction::SDiv) {
+        return getTacticForSDivSafety(si, hint);
+      }
+
       bool isDivision;
       std::string lemmaName;
       switch (bo->getOpcode()) {
@@ -352,6 +356,102 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForSafety(StateInfo &si,
   }
 
   assert(false);
+}
+
+klee::ref<CoqTactic> ProofGenerator::getTacticForSDivSafety(StateInfo &si,
+                                                            const ExternalProofHint *hint) {
+  ref<CoqTactic> unsatDivisionTactic = nullptr;
+  if (isInstrumented(si.inst)) {
+    assert(hint && !hint->lastUnsatAxiomName.empty());
+
+    Value *dividend = si.inst->getOperand(0);
+    ref<CoqExpr> ast1 = getEvaluatedSMTExpr(si, dividend);
+
+    unsatDivisionTactic = new Block(
+      {
+        new EApply(
+          "unsat_sym_sdiv_division_error_condition",
+          {
+            createPlaceHolder(),
+            ast1,
+            createPlaceHolder(),
+            createPlaceHolder(),
+          }
+        ),
+        new Block({new EApply("equiv_smt_expr_normalize_simplify")}),
+        new Block({new Apply(hint->lastUnsatAxiomName)}),
+      }
+    );
+  } else {
+    unsatDivisionTactic = new Block(
+      {
+        new Apply("unsat_and_right"),
+        new Apply("unsat_false"),
+      }
+    );
+  }
+
+  ref<CoqTactic> divisionTactic = new Block(
+    {
+      new Subst(),
+      new Inversion("H15"),
+      new Subst(),
+      new EApply("sat_unsat_contradiction"),
+      new Block({new EAssumption()}),
+      unsatDivisionTactic,
+    }
+  );
+
+  ref<CoqTactic> unsatDivisionOverflowTactic = new Block(
+    {
+      new EApply("unsat_sym_sdiv_overflow_error_condition"),
+      new Block({new EApply("equiv_smt_expr_normalize_simplify")}),
+      new Block({new Apply(hint->lastUnsatAxiomName)}),
+    }
+  );
+
+  if (isInstrumented(si.inst)) {
+    assert(hint && !hint->lastUnsatAxiomName.empty());
+    unsatDivisionOverflowTactic = new Block({new Apply(hint->lastUnsatAxiomName)});
+  } else {
+    unsatDivisionOverflowTactic = new Block({new Apply("unsat_false")});
+  }
+
+  ref<CoqTactic> divisionOverflowTactic = new Block(
+    {
+      new Subst(),
+      new Inversion("H2"),
+      new Subst(),
+      new Inversion("H15"),
+      new Subst(),
+      new EApply("sat_unsat_contradiction"),
+      new Block({new EAssumption()}),
+      new Block(
+        {
+          new EApply("unsat_sym_sdiv_overflow_error_condition"),
+          new Block({new EApply("equiv_smt_expr_normalize_simplify")}),
+          unsatDivisionOverflowTactic,
+        }
+      ),
+    }
+  );
+
+  ref<CoqTactic> shiftTactic = new Block(
+    {
+      new Subst(),
+      new Inversion("H2"),
+    }
+  );
+
+  return new Block(
+    {
+      new Intros({"Herr"}),
+      new Inversion("Herr"),
+      divisionTactic,
+      divisionOverflowTactic,
+      shiftTactic,
+    }
+  );
 }
 
 klee::ref<CoqTactic> ProofGenerator::getTacticForStep(StateInfo &si,
@@ -993,6 +1093,24 @@ string ProofGenerator::getTreeAliasName(uint64_t stepID) {
 
 klee::ref<CoqVariable> ProofGenerator::getTreeAlias(uint64_t stepID) {
   return new CoqVariable(getTreeAliasName(stepID));
+}
+
+klee::ref<CoqExpr> ProofGenerator::getEvaluatedSMTExpr(StateInfo &stateInfo,
+                                                       Value *v) {
+  return new CoqApplication(
+    new CoqVariable("extract_smt_expr"),
+    {
+      new CoqApplication(
+        new CoqVariable("sym_eval_exp"),
+        {
+          stateTranslator->getLocalStoreAlias(stateInfo.stepID),
+          stateTranslator->createGlobalStore(),
+          createSome(moduleTranslator->translateType(v->getType())),
+          moduleTranslator->translateValue(v),
+        }
+      ),
+    }
+  );
 }
 
 void ProofGenerator::generateTreeDefs() {

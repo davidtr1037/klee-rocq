@@ -1084,21 +1084,3 @@ klee::ref<CoqTactic> OptimizedProofGenerator::getTacticForSubtree(StateInfo &sta
     }
   );
 }
-
-klee::ref<CoqExpr> OptimizedProofGenerator::getEvaluatedSMTExpr(StateInfo &stateInfo,
-                                                                Value *v) {
-  return new CoqApplication(
-    new CoqVariable("extract_smt_expr"),
-    {
-      new CoqApplication(
-        new CoqVariable("sym_eval_exp"),
-        {
-          stateTranslator->getLocalStoreAlias(stateInfo.stepID),
-          stateTranslator->createGlobalStore(),
-          createSome(moduleTranslator->translateType(v->getType())),
-          moduleTranslator->translateValue(v),
-        }
-      ),
-    }
-  );
-}

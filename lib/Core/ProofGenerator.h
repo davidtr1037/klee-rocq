@@ -144,6 +144,8 @@ public:
 
   ref<CoqTactic> getTacticForSafety(StateInfo &si, const ExternalProofHint *hint);
 
+  ref<CoqTactic> getTacticForSDivSafety(StateInfo &si, const ExternalProofHint *hint);
+
   ref<CoqTactic> getTacticForStep(StateInfo &si,
                                   ExecutionState &successor);
 
@@ -229,6 +231,8 @@ public:
   std::string getTreeAliasName(uint64_t stepID);
 
   ref<CoqVariable> getTreeAlias(uint64_t stepID);
+
+  ref<CoqExpr> getEvaluatedSMTExpr(StateInfo &stateInfo, llvm::Value *v);
 
   void generateTreeDefs();
 

@@ -106,9 +106,6 @@ public:
                                      SuccessorInfo &successor2,
                                      ProofGenerationOutput &output);
 
-  ref<CoqExpr> getEvaluatedSMTExpr(StateInfo &stateInfo,
-                                   llvm::Value *v);
-
 };
 
 }
