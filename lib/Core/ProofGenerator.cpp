@@ -361,36 +361,15 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForSafety(StateInfo &si,
 klee::ref<CoqTactic> ProofGenerator::getTacticForSDivSafety(StateInfo &si,
                                                             const ExternalProofHint *hint) {
   ref<CoqTactic> unsatDivisionTactic = nullptr;
-  /* TODO: use equiv_smt_expr_normalize_simplify in both cases? */
   if (isInstrumented(si.inst)) {
     assert(hint && !hint->lastUnsatAxiomName.empty());
-
-    Value *dividend = si.inst->getOperand(0);
-    ref<CoqExpr> ast1 = getEvaluatedSMTExpr(si, dividend);
-
-    unsatDivisionTactic = new Block(
-      {
-        new EApply(
-          "unsat_sym_sdiv_division_error_condition",
-          {
-            createPlaceHolder(),
-            ast1,
-            createPlaceHolder(),
-            createPlaceHolder(),
-          }
-        ),
-        new Block({new EApply("equiv_smt_expr_normalize_simplify")}),
-        new Block({new Apply(hint->lastUnsatAxiomName)}),
-      }
-    );
+    unsatDivisionTactic = new Block({new Apply(hint->lastUnsatAxiomName)});
   } else {
-    unsatDivisionTactic = new Block(
-      {
-        new Apply("unsat_and_right"),
-        new Apply("unsat_false"),
-      }
-    );
+    unsatDivisionTactic = new Block({new Apply("unsat_false")});
   }
+
+  Value *dividend = si.inst->getOperand(0);
+  ref<CoqExpr> ast1 = getEvaluatedSMTExpr(si, dividend);
 
   ref<CoqTactic> divisionTactic = new Block(
     {
@@ -399,18 +378,25 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForSDivSafety(StateInfo &si,
       new Subst(),
       new EApply("sat_unsat_contradiction"),
       new Block({new EAssumption()}),
-      unsatDivisionTactic,
+      new Block(
+        {
+          new EApply(
+            "unsat_sym_sdiv_division_error_condition",
+            {
+              createPlaceHolder(),
+              ast1,
+              createPlaceHolder(),
+              createPlaceHolder(),
+            }
+          ),
+          new Block({new EApply("equiv_smt_expr_normalize_simplify")}),
+          unsatDivisionTactic,
+        }
+      ),
     }
   );
 
-  ref<CoqTactic> unsatDivisionOverflowTactic = new Block(
-    {
-      new EApply("unsat_sym_sdiv_overflow_error_condition"),
-      new Block({new EApply("equiv_smt_expr_normalize_simplify")}),
-      new Block({new Apply(hint->lastUnsatAxiomName)}),
-    }
-  );
-
+  ref<CoqTactic> unsatDivisionOverflowTactic;
   if (isInstrumented(si.inst)) {
     assert(hint && !hint->lastUnsatAxiomName.empty());
     unsatDivisionOverflowTactic = new Block({new Apply(hint->lastUnsatAxiomName)});
