@@ -361,6 +361,7 @@ klee::ref<CoqTactic> ProofGenerator::getTacticForSafety(StateInfo &si,
 klee::ref<CoqTactic> ProofGenerator::getTacticForSDivSafety(StateInfo &si,
                                                             const ExternalProofHint *hint) {
   ref<CoqTactic> unsatDivisionTactic = nullptr;
+  /* TODO: use equiv_smt_expr_normalize_simplify in both cases? */
   if (isInstrumented(si.inst)) {
     assert(hint && !hint->lastUnsatAxiomName.empty());
 
