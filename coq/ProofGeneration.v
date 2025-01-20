@@ -866,8 +866,7 @@ Definition sym_sdiv_error_condition_opt se1 se2 :=
   end
 .
 
-(* TODO: rename *)
-Lemma sym_sdiv_error_condition_implies : forall pc se1 se2,
+Lemma sym_sdiv_error_condition_opt_guarantees : forall pc se1 se2,
   unsat (AST_BinOp Sort_BV1 SMT_And pc (sym_sdiv_error_condition_opt se1 se2)) ->
   (
     unsat (AST_BinOp Sort_BV1 SMT_And pc (sym_division_error_condition se2)) /\
@@ -1044,7 +1043,7 @@ Proof.
   intros pc se1 se2 cond Heq Hunsat.
   apply equiv_smt_expr_symmetry in Heq.
   apply equiv_smt_expr_unsat in Heq; try assumption.
-  apply sym_sdiv_error_condition_implies in Heq.
+  apply sym_sdiv_error_condition_opt_guarantees in Heq.
   destruct Heq as [Heq _].
   assumption.
 Qed.
@@ -1060,7 +1059,7 @@ Proof.
   intros pc se1 se2 cond Heq Hunsat.
   apply equiv_smt_expr_symmetry in Heq.
   apply equiv_smt_expr_unsat in Heq; try assumption.
-  apply sym_sdiv_error_condition_implies in Heq.
+  apply sym_sdiv_error_condition_opt_guarantees in Heq.
   destruct Heq as [_ Heq].
   assumption.
 Qed.
@@ -1116,7 +1115,7 @@ Proof.
     rewrite Heval_e2 in H15.
     inversion H15; subst.
     rename se into se2.
-    apply sym_sdiv_error_condition_implies in Hcond.
+    apply sym_sdiv_error_condition_opt_guarantees in Hcond.
     destruct Hcond as [Hcond _].
     apply Hcond.
     assumption.
@@ -1127,7 +1126,7 @@ Proof.
     inversion H2; subst.
     inversion H15; subst.
     rename se0 into se1, se3 into se2.
-    apply sym_sdiv_error_condition_implies in Hcond.
+    apply sym_sdiv_error_condition_opt_guarantees in Hcond.
     destruct Hcond as [_ Hcond].
     apply Hcond.
     assumption.
