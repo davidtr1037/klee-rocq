@@ -386,8 +386,7 @@ Lemma int1_eqb_eq : forall (x y : Int1.int),
   Int1.eq x y = true -> x = y.
 Proof.
   intros x y H.
-  assert(L : if Int1.eq x y then x = y else x <> y).
-  { apply Int1.eq_spec. }
+  pose proof (Int1.eq_spec x y) as L.
   rewrite H in L.
   assumption.
 Qed.
@@ -528,6 +527,87 @@ Proof.
   }
 Qed.
 
+(* TODO: rename *)
+Lemma eq_zero_zext_i1_i64 : forall n : int1,
+  Int1.eq n Int1.zero = Int64.eq (Int64.repr (Int1.unsigned n)) Int64.zero.
+Proof.
+  intro n.
+  apply eq_true_iff_eq.
+  split; intros Heq.
+  {
+    apply int1_eqb_eq in Heq.
+    subst.
+    reflexivity.
+  }
+  {
+    destruct n as [x Hx].
+    simpl in Heq.
+    unfold Int64.eq in Heq.
+    replace (Int64.unsigned Int64.zero)%Z with 0%Z in Heq; try reflexivity.
+    rewrite (Int64.unsigned_repr_eq) in Heq.
+    replace (x mod Int64.modulus)%Z with x in Heq.
+    {
+      destruct (Coqlib.zeq x 0) as [H | H] eqn:E; try inversion Heq.
+      subst.
+      reflexivity.
+    }
+    {
+      symmetry.
+      apply Zmod_small.
+      unfold Int64.modulus, Int64.wordsize, two_power_nat.
+      unfold Int1.modulus, Int1.wordsize, two_power_nat in Hx.
+      simpl.
+      simpl in Hx.
+      lia.
+    }
+  }
+Qed.
+
+Lemma int8_eqb_eq : forall (x y : Int8.int),
+  Int8.eq x y = true -> x = y.
+Proof.
+  intros x y H.
+  pose proof (Int8.eq_spec x y) as L.
+  rewrite H in L.
+  assumption.
+Qed.
+
+(* TODO: rename *)
+Lemma eq_zero_zext_i8_i64 : forall n : int8,
+  Int8.eq n Int8.zero = Int64.eq (Int64.repr (Int8.unsigned n)) Int64.zero.
+Proof.
+  intro n.
+  apply eq_true_iff_eq.
+  split; intros Heq.
+  {
+    apply int8_eqb_eq in Heq.
+    subst.
+    reflexivity.
+  }
+  {
+    destruct n as [x Hx].
+    simpl in Heq.
+    unfold Int64.eq in Heq.
+    replace (Int64.unsigned Int64.zero)%Z with 0%Z in Heq; try reflexivity.
+    rewrite (Int64.unsigned_repr_eq) in Heq.
+    replace (x mod Int64.modulus)%Z with x in Heq.
+    {
+      destruct (Coqlib.zeq x 0) as [H | H] eqn:E; try inversion Heq.
+      subst.
+      reflexivity.
+    }
+    {
+      symmetry.
+      apply Zmod_small.
+      unfold Int64.modulus, Int64.wordsize, two_power_nat.
+      unfold Int8.modulus, Int8.wordsize, two_power_nat in Hx.
+      simpl.
+      simpl in Hx.
+      lia.
+    }
+  }
+Qed.
+
 (* TODO: rename? *)
 Lemma ltu_zext_i8_i64 : forall n,
   (Int8.ltu n (Int8.repr 8)) =
@@ -547,6 +627,51 @@ Proof.
     unfold Int64.modulus, Int64.wordsize, two_power_nat.
     simpl.
     lia.
+  }
+Qed.
+
+Lemma int16_eqb_eq : forall (x y : Int16.int),
+  Int16.eq x y = true -> x = y.
+Proof.
+  intros x y H.
+  pose proof (Int16.eq_spec x y) as L.
+  rewrite H in L.
+  assumption.
+Qed.
+
+(* TODO: rename *)
+Lemma eq_zero_zext_i16_i64 : forall n : int16,
+  Int16.eq n Int16.zero = Int64.eq (Int64.repr (Int16.unsigned n)) Int64.zero.
+Proof.
+  intro n.
+  apply eq_true_iff_eq.
+  split; intros Heq.
+  {
+    apply int16_eqb_eq in Heq.
+    subst.
+    reflexivity.
+  }
+  {
+    destruct n as [x Hx].
+    simpl in Heq.
+    unfold Int64.eq in Heq.
+    replace (Int64.unsigned Int64.zero)%Z with 0%Z in Heq; try reflexivity.
+    rewrite (Int64.unsigned_repr_eq) in Heq.
+    replace (x mod Int64.modulus)%Z with x in Heq.
+    {
+      destruct (Coqlib.zeq x 0) as [H | H] eqn:E; try inversion Heq.
+      subst.
+      reflexivity.
+    }
+    {
+      symmetry.
+      apply Zmod_small.
+      unfold Int64.modulus, Int64.wordsize, two_power_nat.
+      unfold Int16.modulus, Int16.wordsize, two_power_nat in Hx.
+      simpl.
+      simpl in Hx.
+      lia.
+    }
   }
 Qed.
 
@@ -617,8 +742,8 @@ Proof.
     {
       symmetry.
       apply Zmod_small.
-      unfold Int64.modulus, Int64.wordsize, Wordsize_64.wordsize, two_power_nat.
-      unfold Int32.modulus, Int32.wordsize, Wordsize_32.wordsize, two_power_nat in Hx.
+      unfold Int64.modulus, Int64.wordsize, two_power_nat.
+      unfold Int32.modulus, Int32.wordsize, two_power_nat in Hx.
       simpl.
       simpl in Hx.
       lia.
