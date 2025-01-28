@@ -612,7 +612,14 @@ Proof.
     rewrite Int64.eq_sym.
     reflexivity.
   }
-  { admit. }
+  {
+    unfold smt_eval_cmpop_by_sort.
+    unfold smt_eval_cmpop_generic.
+    unfold cmp. simpl.
+    rewrite Int64.repr_unsigned.
+    rewrite Int64.eq_sym.
+    reflexivity.
+  }
 Admitted.
 
 (* used in the non-optimized mode *)
