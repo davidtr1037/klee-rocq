@@ -1247,21 +1247,29 @@ Proof.
   apply EquivExpr.
   intros m.
   simpl.
-  destruct sort.
-  { admit. }
-  { admit. }
-  { admit. }
+  remember (smt_eval_ast m sort ast) as n.
+  destruct sort; unfold smt_eval_cmpop_by_sort; unfold smt_eval_cmpop_generic; simpl.
   {
-    unfold smt_eval_cmpop_by_sort.
-    unfold smt_eval_cmpop_generic.
-    simpl.
-    rewrite ltu_zext_i32_i64.
-    remember
-      (Int64.ltu (Int64.repr (Int32.unsigned (smt_eval_ast m Sort_BV32 ast))) (Int64.repr 32)) as b.
-    destruct b; reflexivity.
+    rewrite <- ltu_zext_i1_i64.
+    destruct (Int1.ltu n (Int1.repr 1)); reflexivity.
   }
-  { admit. }
-Admitted.
+  {
+    rewrite <- ltu_zext_i8_i64.
+    destruct (Int8.ltu n (Int8.repr 8)); reflexivity.
+  }
+  {
+    rewrite <- ltu_zext_i16_i64.
+    destruct (Int16.ltu n (Int16.repr 16)); reflexivity.
+  }
+  {
+    rewrite <- ltu_zext_i32_i64.
+    destruct (Int32.ltu n (Int32.repr 32)); reflexivity.
+  }
+  {
+    rewrite Int64.repr_unsigned.
+    destruct (Int64.ltu n (Int64.repr 64)); reflexivity.
+  }
+Qed.
 
 (* used in the non-optimized mode *)
 Lemma unsat_sym_shift_error_condition : forall pc se cond,

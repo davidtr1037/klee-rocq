@@ -506,6 +506,71 @@ Proof.
   destruct L; subst; reflexivity.
 Qed.
 
+(* TODO: rename? *)
+Lemma ltu_zext_i1_i64 : forall n,
+  (Int1.ltu n (Int1.repr 1)) =
+  (Int64.ltu (Integers.Int64.repr (Int1.unsigned n)) (Integers.Int64.repr 1)).
+Proof.
+  intros n.
+  destruct n as [x Hx].
+  unfold Int1.ltu.
+  unfold Int64.ltu.
+  simpl.
+  rewrite (Int64.unsigned_repr_eq).
+  rewrite Zmod_small.
+  { reflexivity. }
+  {
+    unfold Int1.modulus, Int1.wordsize, two_power_nat in Hx.
+    simpl in Hx.
+    unfold Int64.modulus, Int64.wordsize, two_power_nat.
+    simpl.
+    lia.
+  }
+Qed.
+
+(* TODO: rename? *)
+Lemma ltu_zext_i8_i64 : forall n,
+  (Int8.ltu n (Int8.repr 8)) =
+  (Int64.ltu (Integers.Int64.repr (Int8.unsigned n)) (Integers.Int64.repr 8)).
+Proof.
+  intros n.
+  destruct n as [x Hx].
+  unfold Int8.ltu.
+  unfold Int64.ltu.
+  simpl.
+  rewrite (Int64.unsigned_repr_eq).
+  rewrite Zmod_small.
+  { reflexivity. }
+  {
+    unfold Int8.modulus, Int8.wordsize, two_power_nat in Hx.
+    simpl in Hx.
+    unfold Int64.modulus, Int64.wordsize, two_power_nat.
+    simpl.
+    lia.
+  }
+Qed.
+
+Lemma ltu_zext_i16_i64 : forall n,
+  (Int16.ltu n (Int16.repr 16)) =
+  (Int64.ltu (Integers.Int64.repr (Int16.unsigned n)) (Integers.Int64.repr 16)).
+Proof.
+  intros n.
+  destruct n as [x Hx].
+  unfold Int16.ltu.
+  unfold Int64.ltu.
+  simpl.
+  rewrite (Int64.unsigned_repr_eq).
+  rewrite Zmod_small.
+  { reflexivity. }
+  {
+    unfold Int16.modulus, Int16.wordsize, two_power_nat in Hx.
+    simpl in Hx.
+    unfold Int64.modulus, Int64.wordsize, two_power_nat.
+    simpl.
+    lia.
+  }
+Qed.
+
 Lemma int32_eqb_eq : forall (x y : Int32.int),
   Int32.eq x y = true -> x = y.
 Proof.
@@ -575,9 +640,9 @@ Proof.
   rewrite Zmod_small.
   { reflexivity. }
   {
-    unfold Int32.modulus, Int32.wordsize, Wordsize_32.wordsize, two_power_nat in Hx.
+    unfold Int32.modulus, Int32.wordsize, two_power_nat in Hx.
     simpl in Hx.
-    unfold Int64.modulus, Int64.wordsize, Wordsize_64.wordsize, two_power_nat.
+    unfold Int64.modulus, Int64.wordsize, two_power_nat.
     simpl.
     lia.
   }
