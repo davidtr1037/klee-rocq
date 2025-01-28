@@ -600,22 +600,16 @@ Proof.
   apply EquivExpr.
   intros m.
   simpl.
-  destruct sort.
+  destruct sort; unfold smt_eval_cmpop_by_sort; unfold smt_eval_cmpop_generic; simpl.
   { admit. }
   { admit. }
   { admit. }
   {
-    unfold smt_eval_cmpop_by_sort.
-    unfold smt_eval_cmpop_generic.
-    simpl.
     rewrite eq_zero_zext_i32_i64.
     rewrite Int64.eq_sym.
     reflexivity.
   }
   {
-    unfold smt_eval_cmpop_by_sort.
-    unfold smt_eval_cmpop_generic.
-    unfold cmp. simpl.
     rewrite Int64.repr_unsigned.
     rewrite Int64.eq_sym.
     reflexivity.
