@@ -601,9 +601,21 @@ Proof.
   intros m.
   simpl.
   destruct sort; unfold smt_eval_cmpop_by_sort; unfold smt_eval_cmpop_generic; simpl.
-  { admit. }
-  { admit. }
-  { admit. }
+  {
+    rewrite eq_zero_zext_i1_i64.
+    rewrite Int64.eq_sym.
+    reflexivity.
+  }
+  {
+    rewrite eq_zero_zext_i8_i64.
+    rewrite Int64.eq_sym.
+    reflexivity.
+  }
+  {
+    rewrite eq_zero_zext_i16_i64.
+    rewrite Int64.eq_sym.
+    reflexivity.
+  }
   {
     rewrite eq_zero_zext_i32_i64.
     rewrite Int64.eq_sym.
@@ -614,7 +626,7 @@ Proof.
     rewrite Int64.eq_sym.
     reflexivity.
   }
-Admitted.
+Qed.
 
 (* used in the non-optimized mode *)
 Lemma unsat_sym_division_error_condition : forall pc se cond,
