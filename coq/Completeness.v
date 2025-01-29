@@ -29,6 +29,7 @@ From SE.SMT Require Import Model.
 From SE.Utils Require Import IDMap.
 From SE.Utils Require StringMap.
 From SE.Utils Require ListUtil.
+From SE.Utils Require Import Util.
 
 (* TODO: remove? *)
 Lemma infer_width : forall s (ast : smt_ast s) w n,
@@ -1298,6 +1299,40 @@ Proof.
   }
 Qed.
 
+Lemma eval_division_correspondence : forall op sort (ast1 ast2 : smt_ast sort) (n1 n2 : smt_sort_to_int_type sort) dv m,
+  is_unsafe_division op ->
+  smt_eval_ast m sort ast1 = n1 ->
+  smt_eval_ast m sort ast2 = n2 ->
+  (eval_ibinop op (DV_Int (make_dynamic_int sort n1)) (DV_Int (make_dynamic_int sort n2))) = Some dv ->
+  over_approx_via_model (Some dv)
+    (Some
+       (Expr sort
+          (AST_BinOp sort (ibinop_to_smt_binop op) ast1 ast2))) m.
+Proof.
+  intros op sort ast1 ast2 n1 n2 dv m Hop He1 He2 He.
+  destruct sort;
+  (
+    simpl in He;
+    inversion Hop; rewrite <- H in *;
+    (
+      unfold eval_ibinop, eval_ibinop_generic in He;
+      simpl in n1, n2;
+      apply destruct_ite_in_eq in He;
+      destruct He as [[_ He] | [_ He]]; [
+        discriminate He |
+        simpl in He;
+        rewrite <- He;
+        eapply OA_Some; [
+          reflexivity |
+          simpl;
+          subst;
+          reflexivity
+        ]
+      ]
+    )
+  ).
+Qed.
+
 Lemma completeness_single_step_division : forall c cid v op w e1 e2 c' s,
   is_unsafe_division op ->
   Concrete.cmd c = CMD_Inst cid (INSTR_Op v (OP_IBinop op (TYPE_I w) e1 e2)) ->
@@ -1391,91 +1426,10 @@ Proof.
         apply OAV_State; try assumption.
         apply store_update_correspondence.
         {
-          destruct op; inversion Hop; subst.
-          (* UDiv *)
-          {
-            rewrite <- H12.
-            simpl.
-            destruct (Int1.unsigned n2 =? 0)%Z eqn:En2.
-            {
-              simpl in H12.
-              rewrite En2 in H12.
-              discriminate H12.
-            }
-            {
-              eapply OA_Some.
-              { reflexivity. }
-              {
-                simpl.
-                inversion H9; subst.
-                inversion H11; subst.
-                reflexivity.
-              }
-            }
-          }
-          (* SDiv *)
-          {
-            rewrite <- H12.
-            simpl.
-            destruct (Int1.signed n2 =? 0)%Z eqn:En2.
-            {
-              simpl in H12.
-              rewrite En2 in H12.
-              discriminate H12.
-            }
-            {
-              eapply OA_Some.
-              { reflexivity. }
-              {
-                simpl.
-                inversion H9; subst.
-                inversion H11; subst.
-                reflexivity.
-              }
-            }
-          }
-          (* URem *)
-          {
-            rewrite <- H12.
-            simpl.
-            destruct (Int1.unsigned n2 =? 0)%Z eqn:En2.
-            {
-              simpl in H12.
-              rewrite En2 in H12.
-              discriminate H12.
-            }
-            {
-              eapply OA_Some.
-              { reflexivity. }
-              {
-                simpl.
-                inversion H9; subst.
-                inversion H11; subst.
-                reflexivity.
-              }
-            }
-          }
-          (* SRem *)
-          {
-            rewrite <- H12.
-            simpl.
-            destruct (Int1.signed n2 =? 0)%Z eqn:En2.
-            {
-              simpl in H12.
-              rewrite En2 in H12.
-              discriminate H12.
-            }
-            {
-              eapply OA_Some.
-              { reflexivity. }
-              {
-                simpl.
-                inversion H9; subst.
-                inversion H11; subst.
-                reflexivity.
-              }
-            }
-          }
+          eapply eval_division_correspondence; try eassumption.
+          { inversion H9; subst. reflexivity. }
+          { inversion H11; subst. reflexivity. }
+          { inversion H9; subst; inversion H11; subst. assumption. }
         }
         { assumption. }
       }
