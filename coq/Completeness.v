@@ -1399,51 +1399,48 @@ Proof.
     ).
     { apply eval_exp_correspondence; assumption. }
     destruct di1 as [n1 | n1 | n1 | n1 | n1], di2 as [n2 | n2 | n2 | n2 | n2];
-    try (discriminate H12).
-    {
-      rewrite E1 in L1.
-      rewrite E2 in L2.
-      inversion L1; subst.
-      inversion L2; subst.
-      rename sort into sort1, ast into ast1, sort0 into sort2, ast0 into ast2.
-      pose proof infer_sort_generic as L.
-      pose proof H9 as Ls1.
-      apply L in Ls1.
-      simpl in Ls1.
-      pose proof H11 as Ls2.
-      apply L in Ls2.
-      simpl in Ls2.
-      subst.
-      eexists.
-      split.
-      {
-        apply Sym_Step_OP.
-        simpl.
-        rewrite <- H4.
-        rewrite <- H5.
-        reflexivity.
-      }
-      {
-        apply OA_State.
-        exists m.
-        apply OAV_State; try assumption.
-        apply store_update_correspondence.
-        {
-          eapply eval_division_correspondence; try eassumption.
-          { inversion H9; subst. reflexivity. }
-          { inversion H11; subst. reflexivity. }
-          { inversion H9; subst; inversion H11; subst. assumption. }
-        }
-        { assumption. }
-      }
-    }
-    (* TODO: those are similar to the Sort_BV1 case *)
-    { admit. }
-    { admit. }
-    { admit. }
-    { admit. }
+    try (discriminate H12);
+    (
+      rewrite E1 in L1;
+      rewrite E2 in L2;
+      inversion L1; subst;
+      inversion L2; subst;
+      rename sort into sort1, ast into ast1, sort0 into sort2, ast0 into ast2;
+      pose proof infer_sort_generic as L;
+      pose proof H9 as Ls1;
+      apply L in Ls1;
+      simpl in Ls1;
+      pose proof H11 as Ls2;
+      apply L in Ls2;
+      simpl in Ls2;
+      subst;
+      eexists;
+      split; [
+        apply Sym_Step_OP;
+        simpl;
+        rewrite <- H4;
+        rewrite <- H5;
+        reflexivity |
+        apply OA_State;
+        exists m;
+        apply OAV_State; [
+          apply store_update_correspondence; [
+            eapply eval_division_correspondence; [
+              eassumption |
+              inversion H9; subst; reflexivity |
+              inversion H11; subst; reflexivity |
+              inversion H9; subst; inversion H11; subst; assumption
+            ] |
+            assumption
+          ] |
+          assumption |
+          assumption |
+          assumption
+        ]
+      ]
+    ).
   }
-Admitted.
+Qed.
 
 Lemma completeness_single_step_shift : forall c cid v op w e1 e2 c' s,
   is_unsafe_shift op ->
