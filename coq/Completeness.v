@@ -867,11 +867,13 @@ Proof.
     );
     try (
       apply has_no_poison_eval_exp in E2; try assumption;
-      destruct E2; reflexivity
+      destruct E2;
+      apply Is_Poison
     );
     try (
       apply has_no_poison_eval_exp in E1; try assumption;
-      destruct E1; reflexivity
+      destruct E1;
+      apply Is_Poison
     ).
     unfold eval_ibinop in H12.
     assert(L1 :
@@ -937,7 +939,7 @@ Lemma eval_shift_correspondence : forall op sort (ast1 ast2 : smt_ast sort) (n1 
   smt_eval_ast m sort ast1 = n1 ->
   smt_eval_ast m sort ast2 = n2 ->
   (eval_ibinop op (DV_Int (make_dynamic_int sort n1)) (DV_Int (make_dynamic_int sort n2))) = Some dv ->
-  dv <> DV_Poison ->
+  ~ is_poison dv ->
   over_approx_via_model
     (Some dv)
     (Some (Expr sort (AST_BinOp sort (ibinop_to_smt_binop op) ast1 ast2)))
@@ -956,7 +958,7 @@ Proof.
       destruct He as [[_ He] | [_ He]]; [
         inversion He; subst;
         destruct Hdv;
-        reflexivity |
+        apply Is_Poison |
         rewrite <- He;
         eapply OA_Some; [
           reflexivity |
@@ -979,7 +981,7 @@ Proof.
       {
         inversion He; subst.
         destruct Hdv.
-        reflexivity.
+        apply Is_Poison.
       }
       {
         rewrite <- He.
@@ -1006,7 +1008,7 @@ Proof.
       {
         inversion He; subst.
         destruct Hdv.
-        reflexivity.
+        apply Is_Poison.
       }
       {
         rewrite <- He.
@@ -1033,7 +1035,7 @@ Proof.
       {
         inversion He; subst.
         destruct Hdv.
-        reflexivity.
+        apply Is_Poison.
       }
       {
         rewrite <- He.
@@ -1098,11 +1100,13 @@ Proof.
     );
     try (
       apply has_no_poison_eval_exp in E1; try assumption;
-      destruct E1; reflexivity
+      destruct E1;
+      apply Is_Poison
     );
     try (
       apply has_no_poison_eval_exp in E2; try assumption;
-      destruct E2; reflexivity
+      destruct E2;
+      apply Is_Poison
     ).
     unfold eval_ibinop in H11.
     assert(L1 :
@@ -1154,10 +1158,13 @@ Proof.
             assumption |
             inversion H1; subst;
             inversion H20; subst;
-            specialize (H3 v);
+            intros Hf;
+            inversion Hf; subst;
+            specialize (H3 v t);
             rewrite update_map_eq in H3;
             apply injection_some_neq in H3;
-            assumption
+            destruct H3;
+            reflexivity
           ] |
           assumption
         ]

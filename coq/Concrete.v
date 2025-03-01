@@ -100,8 +100,8 @@ Definition eval_select cond dv1 dv2 : option dynamic_value :=
       | DV_Int (DI_I32 n1), DV_Int (DI_I32 n2)
       | DV_Int (DI_I64 n1), DV_Int (DI_I64 n2) =>
           if eq n one then Some dv1 else Some dv2
-      | DV_Poison, _
-      | _, DV_Poison =>
+      | DV_Poison _, _
+      | _, DV_Poison _ =>
           if eq n one then Some dv1 else Some dv2
       | _, _ => None
       end
@@ -121,7 +121,11 @@ Fixpoint eval_exp (s : dv_store) (g : dv_store) (t : option typ) (e : llvm_exp) 
   | EXP_Bool b => Some (make_bool b)
   | EXP_Null => None
   | EXP_Zero_initializer => None
-  | EXP_Undef => Some DV_Undef
+  | EXP_Undef =>
+      match t with
+      | Some t' => Some (DV_Undef t')
+      | _ => None
+      end
   | EXP_Poison => None
   | OP_IBinop iop t v1 v2 =>
       match (eval_exp s g (Some t) v1, eval_exp s g (Some t) v2) with
@@ -557,7 +561,7 @@ Definition init_local_store (mdl :llvm_module) (d : llvm_definition) := empty_dv
 Definition get_global_initializer (g : llvm_global) : option dynamic_value :=
   match (g_exp g) with
   | Some e => eval_constant_exp (g_typ g) e
-  | _ => Some DV_Undef (* TODO: check against the specifiction *)
+  | _ => Some (DV_Undef (g_typ g)) (* TODO: check against the specifiction *)
   end
 .
 

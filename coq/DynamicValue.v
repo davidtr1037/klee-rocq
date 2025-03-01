@@ -8,8 +8,16 @@ From SE Require Import LLVMAst.
 (* this type represents an LLVM value *)
 Inductive dynamic_value : Type :=
   | DV_Int (di : dynamic_int)
-  | DV_Undef
-  | DV_Poison
+  | DV_Undef (t : typ)
+  | DV_Poison (t : typ)
+.
+
+Inductive is_undef : dynamic_value -> Prop :=
+  Is_Undef : forall t, is_undef (DV_Undef t)
+.
+
+Inductive is_poison : dynamic_value -> Prop :=
+  Is_Poison : forall t, is_poison (DV_Poison t)
 .
 
 Class ConvertToDV I : Type := {
@@ -39,19 +47,23 @@ Global Instance ConvertToDVInt64 : ConvertToDV Int64.int := {
 Definition dv_true := DV_Int di_true.
 Definition dv_false := DV_Int di_false.
 
+Definition type_of_int {Int} `{VInt Int} :=
+  TYPE_I (Pos.of_nat bitwidth)
+.
+
 (* TODO: compare with the latest version *)
 Definition eval_ibinop_generic {Int} `{VInt Int} `{ConvertToDV Int} (op : ibinop) (x y : Int) : option dynamic_value :=
   match op with
   | Add nuw nsw =>
     if orb (andb nuw (eq (add_carry x y zero) one))
            (andb nsw (eq (add_overflow x y zero) one)) then
-      Some DV_Poison
+      Some (DV_Poison type_of_int)
     else
       Some (to_dvalue (add x y))
   | Sub nuw nsw =>
     if orb (andb nuw (eq (sub_borrow x y zero) one))
            (andb nsw (eq (sub_overflow x y zero) one)) then
-      Some DV_Poison
+      Some (DV_Poison type_of_int)
     else
       Some (to_dvalue (sub x y))
   | Mul nuw nsw =>
@@ -62,22 +74,25 @@ Definition eval_ibinop_generic {Int} `{VInt Int} `{ConvertToDV Int} (op : ibinop
       let res_s' := ((signed x) * (signed y))%Z in
       if orb (andb nuw ((unsigned x) * (unsigned y) >? unsigned res)%Z)
              (andb nsw (orb (min_signed >? res_s')%Z (res_s' >? max_signed)%Z)) then
-        Some DV_Poison
+        Some (DV_Poison type_of_int)
       else
         Some (to_dvalue res)
   | Shl nuw nsw =>
     if (bitwidth =? 1)%nat then
-      if ((unsigned y) >=? 1)%Z then Some DV_Poison else Some (to_dvalue x)
+      if ((unsigned y) >=? 1)%Z then
+        Some (DV_Poison type_of_int)
+      else
+        Some (to_dvalue x)
     else
       let bz := Z.of_nat bitwidth in
       let res := shl x y in
       let res_u := unsigned res in
       let res_u' := Z.shiftl (unsigned x) (unsigned y) in
       if ((unsigned y) >=? bz)%Z then
-        Some DV_Poison
+        Some (DV_Poison type_of_int)
       else if orb (andb nuw (res_u' >? res_u)%Z)
                   (andb nsw (negb (Z.shiftr (unsigned x) (bz - unsigned y) =? ((unsigned (negative res)) * (Z.pow 2 (unsigned y) - 1)))%Z)) then
-        Some DV_Poison
+        Some (DV_Poison type_of_int)
       else
         Some (to_dvalue res)
   | UDiv ex =>
@@ -85,7 +100,7 @@ Definition eval_ibinop_generic {Int} `{VInt Int} `{ConvertToDV Int} (op : ibinop
     if (unsigned y =? 0)%Z then None
     else
       if andb ex (negb ((unsigned x) mod (unsigned y) =? 0)%Z) then
-        Some DV_Poison
+        Some (DV_Poison type_of_int)
       else
         Some (to_dvalue (divu x y))
   | SDiv ex =>
@@ -93,29 +108,35 @@ Definition eval_ibinop_generic {Int} `{VInt Int} `{ConvertToDV Int} (op : ibinop
     if (signed y =? 0)%Z then None
     else
       if andb ex (negb (((signed x) mod (signed y)) =? 0)%Z) then
-        Some DV_Poison
+        Some (DV_Poison type_of_int)
       else
         Some (to_dvalue (divs x y))
   | LShr ex =>
     if (bitwidth =? 1)%nat then
-      if ((unsigned y) >=? 1)%Z then Some DV_Poison else Some (to_dvalue x)
+      if ((unsigned y) >=? 1)%Z then
+        Some (DV_Poison type_of_int)
+      else
+        Some (to_dvalue x)
     else
       let bz := Z.of_nat bitwidth in
       if ((unsigned y) >=? bz)%Z then
-        Some DV_Poison
+        Some (DV_Poison type_of_int)
       else if andb ex (negb ((unsigned x) mod (Z.pow 2 (unsigned y)) =? 0)%Z) then
-        Some DV_Poison
+        Some (DV_Poison type_of_int)
       else
         Some (to_dvalue (shru x y))
   | AShr ex =>
     if (bitwidth =? 1)%nat then
-      if ((unsigned y) >=? 1)%Z then Some DV_Poison else Some (to_dvalue x)
+      if ((unsigned y) >=? 1)%Z then
+        Some (DV_Poison type_of_int)
+      else
+        Some (to_dvalue x)
     else
       let bz := Z.of_nat bitwidth in
       if ((unsigned y) >=? bz)%Z then
-        Some DV_Poison
+        Some (DV_Poison type_of_int)
       else if andb ex (negb ((unsigned x) mod (Z.pow 2 (unsigned y)) =? 0)%Z) then
-       Some DV_Poison
+        Some (DV_Poison type_of_int)
      else
        Some (to_dvalue (shr x y))
   | URem =>
@@ -153,15 +174,15 @@ Definition eval_ibinop (op : ibinop) (dv1 dv2 : dynamic_value) : option dynamic_
   | (DV_Int (DI_I16 n1), DV_Int (DI_I16 n2))
   | (DV_Int (DI_I32 n1), DV_Int (DI_I32 n2))
   | (DV_Int (DI_I64 n1), DV_Int (DI_I64 n2)) => eval_ibinop_generic op n1 n2
-  | (DV_Poison, _) => Some DV_Poison
-  | (_, DV_Poison) =>
+  | (DV_Poison t, _) => Some (DV_Poison t)
+  | (_, DV_Poison t) =>
       (* division by poison is undefined behavior *)
       match op with
       | UDiv _ => None
       | SDiv _ => None
       | URem => None
       | SRem => None
-      | _ => Some DV_Poison
+      | _ => Some (DV_Poison t)
       end
   | _ => None
   end
@@ -206,8 +227,8 @@ Definition eval_icmp (op : icmp) (v1 v2 : dynamic_value) : option dynamic_value 
   | (DV_Int (DI_I16 n1), DV_Int (DI_I16 n2))
   | (DV_Int (DI_I32 n1), DV_Int (DI_I32 n2))
   | (DV_Int (DI_I64 n1), DV_Int (DI_I64 n2)) => Some (eval_icmp_generic op n1 n2)
-  | (DV_Poison, _) => Some DV_Poison
-  | (_, DV_Poison) => Some DV_Poison
+  | (DV_Poison t, _) => Some (DV_Poison (TYPE_I 1))
+  | (_, DV_Poison t) => Some (DV_Poison (TYPE_I 1))
   | _ => None
   end
 .
@@ -241,7 +262,7 @@ Definition convert conv x t1 t2 : option dynamic_value :=
           Some (DV_Int (DI_I64 (repr (unsigned i1))))
       | TYPE_I 32, DV_Int (DI_I32 i1), TYPE_I 64 =>
           Some (DV_Int (DI_I64 (repr (unsigned i1))))
-      | _, DV_Poison, _ => Some DV_Poison
+      | _, DV_Poison _, t => Some (DV_Poison t)
       | _, _, _ => None
       end
   | Sext =>
@@ -270,7 +291,7 @@ Definition convert conv x t1 t2 : option dynamic_value :=
           Some (DV_Int (DI_I64 (repr (signed i1))))
       | TYPE_I 32, DV_Int (DI_I32 i1), TYPE_I 64 =>
           Some (DV_Int (DI_I64 (repr (signed i1))))
-      | _, DV_Poison, _ => Some DV_Poison
+      | _, DV_Poison _, t => Some (DV_Poison t)
       | _, _, _ => None
       end
   | Trunc =>
@@ -299,7 +320,7 @@ Definition convert conv x t1 t2 : option dynamic_value :=
       (* i32 *)
       | TYPE_I 64, DV_Int (DI_I64 i1), TYPE_I 32 =>
           Some (DV_Int (DI_I32 (repr (unsigned i1))))
-      | _, DV_Poison, _ => Some DV_Poison
+      | _, DV_Poison _, t => Some (DV_Poison t)
       | _, _, _ => None
       end
   | Bitcast =>

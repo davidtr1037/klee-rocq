@@ -20,7 +20,7 @@ From SE.Utils Require Import Util.
 
 Inductive store_has_no_poison : dv_store -> Prop :=
   | Store_Has_No_Poison : forall ls,
-      (forall x, (ls x) <> Some DV_Poison) ->
+      (forall x t, (ls x) <> Some (DV_Poison t)) ->
       store_has_no_poison ls
 .
 
@@ -56,12 +56,12 @@ Inductive has_no_poison : state -> Prop :=
 
 Lemma has_no_poison_store_update : forall s x dv,
   store_has_no_poison s ->
-  dv <> DV_Poison ->
+  ~ is_poison dv ->
   store_has_no_poison (x !-> Some dv; s).
 Proof.
   intros s x dv Hnp Hneq.
   apply Store_Has_No_Poison.
-  intros y.
+  intros y t.
   destruct (raw_id_eqb x y) eqn:E.
   {
     rewrite raw_id_eqb_eq in E.
@@ -70,7 +70,7 @@ Proof.
     intros Hf.
     inversion Hf; subst.
     apply Hneq.
-    reflexivity.
+    apply Is_Poison.
   }
   {
     rewrite (raw_id_eqb_neq x y) in E.
@@ -140,8 +140,8 @@ Lemma has_no_poison_convert : forall conv dv t1 t2 dv',
   convert conv dv t1 t2 = Some dv' ->
   is_supported_conv conv ->
   conv <> Bitcast ->
-  dv <> DV_Poison ->
-  dv' <> DV_Poison.
+  ~ is_poison dv ->
+  ~ is_poison dv'.
 Proof.
   intros conv dv t1 t2 dv' Hconv His Hne Hdv.
   destruct conv;
@@ -151,14 +151,14 @@ Proof.
     try (
       destruct dv; try discriminate Hconv;
       destruct Hdv;
-      reflexivity
+      apply Is_Poison
     );
     repeat (
       destruct w1;
       try (
         destruct dv; try discriminate Hconv;
         destruct Hdv;
-        reflexivity
+        apply Is_Poison
       )
     );
     (
@@ -167,11 +167,16 @@ Proof.
         destruct t2 as [w2 | | | ]; try discriminate Hconv;
         repeat (
           destruct w2;
-          try discriminate Hconv;
-          try (inversion Hconv; subst; intros Hf; discriminate Hf)
+          try discriminate Hconv
+        );
+        (
+          simpl in Hconv;
+          inversion Hconv; subst;
+          intros Hf;
+          inversion Hf
         ) |
         discriminate Hconv |
-        inversion Hconv; subst; destruct Hdv; reflexivity
+        destruct Hdv; apply Is_Poison
       ]
     )
   ).
@@ -182,7 +187,7 @@ Lemma has_no_poison_eval_exp : forall ls gs ot e dv,
   store_has_no_poison ls ->
   store_has_no_poison gs ->
   eval_exp ls gs ot e = Some dv ->
-  dv <> DV_Poison.
+  ~ is_poison dv.
 Proof.
   intros ls gs ot e dv His Hnp_ls Hnp_gs Heval.
   generalize dependent dv.
@@ -196,11 +201,13 @@ Proof.
       destruct t; try discriminate Heval.
       repeat (
         destruct w;
-        try discriminate Heval;
-        try (
-          destruct dv'; try discriminate Heval;
-          destruct di; (inversion Heval; subst; discriminate)
-        )
+        try discriminate Heval
+      );
+      (
+        destruct dv'; try discriminate Heval;
+        destruct di; try (inversion Heval; subst);
+        intros Hf;
+        inversion Hf
       ).
     }
     {
@@ -208,17 +215,21 @@ Proof.
       destruct id.
       {
         inversion Hnp_gs.
-        specialize (H id).
+        intros Hf.
+        inversion Hf; subst.
+        specialize (H id t).
         rewrite Heval in H.
-        apply injection_some_neq.
-        assumption.
+        destruct H.
+        reflexivity.
       }
       {
         inversion Hnp_ls.
-        specialize (H id).
+        intros Hf.
+        inversion Hf; subst.
+        specialize (H id t).
         rewrite Heval in H.
-        apply injection_some_neq.
-        assumption.
+        destruct H.
+        reflexivity.
       }
     }
   }
@@ -228,9 +239,13 @@ Proof.
     repeat (
       destruct w; (
         simpl in Heval;
-        try discriminate Heval;
-        try (inversion Heval; subst; intros Hf; discriminate Hf)
+        try discriminate Heval
       )
+    );
+    (
+      inversion Heval; subst;
+      intros Hf;
+      inversion Hf
     ).
   }
   {
@@ -244,16 +259,16 @@ Proof.
     destruct dv1 as [di1 | | ] eqn:Edv1, dv2 as [di2 | | ] eqn:Edv2;
     try (discriminate Heval);
     try (destruct di1; discriminate Heval);
-    try (destruct H2; reflexivity);
-    try (destruct H4; reflexivity).
+    try (destruct H2; apply Is_Poison);
+    try (destruct H4; apply Is_Poison).
     destruct di1 as [n1 | n1 | n1 | n1 | n1], di2 as [n2 | n2 | n2 | n2 | n2];
     try discriminate Heval; (
       unfold eval_ibinop_generic in Heval;
       inversion H5; subst; (
         simpl in Heval;
+        inversion Heval; subst;
         intros Hf;
-        subst;
-        discriminate Heval
+        inversion Hf
       )
     ).
   }
@@ -268,14 +283,14 @@ Proof.
     destruct dv1 as [di1 | | ] eqn:Edv1, dv2 as [di2 | | ] eqn:Edv2;
     try (discriminate Heval);
     try (destruct di1; discriminate Heval);
-    try (destruct H1; reflexivity);
-    try (destruct H4; reflexivity).
+    try (destruct H1; apply Is_Poison);
+    try (destruct H4; apply Is_Poison).
     destruct di1 as [n1 | n1 | n1 | n1 | n1], di2 as [n2 | n2 | n2 | n2 | n2];
     try discriminate Heval; (
       unfold eval_icmp_generic in Heval;
+      inversion Heval; subst;
       intros Hf;
-      subst;
-      discriminate Heval
+      inversion Hf
     ).
   }
   {
@@ -326,7 +341,7 @@ Proof.
     {
       destruct di2 as [n2 | n2 | n2 | n2 | n2]; (
         destruct dv3 as [di3 | | ] eqn:Edv3; try discriminate Heval;
-        try (destruct H7; reflexivity);
+        try (destruct H7; apply Is_Poison);
         (
           destruct di3 as [n3 | n3 | n3 | n3 | n3]; (
             destruct (eq n1 one) eqn:Eeq; (inversion Heval; subst; assumption)
@@ -337,9 +352,9 @@ Proof.
     {
       destruct dv3 as [di3 | | ] eqn:Edv3; try discriminate Heval.
       destruct H7.
-      reflexivity.
+      apply Is_Poison.
     }
-    { destruct H6. reflexivity. }
+    { destruct H6. apply Is_Poison. }
   }
 Qed.
 
@@ -350,7 +365,7 @@ Lemma has_no_poison_eval_exp_division : forall ls gs op w e1 e2 dv,
   is_supported_exp e1 ->
   is_supported_exp e2 ->
   eval_exp ls gs None (OP_IBinop op (TYPE_I w) e1 e2) = Some dv ->
-  dv <> DV_Poison.
+  ~ is_poison dv.
 Proof.
   intros ls gs op w e1 e2 dv Hls Hgs Hop His1 His2 Heval.
   simpl in Heval.
@@ -381,7 +396,7 @@ Proof.
         simpl in Heval;
         inversion Heval; subst;
         intros Hf;
-        discriminate Hf
+        inversion Hf
       ]
     );
     try (
@@ -391,7 +406,7 @@ Proof.
         simpl in Heval;
         inversion Heval; subst;
         intros Hf;
-        discriminate Hf
+        inversion Hf
       ]
     ).
   }
@@ -406,7 +421,7 @@ Lemma has_no_poison_eval_exp_shift : forall ls gs op w e1 e2 dv di,
   eval_exp ls gs None (OP_IBinop op (TYPE_I w) e1 e2) = Some dv ->
   eval_exp ls gs (Some (TYPE_I w)) e2 = Some (DV_Int di) ->
   shift_error_condition di = false ->
-  dv <> DV_Poison.
+  ~ is_poison dv.
 Proof.
   intros ls gs op w e1 e2 dv di Hls Hgs Hop His1 His2 Heval Heval2 Hcond.
   simpl in Heval.
@@ -415,7 +430,7 @@ Proof.
     (eval_exp ls gs (Some (TYPE_I w)) e2) as [dv2 | ] eqn:E2;
   try discriminate Heval.
   unfold eval_ibinop in Heval.
-  destruct dv1 as [di1 | | ] eqn:Edv1, dv2 as [di2 | | ] eqn:Edv2;
+  destruct dv1 as [di1 | t1 | t1] eqn:Edv1, dv2 as [di2 | t2 | t2] eqn:Edv2;
   try (discriminate Heval);
   try (destruct di1; discriminate Heval);
   try (
@@ -427,10 +442,10 @@ Proof.
   );
   try (
     apply has_no_poison_eval_exp
-      with (ls := ls) (gs := gs) (ot := Some (TYPE_I w)) (e := e2) (dv := DV_Poison) in His2;
+      with (ls := ls) (gs := gs) (ot := Some (TYPE_I w)) (e := e2) (dv := DV_Poison t2) in His2;
     try assumption;
     destruct His2;
-    reflexivity
+    apply Is_Poison
   ).
   destruct di1 as [n1 | n1 | n1 | n1 | n1], di2 as [n2 | n2 | n2 | n2 | n2];
   try discriminate Heval.
@@ -450,7 +465,8 @@ Proof.
         rewrite E in Hcond;
         discriminate Hcond |
         inversion Heval; subst;
-        discriminate
+        intros Hf;
+        inversion Hf
       ]
     ).
   }
@@ -471,7 +487,8 @@ Proof.
         rewrite E in Hcond;
         discriminate Hcond |
         inversion Heval; subst;
-        discriminate
+        intros Hf;
+        inversion Hf
       ]
     ).
   }
@@ -492,7 +509,8 @@ Proof.
         rewrite E in Hcond;
         discriminate Hcond |
         inversion Heval; subst;
-        discriminate
+        intros Hf;
+        inversion Hf
       ]
     ).
   }
@@ -513,7 +531,8 @@ Proof.
         rewrite E in Hcond;
         discriminate Hcond |
         inversion Heval; subst;
-        discriminate
+        intros Hf;
+        inversion Hf
       ]
     ).
   }
@@ -534,7 +553,8 @@ Proof.
         rewrite E in Hcond;
         discriminate Hcond |
         inversion Heval; subst;
-        discriminate
+        intros Hf;
+        inversion Hf
       ]
     ).
   }
@@ -573,7 +593,7 @@ Qed.
 Lemma eval_binop_not_poison_right_none : forall ls gs op w e1 e2 dv,
   eval_exp ls gs (Some (TYPE_I w)) e2 = None ->
   eval_exp ls gs None (OP_IBinop op (TYPE_I w) e1 e2) = Some dv ->
-  dv <> DV_Poison.
+  ~ is_poison dv.
 Proof.
   intros ls gs op w e1 e2 dv Heval2 Heval.
   simpl in Heval.
@@ -582,26 +602,31 @@ Proof.
   try discriminate Heval.
 Qed.
 
-Lemma eval_binop_not_poison_right_undef : forall ls gs op w e1 e2 dv,
-  eval_exp ls gs (Some (TYPE_I w)) e1 <> Some DV_Poison ->
-  eval_exp ls gs (Some (TYPE_I w)) e2 = Some DV_Undef ->
+Lemma eval_binop_not_poison_right_undef : forall ls gs op w e1 e2 dv1 dv2 dv,
+  eval_exp ls gs (Some (TYPE_I w)) e1 = Some dv1 ->
+  ~ is_poison dv1 ->
+  eval_exp ls gs (Some (TYPE_I w)) e2 = Some dv2 ->
+  is_undef dv2 ->
   eval_exp ls gs None (OP_IBinop op (TYPE_I w) e1 e2) = Some dv ->
-  dv <> DV_Poison.
+  ~ is_poison dv.
 Proof.
-  intros ls gs op w e1 e2 dv Heval1 Heval2 Heval.
+  intros ls gs op w e1 e2 dv1 dv2 dv Heval1 Hnp Heval2 Hu Heval.
   destruct
-    (eval_exp ls gs (Some (TYPE_I w)) e1) as [dv1 | ] eqn:E1,
-    (eval_exp ls gs (Some (TYPE_I w)) e2) as [dv2 | ] eqn:E2;
+    (eval_exp ls gs (Some (TYPE_I w)) e1) as [dv1' | ] eqn:E1,
+    (eval_exp ls gs (Some (TYPE_I w)) e2) as [dv2' | ] eqn:E2;
   inversion Heval2; subst.
   {
     simpl in Heval.
     rewrite E1, E2 in Heval.
+    inversion Heval1; subst.
+    inversion Hu; subst.
     destruct dv1 as [di1 | | ] eqn:Edv1; unfold eval_ibinop in Heval.
     {
+      inversion Hu; subst.
       destruct di1 as [n1 | n1 | n1 | n1 | n1]; discriminate Heval.
     }
     { discriminate Heval. }
-    { destruct Heval1. reflexivity. }
+    { destruct Hnp. apply Is_Poison. }
   }
   {
     simpl in Heval.
@@ -615,7 +640,7 @@ Lemma has_no_poison_eval_phi_args : forall ls gs t args pbid dv,
   store_has_no_poison ls ->
   store_has_no_poison gs ->
   eval_phi_args ls gs t args pbid = Some dv ->
-  dv <> DV_Poison.
+  ~ is_poison dv.
 Proof.
   intros ls gs t args pbid dv His Hnp_ls Hnp_gs Heval.
   generalize dependent dv.
@@ -650,7 +675,7 @@ Qed.
 Lemma has_no_poison_empty_store : store_has_no_poison empty_dv_store.
 Proof.
   apply Store_Has_No_Poison.
-  intros x.
+  intros x t.
   unfold empty_dv_store.
   rewrite apply_empty_map.
   discriminate.
@@ -810,22 +835,30 @@ Proof.
             }
           }
           {
-            eapply eval_binop_not_poison_right_undef; try eassumption.
             destruct (eval_exp ls gs (Some (TYPE_I w)) e1) as [dv1 | ] eqn:E1.
             {
-              apply some_not_equal.
-              apply has_no_poison_eval_exp
-                with (ls := ls) (gs := gs) (ot := Some (TYPE_I w)) (e := e1);
-              try assumption.
+              eapply eval_binop_not_poison_right_undef
+                with (e1 := e1) (e2 := e2) (dv := dv);
+              try eassumption.
+              {
+                apply has_no_poison_eval_exp
+                  with (ls := ls) (gs := gs) (ot := Some (TYPE_I w)) (e := e1);
+                assumption.
+              }
+              { apply Is_Undef. }
             }
-            { discriminate. }
+            {
+              simpl in H14.
+              rewrite E1 in H14.
+              inversion H14.
+            }
           }
           {
             apply has_no_poison_eval_exp
-              with (ls := ls) (gs := gs) (ot := Some (TYPE_I w)) (e := e2) (dv := DV_Poison) in H8;
+              with (ls := ls) (gs := gs) (ot := Some (TYPE_I w)) (e := e2) (dv := DV_Poison t) in H8;
             try assumption.
             destruct H8.
-            reflexivity.
+            apply Is_Poison.
           }
         }
         { eapply eval_binop_not_poison_right_none; try eassumption. }
@@ -847,22 +880,30 @@ Proof.
             }
           }
           {
-            eapply eval_binop_not_poison_right_undef; try eassumption.
             destruct (eval_exp ls gs (Some (TYPE_I w)) e1) as [dv1 | ] eqn:E1.
             {
-              apply some_not_equal.
-              apply has_no_poison_eval_exp
-                with (ls := ls) (gs := gs) (ot := Some (TYPE_I w)) (e := e1);
-              try assumption.
+              eapply eval_binop_not_poison_right_undef
+                with (e1 := e1) (e2 := e2) (dv := dv);
+              try eassumption.
+              {
+                apply has_no_poison_eval_exp
+                  with (ls := ls) (gs := gs) (ot := Some (TYPE_I w)) (e := e1);
+                assumption.
+              }
+              { apply Is_Undef. }
             }
-            { discriminate. }
+            {
+              simpl in H14.
+              rewrite E1 in H14.
+              inversion H14.
+            }
           }
           {
             apply has_no_poison_eval_exp
-              with (ls := ls) (gs := gs) (ot := Some (TYPE_I w)) (e := e2) (dv := DV_Poison) in H8;
+              with (ls := ls) (gs := gs) (ot := Some (TYPE_I w)) (e := e2) (dv := DV_Poison t) in H8;
             try assumption.
             destruct H8.
-            reflexivity.
+            apply Is_Poison.
           }
         }
         { eapply eval_binop_not_poison_right_none; try eassumption. }
@@ -884,22 +925,30 @@ Proof.
             }
           }
           {
-            eapply eval_binop_not_poison_right_undef; try eassumption.
             destruct (eval_exp ls gs (Some (TYPE_I w)) e1) as [dv1 | ] eqn:E1.
             {
-              apply some_not_equal.
-              apply has_no_poison_eval_exp
-                with (ls := ls) (gs := gs) (ot := Some (TYPE_I w)) (e := e1);
-              try assumption.
+              eapply eval_binop_not_poison_right_undef
+                with (e1 := e1) (e2 := e2) (dv := dv);
+              try eassumption.
+              {
+                apply has_no_poison_eval_exp
+                  with (ls := ls) (gs := gs) (ot := Some (TYPE_I w)) (e := e1);
+                assumption.
+              }
+              { apply Is_Undef. }
             }
-            { discriminate. }
+            {
+              simpl in H14.
+              rewrite E1 in H14.
+              inversion H14.
+            }
           }
           {
             apply has_no_poison_eval_exp
-              with (ls := ls) (gs := gs) (ot := Some (TYPE_I w)) (e := e2) (dv := DV_Poison) in H8;
+              with (ls := ls) (gs := gs) (ot := Some (TYPE_I w)) (e := e2) (dv := DV_Poison t) in H8;
             try assumption.
             destruct H8.
-            reflexivity.
+            apply Is_Poison.
           }
         }
         { eapply eval_binop_not_poison_right_none; try eassumption. }
@@ -1019,7 +1068,7 @@ Proof.
   {
     apply Has_No_Poison; try assumption.
     apply Store_Has_No_Poison.
-    intros x.
+    intros x t.
     destruct (raw_id_eqb x v) eqn:E.
     {
       rewrite raw_id_eqb_eq in E.
