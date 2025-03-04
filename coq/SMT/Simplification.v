@@ -29,6 +29,10 @@ Definition normalize_binop_bv16 op (ast1 ast2 : smt_ast Sort_BV16) :=
   AST_BinOp Sort_BV16 op ast1 ast2
 .
 
+Definition normalize_binop_bv24 op (ast1 ast2 : smt_ast Sort_BV24) :=
+  AST_BinOp Sort_BV24 op ast1 ast2
+.
+
 Definition normalize_binop_bv32 op (ast1 ast2 : smt_ast Sort_BV32) :=
   match op with
   | SMT_Add =>
@@ -96,6 +100,14 @@ Definition normalize_binop_bv32 op (ast1 ast2 : smt_ast Sort_BV32) :=
   end
 .
 
+Definition normalize_binop_bv48 op (ast1 ast2 : smt_ast Sort_BV48) :=
+  AST_BinOp Sort_BV48 op ast1 ast2
+.
+
+Definition normalize_binop_bv56 op (ast1 ast2 : smt_ast Sort_BV56) :=
+  AST_BinOp Sort_BV56 op ast1 ast2
+.
+
 (* TODO: ... *)
 Definition normalize_binop_bv64 op (ast1 ast2 : smt_ast Sort_BV64) :=
   AST_BinOp Sort_BV64 op ast1 ast2
@@ -107,7 +119,10 @@ Definition normalize_binop op (s : smt_sort) (ast1 ast2 : smt_ast s) : smt_ast s
     | Sort_BV1 => normalize_binop_bv1
     | Sort_BV8 => normalize_binop_bv8
     | Sort_BV16 => normalize_binop_bv16
+    | Sort_BV24 => normalize_binop_bv24
     | Sort_BV32 => normalize_binop_bv32
+    | Sort_BV48 => normalize_binop_bv48
+    | Sort_BV56 => normalize_binop_bv56
     | Sort_BV64 => normalize_binop_bv64
     end in
   f op ast1 ast2
@@ -151,6 +166,10 @@ Definition normalize_cmpop_bv16 op (ast1 ast2 : smt_ast Sort_BV16) : smt_ast Sor
   AST_CmpOp Sort_BV16 op ast1 ast2
 .
 
+Definition normalize_cmpop_bv24 op (ast1 ast2 : smt_ast Sort_BV24) : smt_ast Sort_BV1 :=
+  AST_CmpOp Sort_BV24 op ast1 ast2
+.
+
 Definition normalize_cmpop_bv32 op (ast1 ast2 : smt_ast Sort_BV32) : smt_ast Sort_BV1 :=
   match op with
   | SMT_Sge => AST_CmpOp Sort_BV32 SMT_Sle ast2 ast1
@@ -179,6 +198,13 @@ Definition normalize_cmpop_bv32 op (ast1 ast2 : smt_ast Sort_BV32) : smt_ast Sor
       end
   | _ => AST_CmpOp Sort_BV32 op ast1 ast2
   end
+.
+Definition normalize_cmpop_bv48 op (ast1 ast2 : smt_ast Sort_BV48) : smt_ast Sort_BV1 :=
+  AST_CmpOp Sort_BV48 op ast1 ast2
+.
+
+Definition normalize_cmpop_bv56 op (ast1 ast2 : smt_ast Sort_BV56) : smt_ast Sort_BV1 :=
+  AST_CmpOp Sort_BV56 op ast1 ast2
 .
 
 Definition normalize_cmpop_bv64 op (ast1 ast2 : smt_ast Sort_BV64) : smt_ast Sort_BV1 :=
@@ -217,7 +243,10 @@ Definition normalize_cmpop op (s : smt_sort) (ast1 ast2 : smt_ast s) : smt_ast S
     | Sort_BV1 => normalize_cmpop_bv1
     | Sort_BV8 => normalize_cmpop_bv8
     | Sort_BV16 => normalize_cmpop_bv16
+    | Sort_BV24 => normalize_cmpop_bv24
     | Sort_BV32 => normalize_cmpop_bv32
+    | Sort_BV48 => normalize_cmpop_bv48
+    | Sort_BV56 => normalize_cmpop_bv56
     | Sort_BV64 => normalize_cmpop_bv64
     end in
   f op ast1 ast2
@@ -230,7 +259,10 @@ Definition normalize_not (s : smt_sort) (ast : smt_ast s) : smt_ast s :=
         AST_CmpOp Sort_BV1 SMT_Eq smt_ast_false
     | Sort_BV8 => AST_Not Sort_BV8
     | Sort_BV16 => AST_Not Sort_BV16
+    | Sort_BV24 => AST_Not Sort_BV24
     | Sort_BV32 => AST_Not Sort_BV32
+    | Sort_BV48 => AST_Not Sort_BV48
+    | Sort_BV56 => AST_Not Sort_BV56
     | Sort_BV64 => AST_Not Sort_BV64
     end in
   f ast
@@ -283,8 +315,20 @@ Definition normalize_ite_bv16 cond (ast1 ast2 : smt_ast Sort_BV16) :=
   AST_ITE Sort_BV16 cond ast1 ast2
 .
 
+Definition normalize_ite_bv24 cond (ast1 ast2 : smt_ast Sort_BV24) :=
+  AST_ITE Sort_BV24 cond ast1 ast2
+.
+
 Definition normalize_ite_bv32 cond (ast1 ast2 : smt_ast Sort_BV32) :=
   AST_ITE Sort_BV32 cond ast1 ast2
+.
+
+Definition normalize_ite_bv48 cond (ast1 ast2 : smt_ast Sort_BV48) :=
+  AST_ITE Sort_BV48 cond ast1 ast2
+.
+
+Definition normalize_ite_bv56 cond (ast1 ast2 : smt_ast Sort_BV56) :=
+  AST_ITE Sort_BV56 cond ast1 ast2
 .
 
 Definition normalize_ite_bv64 cond (ast1 ast2 : smt_ast Sort_BV64) :=
@@ -297,7 +341,10 @@ Definition normalize_ite (s : smt_sort) cond (ast1 ast2 : smt_ast s) : smt_ast s
     | Sort_BV1 => normalize_ite_bv1
     | Sort_BV8 => normalize_ite_bv8
     | Sort_BV16 => normalize_ite_bv16
+    | Sort_BV24 => normalize_ite_bv24
     | Sort_BV32 => normalize_ite_bv32
+    | Sort_BV48 => normalize_ite_bv48
+    | Sort_BV56 => normalize_ite_bv56
     | Sort_BV64 => normalize_ite_bv64
     end in
   f cond ast1 ast2
@@ -359,6 +406,10 @@ Definition simplify_binop_bv16 op (ast1 ast2 : smt_ast Sort_BV16) :=
   AST_BinOp Sort_BV16 op ast1 ast2
 .
 
+Definition simplify_binop_bv24 op (ast1 ast2 : smt_ast Sort_BV24) :=
+  AST_BinOp Sort_BV24 op ast1 ast2
+.
+
 Definition simplify_binop_bv32 op (ast1 ast2 : smt_ast Sort_BV32) :=
   match ast1, ast2 with
   | AST_Const Sort_BV32 n1, AST_Const Sort_BV32 n2 =>
@@ -396,6 +447,14 @@ Definition simplify_binop_bv32 op (ast1 ast2 : smt_ast Sort_BV32) :=
   end
 .
 
+Definition simplify_binop_bv48 op (ast1 ast2 : smt_ast Sort_BV48) :=
+  AST_BinOp Sort_BV48 op ast1 ast2
+.
+
+Definition simplify_binop_bv56 op (ast1 ast2 : smt_ast Sort_BV56) :=
+  AST_BinOp Sort_BV56 op ast1 ast2
+.
+
 Definition simplify_binop_bv64 op (ast1 ast2 : smt_ast Sort_BV64) :=
   AST_BinOp Sort_BV64 op ast1 ast2
 .
@@ -406,7 +465,10 @@ Definition simplify_binop op (s : smt_sort) (ast1 ast2 : smt_ast s) : smt_ast s 
     | Sort_BV1 => simplify_binop_bv1
     | Sort_BV8 => simplify_binop_bv8
     | Sort_BV16 => simplify_binop_bv16
+    | Sort_BV24 => simplify_binop_bv24
     | Sort_BV32 => simplify_binop_bv32
+    | Sort_BV48 => simplify_binop_bv48
+    | Sort_BV56 => simplify_binop_bv56
     | Sort_BV64 => simplify_binop_bv64
     end in
   f op ast1 ast2
@@ -445,6 +507,10 @@ Definition simplify_cmpop_bv16 op (ast1 ast2 : smt_ast Sort_BV16) :=
   AST_CmpOp Sort_BV16 op ast1 ast2
 .
 
+Definition simplify_cmpop_bv24 op (ast1 ast2 : smt_ast Sort_BV24) :=
+  AST_CmpOp Sort_BV24 op ast1 ast2
+.
+
 Definition simplify_cmpop_bv32 op (ast1 ast2 : smt_ast Sort_BV32) :=
   match ast1, ast2 with
   | AST_Const Sort_BV32 n1, AST_Const Sort_BV32 n2 =>
@@ -458,6 +524,14 @@ Definition simplify_cmpop_bv32 op (ast1 ast2 : smt_ast Sort_BV32) :=
       end
   | _, _ => AST_CmpOp Sort_BV32 op ast1 ast2
   end
+.
+
+Definition simplify_cmpop_bv48 op (ast1 ast2 : smt_ast Sort_BV48) :=
+  AST_CmpOp Sort_BV48 op ast1 ast2
+.
+
+Definition simplify_cmpop_bv56 op (ast1 ast2 : smt_ast Sort_BV56) :=
+  AST_CmpOp Sort_BV56 op ast1 ast2
 .
 
 Definition simplify_cmpop_bv64 op (ast1 ast2 : smt_ast Sort_BV64) :=
@@ -481,7 +555,10 @@ Definition simplify_cmpop op (s : smt_sort) (ast1 ast2 : smt_ast s) : smt_ast So
     | Sort_BV1 => simplify_cmpop_bv1
     | Sort_BV8 => simplify_cmpop_bv8
     | Sort_BV16 => simplify_cmpop_bv16
+    | Sort_BV24 => simplify_cmpop_bv24
     | Sort_BV32 => simplify_cmpop_bv32
+    | Sort_BV48 => simplify_cmpop_bv48
+    | Sort_BV56 => simplify_cmpop_bv56
     | Sort_BV64 => simplify_cmpop_bv64
     end in
   f op ast1 ast2
@@ -555,7 +632,10 @@ Proof.
   { apply Int1.add_commut. }
   { apply Int8.add_commut. }
   { apply Int16.add_commut. }
+  { apply Int24.add_commut. }
   { apply Int32.add_commut. }
+  { apply Int48.add_commut. }
+  { apply Int56.add_commut. }
   { apply Int64.add_commut. }
 Qed.
 
@@ -630,7 +710,10 @@ Proof.
   { apply Int1.mul_commut. }
   { apply Int8.mul_commut. }
   { apply Int16.mul_commut. }
+  { apply Int24.mul_commut. }
   { apply Int32.mul_commut. }
+  { apply Int48.mul_commut. }
+  { apply Int56.mul_commut. }
   { apply Int64.mul_commut. }
 Qed.
 
@@ -647,7 +730,10 @@ Proof.
   { rewrite Int1.eq_sym. reflexivity. }
   { rewrite Int8.eq_sym. reflexivity. }
   { rewrite Int16.eq_sym. reflexivity. }
+  { rewrite Int24.eq_sym. reflexivity. }
   { rewrite Int32.eq_sym. reflexivity. }
+  { rewrite Int48.eq_sym. reflexivity. }
+  { rewrite Int56.eq_sym. reflexivity. }
   { rewrite Int64.eq_sym. reflexivity. }
 Qed.
 
@@ -663,7 +749,10 @@ Proof.
   { apply Int1.and_commut. }
   { apply Int8.and_commut. }
   { apply Int16.and_commut. }
+  { apply Int24.and_commut. }
   { apply Int32.and_commut. }
+  { apply Int48.and_commut. }
+  { apply Int56.and_commut. }
   { apply Int64.and_commut. }
 Qed.
 
@@ -679,7 +768,10 @@ Proof.
   { apply Int1.or_commut. }
   { apply Int8.or_commut. }
   { apply Int16.or_commut. }
+  { apply Int24.or_commut. }
   { apply Int32.or_commut. }
+  { apply Int48.or_commut. }
+  { apply Int56.or_commut. }
   { apply Int64.or_commut. }
 Qed.
 
@@ -695,7 +787,10 @@ Proof.
   { apply Int1.xor_commut. }
   { apply Int8.xor_commut. }
   { apply Int16.xor_commut. }
+  { apply Int24.xor_commut. }
   { apply Int32.xor_commut. }
+  { apply Int48.xor_commut. }
+  { apply Int56.xor_commut. }
   { apply Int64.xor_commut. }
 Qed.
 
@@ -880,7 +975,19 @@ Proof.
     destruct b; reflexivity.
   }
   {
+    remember (Int24.eq (smt_eval_ast m Sort_BV24 ast1) (smt_eval_ast m Sort_BV24 ast2)) as b.
+    destruct b; reflexivity.
+  }
+  {
     remember (Int32.eq (smt_eval_ast m Sort_BV32 ast1) (smt_eval_ast m Sort_BV32 ast2)) as b.
+    destruct b; reflexivity.
+  }
+  {
+    remember (Int48.eq (smt_eval_ast m Sort_BV48 ast1) (smt_eval_ast m Sort_BV48 ast2)) as b.
+    destruct b; reflexivity.
+  }
+  {
+    remember (Int56.eq (smt_eval_ast m Sort_BV56 ast1) (smt_eval_ast m Sort_BV56 ast2)) as b.
     destruct b; reflexivity.
   }
   {
@@ -1275,43 +1382,20 @@ Proof.
   { apply equiv_smt_expr_refl. }
   { apply equiv_smt_expr_refl. }
   {
-    destruct s.
-    {
-      simpl.
-      unfold normalize_binop_bv1.
-      apply equiv_smt_expr_binop with (ast1 := ast1) (ast3 := ast2); assumption.
-    }
-    {
-      simpl.
-      unfold normalize_binop_bv8.
-      apply equiv_smt_expr_binop with (ast1 := ast1) (ast3 := ast2); assumption.
-    }
-    {
-      simpl.
-      unfold normalize_binop_bv16.
-      apply equiv_smt_expr_binop with (ast1 := ast1) (ast3 := ast2); assumption.
-    }
+    destruct s;
+    try (
+      apply equiv_smt_expr_binop with (ast1 := ast1) (ast3 := ast2); assumption
+    ).
     { apply equiv_smt_expr_normalize_binop_args; assumption. }
-    {
-      apply equiv_smt_expr_binop with (ast1 := ast1) (ast3 := ast2); assumption.
-    }
   }
   {
-    (* TODO: avoid duplicate blocks *)
-    destruct s.
-    { apply equiv_smt_expr_normalize_cmpop_args; try assumption. }
-    {
-      simpl.
-      unfold normalize_cmpop_bv8.
-      apply equiv_smt_expr_cmpop with (ast1 := ast1) (ast3 := ast2); assumption.
-    }
-    {
-      simpl.
-      unfold normalize_cmpop_bv16.
-      apply equiv_smt_expr_cmpop with (ast1 := ast1) (ast3 := ast2); assumption.
-    }
-    { apply equiv_smt_expr_normalize_cmpop_args; try assumption. }
-    { apply equiv_smt_expr_normalize_cmpop_args; try assumption. }
+    destruct s;
+    try (
+      apply equiv_smt_expr_cmpop with (ast1 := ast1) (ast3 := ast2); assumption
+    );
+    (
+      apply equiv_smt_expr_normalize_cmpop_args; try assumption
+    ).
   }
   {
     destruct s;
@@ -1358,7 +1442,10 @@ Definition sort_to_add s : (smt_sort_to_int_type s) -> (smt_sort_to_int_type s) 
   | Sort_BV1 => Int1.add
   | Sort_BV8 => Int8.add
   | Sort_BV16 => Int16.add
+  | Sort_BV24 => Int24.add
   | Sort_BV32 => Int32.add
+  | Sort_BV48 => Int48.add
+  | Sort_BV56 => Int56.add
   | Sort_BV64 => Int64.add
   end
 .
@@ -1368,7 +1455,10 @@ Definition sort_to_sub s : (smt_sort_to_int_type s) -> (smt_sort_to_int_type s) 
   | Sort_BV1 => Int1.sub
   | Sort_BV8 => Int8.sub
   | Sort_BV16 => Int16.sub
+  | Sort_BV24 => Int24.sub
   | Sort_BV32 => Int32.sub
+  | Sort_BV48 => Int48.sub
+  | Sort_BV56 => Int56.sub
   | Sort_BV64 => Int64.sub
   end
 .
@@ -1378,7 +1468,10 @@ Definition sort_to_mul s : (smt_sort_to_int_type s) -> (smt_sort_to_int_type s) 
   | Sort_BV1 => Int1.mul
   | Sort_BV8 => Int8.mul
   | Sort_BV16 => Int16.mul
+  | Sort_BV24 => Int24.mul
   | Sort_BV32 => Int32.mul
+  | Sort_BV48 => Int48.mul
+  | Sort_BV56 => Int56.mul
   | Sort_BV64 => Int64.mul
   end
 .
@@ -1388,7 +1481,10 @@ Definition sort_to_udiv s : (smt_sort_to_int_type s) -> (smt_sort_to_int_type s)
   | Sort_BV1 => Int1.divu
   | Sort_BV8 => Int8.divu
   | Sort_BV16 => Int16.divu
+  | Sort_BV24 => Int24.divu
   | Sort_BV32 => Int32.divu
+  | Sort_BV48 => Int48.divu
+  | Sort_BV56 => Int56.divu
   | Sort_BV64 => Int64.divu
   end
 .
@@ -1398,7 +1494,10 @@ Definition sort_to_sdiv s : (smt_sort_to_int_type s) -> (smt_sort_to_int_type s)
   | Sort_BV1 => Int1.divs
   | Sort_BV8 => Int8.divs
   | Sort_BV16 => Int16.divs
+  | Sort_BV24 => Int24.divs
   | Sort_BV32 => Int32.divs
+  | Sort_BV48 => Int48.divs
+  | Sort_BV56 => Int56.divs
   | Sort_BV64 => Int64.divs
   end
 .
@@ -1408,7 +1507,10 @@ Definition sort_to_urem s : (smt_sort_to_int_type s) -> (smt_sort_to_int_type s)
   | Sort_BV1 => Int1.modu
   | Sort_BV8 => Int8.modu
   | Sort_BV16 => Int16.modu
+  | Sort_BV24 => Int24.modu
   | Sort_BV32 => Int32.modu
+  | Sort_BV48 => Int48.modu
+  | Sort_BV56 => Int56.modu
   | Sort_BV64 => Int64.modu
   end
 .
@@ -1418,7 +1520,10 @@ Definition sort_to_srem s : (smt_sort_to_int_type s) -> (smt_sort_to_int_type s)
   | Sort_BV1 => Int1.mods
   | Sort_BV8 => Int8.mods
   | Sort_BV16 => Int16.mods
+  | Sort_BV24 => Int24.mods
   | Sort_BV32 => Int32.mods
+  | Sort_BV48 => Int48.mods
+  | Sort_BV56 => Int56.mods
   | Sort_BV64 => Int64.mods
   end
 .
@@ -1428,7 +1533,10 @@ Definition sort_to_xor s : (smt_sort_to_int_type s) -> (smt_sort_to_int_type s) 
   | Sort_BV1 => Int1.xor
   | Sort_BV8 => Int8.xor
   | Sort_BV16 => Int16.xor
+  | Sort_BV24 => Int24.xor
   | Sort_BV32 => Int32.xor
+  | Sort_BV48 => Int48.xor
+  | Sort_BV56 => Int56.xor
   | Sort_BV64 => Int64.xor
   end
 .
@@ -1437,7 +1545,10 @@ Definition sort_to_shl s : (smt_sort_to_int_type s) -> (smt_sort_to_int_type s) 
   | Sort_BV1 => Int1.shl
   | Sort_BV8 => Int8.shl
   | Sort_BV16 => Int16.shl
+  | Sort_BV24 => Int24.shl
   | Sort_BV32 => Int32.shl
+  | Sort_BV48 => Int48.shl
+  | Sort_BV56 => Int56.shl
   | Sort_BV64 => Int64.shl
   end
 .
@@ -1447,7 +1558,10 @@ Definition sort_to_lshr s : (smt_sort_to_int_type s) -> (smt_sort_to_int_type s)
   | Sort_BV1 => Int1.shru
   | Sort_BV8 => Int8.shru
   | Sort_BV16 => Int16.shru
+  | Sort_BV24 => Int24.shru
   | Sort_BV32 => Int32.shru
+  | Sort_BV48 => Int48.shru
+  | Sort_BV56 => Int56.shru
   | Sort_BV64 => Int64.shru
   end
 .
@@ -1457,7 +1571,10 @@ Definition sort_to_ashr s : (smt_sort_to_int_type s) -> (smt_sort_to_int_type s)
   | Sort_BV1 => Int1.shr
   | Sort_BV8 => Int8.shr
   | Sort_BV16 => Int16.shr
+  | Sort_BV24 => Int24.shr
   | Sort_BV32 => Int32.shr
+  | Sort_BV48 => Int48.shr
+  | Sort_BV56 => Int56.shr
   | Sort_BV64 => Int64.shr
   end
 .
@@ -1467,7 +1584,10 @@ Definition sort_to_and s : (smt_sort_to_int_type s) -> (smt_sort_to_int_type s) 
   | Sort_BV1 => Int1.and
   | Sort_BV8 => Int8.and
   | Sort_BV16 => Int16.and
+  | Sort_BV24 => Int24.and
   | Sort_BV32 => Int32.and
+  | Sort_BV48 => Int48.and
+  | Sort_BV56 => Int56.and
   | Sort_BV64 => Int64.and
   end
 .
@@ -1477,7 +1597,10 @@ Definition sort_to_or s : (smt_sort_to_int_type s) -> (smt_sort_to_int_type s) -
   | Sort_BV1 => Int1.or
   | Sort_BV8 => Int8.or
   | Sort_BV16 => Int16.or
+  | Sort_BV24 => Int24.or
   | Sort_BV32 => Int32.or
+  | Sort_BV48 => Int48.or
+  | Sort_BV56 => Int56.or
   | Sort_BV64 => Int64.or
   end
 .
@@ -1904,7 +2027,10 @@ Proof.
   { apply equiv_smt_expr_simplify_binop_bv1. }
   { apply equiv_smt_expr_refl. }
   { apply equiv_smt_expr_refl. }
+  { apply equiv_smt_expr_refl. }
   { apply equiv_smt_expr_simplify_binop_bv32. }
+  { apply equiv_smt_expr_refl. }
+  { apply equiv_smt_expr_refl. }
   { apply equiv_smt_expr_refl. }
 Qed.
 
@@ -2042,7 +2168,10 @@ Proof.
   { apply equiv_smt_expr_simplify_cmpop_bv1. }
   { apply equiv_smt_expr_refl. }
   { apply equiv_smt_expr_refl. }
+  { apply equiv_smt_expr_refl. }
   { apply equiv_smt_expr_simplify_cmpop_bv32. }
+  { apply equiv_smt_expr_refl. }
+  { apply equiv_smt_expr_refl. }
   { apply equiv_smt_expr_simplify_cmpop_bv64. }
 Qed.
 

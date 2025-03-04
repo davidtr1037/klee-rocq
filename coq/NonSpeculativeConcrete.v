@@ -261,7 +261,9 @@ Proof.
     try (destruct di1; discriminate Heval);
     try (destruct H2; apply Is_Poison);
     try (destruct H4; apply Is_Poison).
-    destruct di1 as [n1 | n1 | n1 | n1 | n1], di2 as [n2 | n2 | n2 | n2 | n2];
+    destruct
+      di1 as [n1 | n1 | n1 | n1 | n1 | n1 | n1 | n1],
+      di2 as [n2 | n2 | n2 | n2 | n2 | n2 | n2 | n2];
     try discriminate Heval; (
       unfold eval_ibinop_generic in Heval;
       inversion H5; subst; (
@@ -285,7 +287,9 @@ Proof.
     try (destruct di1; discriminate Heval);
     try (destruct H1; apply Is_Poison);
     try (destruct H4; apply Is_Poison).
-    destruct di1 as [n1 | n1 | n1 | n1 | n1], di2 as [n2 | n2 | n2 | n2 | n2];
+    destruct
+      di1 as [n1 | n1 | n1 | n1 | n1 | n1 | n1 | n1],
+      di2 as [n2 | n2 | n2 | n2 | n2 | n2 | n2 | n2];
     try discriminate Heval; (
       unfold eval_icmp_generic in Heval;
       inversion Heval; subst;
@@ -336,14 +340,14 @@ Proof.
     apply IHe3 with (dv := dv3) (ot := Some t) in H7; try assumption.
     unfold eval_select in Heval.
     destruct dv1 as [di1 | | ] eqn:Edv1; try discriminate Heval.
-    destruct di1 as [n1 | n1 | n1 | n1 | n1]; try discriminate Heval.
+    destruct di1 as [n1 | n1 | n1 | n1 | n1 | n1 | n1 | n1]; try discriminate Heval.
     destruct dv2 as [di2 | | ] eqn:Edv2.
     {
-      destruct di2 as [n2 | n2 | n2 | n2 | n2]; (
+      destruct di2 as [n2 | n2 | n2 | n2 | n2 | n2 | n2 | n2]; (
         destruct dv3 as [di3 | | ] eqn:Edv3; try discriminate Heval;
         try (destruct H7; apply Is_Poison);
         (
-          destruct di3 as [n3 | n3 | n3 | n3 | n3]; (
+          destruct di3 as [n3 | n3 | n3 | n3 | n3 | n3 | n3 | n3]; (
             destruct (eq n1 one) eqn:Eeq; (inversion Heval; subst; assumption)
           )
         )
@@ -386,7 +390,9 @@ Proof.
     assumption
   ).
   {
-    destruct di1 as [n1 | n1 | n1 | n1 | n1], di2 as [n2 | n2 | n2 | n2 | n2];
+    destruct
+      di1 as [n1 | n1 | n1 | n1 | n1 | n1 | n1 | n1],
+      di2 as [n2 | n2 | n2 | n2 | n2 | n2 | n2 | n2];
     try discriminate Heval;
     inversion Hop; subst;
     try (
@@ -447,7 +453,9 @@ Proof.
     destruct His2;
     apply Is_Poison
   ).
-  destruct di1 as [n1 | n1 | n1 | n1 | n1], di2 as [n2 | n2 | n2 | n2 | n2];
+  destruct
+    di1 as [n1 | n1 | n1 | n1 | n1 | n1 | n1 | n1],
+    di2 as [n2 | n2 | n2 | n2 | n2 | n2 | n2 | n2];
   try discriminate Heval.
   {
     destruct op;
@@ -623,7 +631,7 @@ Proof.
     destruct dv1 as [di1 | | ] eqn:Edv1; unfold eval_ibinop in Heval.
     {
       inversion Hu; subst.
-      destruct di1 as [n1 | n1 | n1 | n1 | n1]; discriminate Heval.
+      destruct di1 as [n1 | n1 | n1 | n1 | n1 | n1 | n1 | n1]; discriminate Heval.
     }
     { discriminate Heval. }
     { destruct Hnp. apply Is_Poison. }

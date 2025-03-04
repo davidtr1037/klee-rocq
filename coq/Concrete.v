@@ -631,7 +631,7 @@ Inductive is_shift : ibinop -> Prop :=
 .
 
 Definition division_error_condition di : bool :=
-  di_is_const di 0
+  di_eq_const di 0
 .
 
 Definition division_overflow_error_condition di1 di2 : bool :=
@@ -647,11 +647,14 @@ Definition division_overflow_error_condition di1 di2 : bool :=
 (* TODO: why bitwidth does not work? *)
 Definition shift_error_condition di : bool :=
   match di with
-  | DI_I1 n => cmpu Cge n (Int1.repr 1)
-  | DI_I8 n => cmpu Cge n (Int8.repr 8)
-  | DI_I16 n => cmpu Cge n (Int16.repr 16)
-  | DI_I32 n => cmpu Cge n (Int32.repr 32)
-  | DI_I64 n => cmpu Cge n (Int64.repr 64)
+  | DI_I1 n => cmpu Cge n (repr 1)
+  | DI_I8 n => cmpu Cge n (repr 8)
+  | DI_I16 n => cmpu Cge n (repr 16)
+  | DI_I24 n => cmpu Cge n (repr 24)
+  | DI_I32 n => cmpu Cge n (repr 32)
+  | DI_I48 n => cmpu Cge n (repr 48)
+  | DI_I56 n => cmpu Cge n (repr 56)
+  | DI_I64 n => cmpu Cge n (repr 64)
   end
 .
 

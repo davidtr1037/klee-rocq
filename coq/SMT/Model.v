@@ -23,13 +23,16 @@ Record smt_model := mk_smt_model {
 
 Definition default_model := mk_smt_model (empty_map 0%Z).
 
-Definition create_int_by_sort (s : smt_sort) (n : Z) : (smt_sort_to_int_type s) :=
+Definition repr_by_sort (s : smt_sort) (n : Z) : (smt_sort_to_int_type s) :=
   match s with
-  | Sort_BV1 => Int1.repr n
-  | Sort_BV8 => Int8.repr n
-  | Sort_BV16 => Int16.repr n
-  | Sort_BV32 => Int32.repr n
-  | Sort_BV64 => Int64.repr n
+  | Sort_BV1
+  | Sort_BV8
+  | Sort_BV16
+  | Sort_BV24
+  | Sort_BV32
+  | Sort_BV48
+  | Sort_BV56
+  | Sort_BV64 => repr n
   end
 .
 
@@ -58,10 +61,13 @@ Definition binop_predicate (s : smt_sort) :=
 Definition smt_eval_binop_by_sort op s (x y : (smt_sort_to_int_type s)) : (smt_sort_to_int_type s) :=
   let f :=
     match s return (binop_predicate s) with
-    | Sort_BV1 => smt_eval_binop_generic
-    | Sort_BV8 => smt_eval_binop_generic
-    | Sort_BV16 => smt_eval_binop_generic
-    | Sort_BV32 => smt_eval_binop_generic
+    | Sort_BV1
+    | Sort_BV8
+    | Sort_BV16
+    | Sort_BV24
+    | Sort_BV32
+    | Sort_BV48
+    | Sort_BV56
     | Sort_BV64 => smt_eval_binop_generic
     end in
   f op x y
@@ -101,10 +107,13 @@ Definition cmpop_predicate (s : smt_sort) :=
 Definition smt_eval_cmpop_by_sort op s (x y : (smt_sort_to_int_type s)) : int1 :=
   let f :=
     match s return (cmpop_predicate s) with
-    | Sort_BV1 => smt_eval_cmpop_generic
-    | Sort_BV8 => smt_eval_cmpop_generic
-    | Sort_BV16 => smt_eval_cmpop_generic
-    | Sort_BV32 => smt_eval_cmpop_generic
+    | Sort_BV1
+    | Sort_BV8
+    | Sort_BV16
+    | Sort_BV24
+    | Sort_BV32
+    | Sort_BV48
+    | Sort_BV56
     | Sort_BV64 => smt_eval_cmpop_generic
     end in
   if (f op x y) then one else zero
@@ -115,7 +124,10 @@ Definition create_mone_by_sort (s : smt_sort) : (smt_sort_to_int_type s) :=
   | Sort_BV1 => Int1.mone
   | Sort_BV8 => Int8.mone
   | Sort_BV16 => Int16.mone
+  | Sort_BV24 => Int24.mone
   | Sort_BV32 => Int32.mone
+  | Sort_BV48 => Int48.mone
+  | Sort_BV56 => Int56.mone
   | Sort_BV64 => Int64.mone
   end
 .
@@ -131,11 +143,14 @@ Definition convert_predicate (s : smt_sort) :=
 Definition unsigned_by_sort s (x : (smt_sort_to_int_type s)) : Z :=
   let f :=
     match s return (convert_predicate s) with
-    | Sort_BV1 => Int1.unsigned
-    | Sort_BV8 => Int8.unsigned
-    | Sort_BV16 => Int16.unsigned
-    | Sort_BV32 => Int32.unsigned
-    | Sort_BV64 => Int64.unsigned
+    | Sort_BV1
+    | Sort_BV8
+    | Sort_BV16
+    | Sort_BV24
+    | Sort_BV32
+    | Sort_BV48
+    | Sort_BV56
+    | Sort_BV64 => unsigned
     end in
   f x
 .
@@ -145,7 +160,10 @@ Definition smt_eval_zext_by_sort s (x : (smt_sort_to_int_type s)) cast_sort : (s
   | Sort_BV1 => (Int1.repr (unsigned_by_sort s x))
   | Sort_BV8 => (Int8.repr (unsigned_by_sort s x))
   | Sort_BV16 => (Int16.repr (unsigned_by_sort s x))
+  | Sort_BV24 => (Int24.repr (unsigned_by_sort s x))
   | Sort_BV32 => (Int32.repr (unsigned_by_sort s x))
+  | Sort_BV48 => (Int48.repr (unsigned_by_sort s x))
+  | Sort_BV56 => (Int56.repr (unsigned_by_sort s x))
   | Sort_BV64 => (Int64.repr (unsigned_by_sort s x))
   end
 .
@@ -153,11 +171,14 @@ Definition smt_eval_zext_by_sort s (x : (smt_sort_to_int_type s)) cast_sort : (s
 Definition signed_by_sort s (x : (smt_sort_to_int_type s)) : Z :=
   let f :=
     match s return (convert_predicate s) with
-    | Sort_BV1 => Int1.signed
-    | Sort_BV8 => Int8.signed
-    | Sort_BV16 => Int16.signed
-    | Sort_BV32 => Int32.signed
-    | Sort_BV64 => Int64.signed
+    | Sort_BV1
+    | Sort_BV8
+    | Sort_BV16
+    | Sort_BV24
+    | Sort_BV32
+    | Sort_BV48
+    | Sort_BV56
+    | Sort_BV64 => signed
     end in
   f x
 .
@@ -167,18 +188,24 @@ Definition smt_eval_sext_by_sort s (x : (smt_sort_to_int_type s)) cast_sort : (s
   | Sort_BV1 => (Int1.repr (signed_by_sort s x))
   | Sort_BV8 => (Int8.repr (signed_by_sort s x))
   | Sort_BV16 => (Int16.repr (signed_by_sort s x))
+  | Sort_BV24 => (Int24.repr (signed_by_sort s x))
   | Sort_BV32 => (Int32.repr (signed_by_sort s x))
+  | Sort_BV48 => (Int48.repr (signed_by_sort s x))
+  | Sort_BV56 => (Int56.repr (signed_by_sort s x))
   | Sort_BV64 => (Int64.repr (signed_by_sort s x))
   end
 .
 
 Definition smt_eval_extract_by_sort s (x : (smt_sort_to_int_type s)) cast_sort : (smt_sort_to_int_type cast_sort) :=
   match cast_sort with
-  | Sort_BV1 => Int1.repr (Int1.unsigned (Int1.repr (unsigned_by_sort s x)))
-  | Sort_BV8 => Int8.repr (Int8.unsigned (Int8.repr (unsigned_by_sort s x)))
-  | Sort_BV16 => Int16.repr (Int16.unsigned (Int16.repr (unsigned_by_sort s x)))
-  | Sort_BV32 => Int32.repr (Int32.unsigned (Int32.repr (unsigned_by_sort s x)))
-  | Sort_BV64 => Int64.repr (Int64.unsigned (Int64.repr (unsigned_by_sort s x)))
+  | Sort_BV1 => Int1.repr (unsigned (Int1.repr (unsigned_by_sort s x)))
+  | Sort_BV8 => Int8.repr (unsigned (Int8.repr (unsigned_by_sort s x)))
+  | Sort_BV16 => Int16.repr (unsigned (Int16.repr (unsigned_by_sort s x)))
+  | Sort_BV24 => Int24.repr (unsigned (Int24.repr (unsigned_by_sort s x)))
+  | Sort_BV32 => Int32.repr (unsigned (Int32.repr (unsigned_by_sort s x)))
+  | Sort_BV48 => Int48.repr (unsigned (Int48.repr (unsigned_by_sort s x)))
+  | Sort_BV56 => Int56.repr (unsigned (Int56.repr (unsigned_by_sort s x)))
+  | Sort_BV64 => Int64.repr (unsigned (Int64.repr (unsigned_by_sort s x)))
   end
 .
 
@@ -189,7 +216,7 @@ Definition smt_eval_ite s (cond : int1) (x y : (smt_sort_to_int_type s)) :=
 Fixpoint smt_eval_ast (m : smt_model) (s : smt_sort) (ast : smt_ast s) : (smt_sort_to_int_type s) :=
   match ast with
   | AST_Const arg_sort n => n
-  | AST_Var arg_sort x => create_int_by_sort arg_sort ((bv_model m) x)
+  | AST_Var arg_sort x => repr_by_sort arg_sort ((bv_model m) x)
   | AST_BinOp arg_sort op ast1 ast2 =>
       smt_eval_binop_by_sort
         op
@@ -726,7 +753,22 @@ Proof.
   }
   {
     unfold smt_eval_cmpop_by_sort.
+    rewrite Int24.eq_sym.
+    reflexivity.
+  }
+  {
+    unfold smt_eval_cmpop_by_sort.
     rewrite Int32.eq_sym.
+    reflexivity.
+  }
+  {
+    unfold smt_eval_cmpop_by_sort.
+    rewrite Int48.eq_sym.
+    reflexivity.
+  }
+  {
+    unfold smt_eval_cmpop_by_sort.
+    rewrite Int56.eq_sym.
     reflexivity.
   }
   {

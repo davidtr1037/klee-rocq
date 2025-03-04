@@ -161,7 +161,10 @@ Definition make_dv (bits : positive) (n : Z) : option dynamic_value :=
   | 1%positive => Some (DV_Int (DI_I1 (Int1.repr n)))
   | 8%positive => Some (DV_Int (DI_I8 (Int8.repr n)))
   | 16%positive => Some (DV_Int (DI_I16 (Int16.repr n)))
+  | 24%positive => Some (DV_Int (DI_I24 (Int24.repr n)))
   | 32%positive => Some (DV_Int (DI_I32 (Int32.repr n)))
+  | 48%positive => Some (DV_Int (DI_I48 (Int48.repr n)))
+  | 56%positive => Some (DV_Int (DI_I56 (Int56.repr n)))
   | 64%positive => Some (DV_Int (DI_I64 (Int64.repr n)))
   | _ => None
   end

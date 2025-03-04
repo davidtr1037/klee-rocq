@@ -31,28 +31,6 @@ From SE.Utils Require StringMap.
 From SE.Utils Require ListUtil.
 From SE.Utils Require Import Util.
 
-Definition repr_by_sort s n : (smt_sort_to_int_type s) :=
-  match s with
-  | Sort_BV1 => Int1.repr n
-  | Sort_BV8 => Int8.repr n
-  | Sort_BV16 => Int16.repr n
-  | Sort_BV32 => Int32.repr n
-  | Sort_BV64 => Int64.repr n
-  end
-.
-
-Definition dynamic_int_by_sort s (n : smt_sort_to_int_type s) : dynamic_int :=
-  let f :=
-    match s return smt_sort_to_int_type s -> dynamic_int with
-    | Sort_BV1 => DI_I1
-    | Sort_BV8 => DI_I8
-    | Sort_BV16 => DI_I16
-    | Sort_BV32 => DI_I32
-    | Sort_BV64 => DI_I64
-    end in
-  f n
-.
-
 Lemma infer_sort_generic : forall (sort : smt_sort) (x : smt_sort_to_int_type sort) di,
   make_dynamic_int sort x = di -> sort = get_sort_by_dynamic_int di.
 Proof.
@@ -445,23 +423,23 @@ Proof.
           simpl;
           destruct sort; try apply OA_None;
           (
-            repeat (destruct w2; try apply OA_None);
-            (
-              simpl;
-              eapply OA_Some; [
-                reflexivity |
-                simpl;
-                f_equal;
-                symmetry;
-                (* TODO: find a better solution *)
-                try apply Int1.repr_mod_modulus;
-                try apply Int8.repr_mod_modulus;
-                try apply Int16.repr_mod_modulus;
-                try apply Int32.repr_mod_modulus;
-                try apply Int64.repr_mod_modulus
-              ]
-            )
+            repeat (destruct w2; try apply OA_None)
           )
+        );
+        (
+          simpl;
+          eapply OA_Some; [
+            reflexivity |
+            simpl;
+            f_equal;
+            symmetry;
+            (* TODO: find a better solution *)
+            try apply Int1.repr_mod_modulus;
+            try apply Int8.repr_mod_modulus;
+            try apply Int16.repr_mod_modulus;
+            try apply Int32.repr_mod_modulus;
+            try apply Int64.repr_mod_modulus
+          ]
         ).
       }
       {
@@ -801,7 +779,7 @@ Lemma eval_division_correspondence : forall op sort (ast1 ast2 : smt_ast sort) (
 Proof.
   intros op sort ast1 ast2 n1 n2 dv m Hop He1 He2 He.
   destruct sort;
-  (
+  try (
     simpl in He;
     inversion Hop; rewrite <- H in *;
     (
@@ -820,6 +798,11 @@ Proof.
         ]
       ]
     )
+  );
+  (* for Sort_BV24 *)
+  (
+    simpl in He;
+    inversion He
   ).
 Qed.
 
@@ -890,7 +873,9 @@ Proof.
         m
     ).
     { apply eval_exp_correspondence; assumption. }
-    destruct di1 as [n1 | n1 | n1 | n1 | n1], di2 as [n2 | n2 | n2 | n2 | n2];
+    destruct
+      di1 as [n1 | n1 | n1 | n1 | n1 | n1 | n1 | n1],
+      di2 as [n2 | n2 | n2 | n2 | n2 | n2 | n2 | n2];
     try (discriminate H12);
     (
       rewrite E1 in L1;
@@ -1054,6 +1039,12 @@ Proof.
       }
     }
   }
+  (* Sort_BV24 *)
+  { inversion He. }
+  (* Sort_BV48 *)
+  { inversion He. }
+  (* Sort_BV56 *)
+  { inversion He. }
 Qed.
 
 Lemma completeness_single_step_shift : forall c cid v op w e1 e2 c' s,
@@ -1123,7 +1114,9 @@ Proof.
         m
     ).
     { apply eval_exp_correspondence; assumption. }
-    destruct di1 as [n1 | n1 | n1 | n1 | n1], di2 as [n2 | n2 | n2 | n2 | n2];
+    destruct
+      di1 as [n1 | n1 | n1 | n1 | n1 | n1 | n1 | n1],
+      di2 as [n2 | n2 | n2 | n2 | n2 | n2 | n2 | n2];
     try (discriminate H11);
     (
       rewrite E1 in L1;
@@ -1810,7 +1803,8 @@ Proof.
         { rewrite H13 in H10. discriminate H10. }
         {
           destruct
-            di1 as [n1 | n1 | n1 | n1 | n1] eqn:Edi1, di2 as [n2 | n2 | n2 | n2 | n2] eqn:Edi2;
+            di1 as [n1 | n1 | n1 | n1 | n1 | n1 | n1 | n1] eqn:Edi1,
+            di2 as [n2 | n2 | n2 | n2 | n2 | n2 | n2 | n2] eqn:Edi2;
           try (simpl in H14; discriminate H14).
           {
             rewrite H7 in H0.

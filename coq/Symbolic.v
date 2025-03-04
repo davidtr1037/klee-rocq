@@ -649,7 +649,7 @@ Definition multi_sym_step := multi sym_step.
 Definition sym_division_error_condition se :=
   match se with
   | Expr sort ast =>
-      (AST_CmpOp sort SMT_Eq ast (AST_Const sort (create_int_by_sort sort 0)))
+      (AST_CmpOp sort SMT_Eq ast (AST_Const sort (repr_by_sort sort 0)))
   end
 .
 
@@ -678,7 +678,7 @@ Definition sym_shift_error_condition se :=
         sort
         SMT_Uge
         ast
-        (AST_Const sort (create_int_by_sort sort (Zpos (smt_sort_to_width sort))))
+        (AST_Const sort (repr_by_sort sort (Zpos (smt_sort_to_width sort))))
   end
 .
 
@@ -836,12 +836,16 @@ Definition init_sym_state (mdl : llvm_module) (fid : function_id) : option sym_s
   end
 .
 
+(* TODO: move from here? *)
 Definition get_sort_by_dynamic_int (x : dynamic_int) : smt_sort :=
   match x with
   | DI_I1 n => Sort_BV1
   | DI_I8 n => Sort_BV8
   | DI_I16 n => Sort_BV16
+  | DI_I24 n => Sort_BV24
   | DI_I32 n => Sort_BV32
+  | DI_I48 n => Sort_BV48
+  | DI_I56 n => Sort_BV56
   | DI_I64 n => Sort_BV64
   end
 .
@@ -852,7 +856,10 @@ Definition make_dynamic_int (s : smt_sort) (x : smt_sort_to_int_type s) : dynami
     | Sort_BV1 => DI_I1
     | Sort_BV8 => DI_I8
     | Sort_BV16 => DI_I16
+    | Sort_BV24 => DI_I24
     | Sort_BV32 => DI_I32
+    | Sort_BV48 => DI_I48
+    | Sort_BV56 => DI_I56
     | Sort_BV64 => DI_I64
     end
   in f x

@@ -40,7 +40,10 @@ Inductive smt_sort : Type :=
   | Sort_BV1
   | Sort_BV8
   | Sort_BV16
+  | Sort_BV24
   | Sort_BV32
+  | Sort_BV48
+  | Sort_BV56
   | Sort_BV64
 .
 
@@ -49,7 +52,10 @@ Definition smt_sort_to_int_type (s : smt_sort) :=
   | Sort_BV1 => int1
   | Sort_BV8 => int8
   | Sort_BV16 => int16
+  | Sort_BV24 => int24
   | Sort_BV32 => int32
+  | Sort_BV48 => int48
+  | Sort_BV56 => int56
   | Sort_BV64 => int64
   end
 .
@@ -59,7 +65,10 @@ Definition smt_sort_to_width (s : smt_sort) : positive :=
   | Sort_BV1 => 1
   | Sort_BV8 => 8
   | Sort_BV16 => 16
+  | Sort_BV24 => 24
   | Sort_BV32 => 32
+  | Sort_BV48 => 48
+  | Sort_BV56 => 56
   | Sort_BV64 => 64
   end
 .
@@ -123,22 +132,29 @@ Definition make_smt_bool (b : bool) : smt_expr :=
   end
 .
 
-Definition make_smt_ast_const (n : Z) (s : smt_sort) : smt_ast s :=
+Definition make_ast_const (n : Z) (s : smt_sort) : smt_ast s :=
   match s with
   | Sort_BV1 => AST_Const Sort_BV1 (Int1.repr n)
   | Sort_BV8 => AST_Const Sort_BV8 (repr n)
   | Sort_BV16 => AST_Const Sort_BV16 (repr n)
+  | Sort_BV24 => AST_Const Sort_BV24 (repr n)
   | Sort_BV32 => AST_Const Sort_BV32 (repr n)
+  | Sort_BV48 => AST_Const Sort_BV48 (repr n)
+  | Sort_BV56 => AST_Const Sort_BV56 (repr n)
   | Sort_BV64 => AST_Const Sort_BV64 (repr n)
   end
 .
 
+(* TODO: make_const_smt_expr? *)
 Definition make_smt_const (bits : positive) (n : Z) : option smt_expr :=
   match bits with
   | 1%positive => Some (Expr Sort_BV1 (AST_Const Sort_BV1 (Int1.repr n)))
   | 8%positive => Some (Expr Sort_BV8 (AST_Const Sort_BV8 (Int8.repr n)))
   | 16%positive => Some (Expr Sort_BV16 (AST_Const Sort_BV16 (Int16.repr n)))
+  | 24%positive => Some (Expr Sort_BV24 (AST_Const Sort_BV24 (Int24.repr n)))
   | 32%positive => Some (Expr Sort_BV32 (AST_Const Sort_BV32 (Int32.repr n)))
+  | 48%positive => Some (Expr Sort_BV48 (AST_Const Sort_BV48 (Int48.repr n)))
+  | 56%positive => Some (Expr Sort_BV56 (AST_Const Sort_BV56 (Int56.repr n)))
   | 64%positive => Some (Expr Sort_BV64 (AST_Const Sort_BV64 (Int64.repr n)))
   | _ => None
   end

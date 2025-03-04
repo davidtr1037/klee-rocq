@@ -12,21 +12,54 @@ Module Wordsize_1.
   Qed.
 End Wordsize_1.
 
+Module Wordsize_24.
+  Definition wordsize := 24%nat.
+  Remark wordsize_not_zero: wordsize <> 0%nat.
+  Proof.
+    unfold wordsize; congruence.
+  Qed.
+End Wordsize_24.
+
+Module Wordsize_48.
+  Definition wordsize := 48%nat.
+  Remark wordsize_not_zero: wordsize <> 0%nat.
+  Proof.
+    unfold wordsize; congruence.
+  Qed.
+End Wordsize_48.
+
+Module Wordsize_56.
+  Definition wordsize := 56%nat.
+  Remark wordsize_not_zero: wordsize <> 0%nat.
+  Proof.
+    unfold wordsize; congruence.
+  Qed.
+End Wordsize_56.
+
 Module Int1 := Make(Wordsize_1).
 Module Int8 := Byte.
+Module Int24 := Make(Wordsize_24).
 Module Int32 := Int.
+Module Int48 := Make(Wordsize_48).
+Module Int56 := Make(Wordsize_56).
 
 Definition int1 := Int1.int.
 Definition int8 := Int8.int.
 Definition int16 := Int16.int.
+Definition int24 := Int24.int.
 Definition int32 := Int32.int.
+Definition int48 := Int48.int.
+Definition int56 := Int56.int.
 Definition int64 := Int64.int.
 
 Inductive dynamic_int : Type :=
   | DI_I1 (n : int1)
   | DI_I8 (n : int8)
   | DI_I16 (n : int16)
+  | DI_I24 (n : int24)
   | DI_I32 (n : int32)
+  | DI_I48 (n : int48)
+  | DI_I56 (n : int56)
   | DI_I64 (n : int64)
 .
 
@@ -252,6 +285,61 @@ Global Instance VInt16 : VInt Int16.int := {
   add_assoc := Int16.add_assoc;
 }.
 
+Global Instance VInt24 : VInt Int24.int := {
+  (* Comparisons *)
+  eq := Int24.eq;
+  cmp := Int24.cmp;
+  cmpu := Int24.cmpu;
+
+  bitwidth := 24;
+
+  (* Constants *)
+  zero := Int24.zero;
+  one := Int24.one;
+
+  (* Arithmetic *)
+  add := Int24.add;
+  add_carry := Int24.add_carry;
+  add_overflow := Int24.add_overflow;
+
+  sub := Int24.sub;
+  sub_borrow := Int24.sub_borrow;
+  sub_overflow := Int24.sub_overflow;
+
+  mul := Int24.mul;
+
+  divu := Int24.divu;
+  divs := Int24.divs;
+  modu := Int24.modu;
+  mods := Int24.mods;
+
+  shl := Int24.shl;
+  shr := Int24.shr;
+  shru := Int24.shru;
+
+  negative := Int24.negative;
+
+  (* Logic *)
+  and := Int24.and;
+  or := Int24.or;
+  xor := Int24.xor;
+
+  (* Bounds *)
+  min_signed := Int24.min_signed;
+  max_signed := Int24.max_signed;
+
+  (* Conversion *)
+  to_dint := DI_I24;
+  unsigned := Int24.unsigned;
+  signed := Int24.signed;
+
+  repr := Int24.repr;
+
+  (* Lemmas *)
+  add_commut := Int24.add_commut;
+  add_assoc := Int24.add_assoc;
+}.
+
 Global Instance VInt32 : VInt Int32.int := {
   (* Comparisons *)
   eq := Int32.eq;
@@ -305,6 +393,116 @@ Global Instance VInt32 : VInt Int32.int := {
   (* Lemmas *)
   add_commut := Int32.add_commut;
   add_assoc := Int32.add_assoc;
+}.
+
+Global Instance VInt48 : VInt Int48.int := {
+  (* Comparisons *)
+  eq := Int48.eq;
+  cmp := Int48.cmp;
+  cmpu := Int48.cmpu;
+
+  bitwidth := 48;
+
+  (* Constants *)
+  zero := Int48.zero;
+  one := Int48.one;
+
+  (* Arithmetic *)
+  add := Int48.add;
+  add_carry := Int48.add_carry;
+  add_overflow := Int48.add_overflow;
+
+  sub := Int48.sub;
+  sub_borrow := Int48.sub_borrow;
+  sub_overflow := Int48.sub_overflow;
+
+  mul := Int48.mul;
+
+  divu := Int48.divu;
+  divs := Int48.divs;
+  modu := Int48.modu;
+  mods := Int48.mods;
+
+  shl := Int48.shl;
+  shr := Int48.shr;
+  shru := Int48.shru;
+
+  negative := Int48.negative;
+
+  (* Logic *)
+  and := Int48.and;
+  or := Int48.or;
+  xor := Int48.xor;
+
+  (* Bounds *)
+  min_signed := Int48.min_signed;
+  max_signed := Int48.max_signed;
+
+  (* Conversion *)
+  to_dint := DI_I48;
+  unsigned := Int48.unsigned;
+  signed := Int48.signed;
+
+  repr := Int48.repr;
+
+  (* Lemmas *)
+  add_commut := Int48.add_commut;
+  add_assoc := Int48.add_assoc;
+}.
+
+Global Instance VInt56 : VInt Int56.int := {
+  (* Comparisons *)
+  eq := Int56.eq;
+  cmp := Int56.cmp;
+  cmpu := Int56.cmpu;
+
+  bitwidth := 56;
+
+  (* Constants *)
+  zero := Int56.zero;
+  one := Int56.one;
+
+  (* Arithmetic *)
+  add := Int56.add;
+  add_carry := Int56.add_carry;
+  add_overflow := Int56.add_overflow;
+
+  sub := Int56.sub;
+  sub_borrow := Int56.sub_borrow;
+  sub_overflow := Int56.sub_overflow;
+
+  mul := Int56.mul;
+
+  divu := Int56.divu;
+  divs := Int56.divs;
+  modu := Int56.modu;
+  mods := Int56.mods;
+
+  shl := Int56.shl;
+  shr := Int56.shr;
+  shru := Int56.shru;
+
+  negative := Int56.negative;
+
+  (* Logic *)
+  and := Int56.and;
+  or := Int56.or;
+  xor := Int56.xor;
+
+  (* Bounds *)
+  min_signed := Int56.min_signed;
+  max_signed := Int56.max_signed;
+
+  (* Conversion *)
+  to_dint := DI_I56;
+  unsigned := Int56.unsigned;
+  signed := Int56.signed;
+
+  repr := Int56.repr;
+
+  (* Lemmas *)
+  add_commut := Int56.add_commut;
+  add_assoc := Int56.add_assoc;
 }.
 
 Global Instance VInt64 : VInt Int64.int := {
@@ -362,22 +560,28 @@ Global Instance VInt64 : VInt Int64.int := {
   add_assoc := Int64.add_assoc;
 }.
 
-Definition di_is_const (di : dynamic_int) (n : Z) : bool :=
+Definition di_eq_const (di : dynamic_int) (n : Z) : bool :=
   match di with
-  | DI_I1 x => eq x (repr n)
-  | DI_I8 x => eq x (repr n)
-  | DI_I16 x => eq x (repr n)
-  | DI_I32 x => eq x (repr n)
+  | DI_I1 x
+  | DI_I8 x
+  | DI_I16 x
+  | DI_I24 x
+  | DI_I32 x
+  | DI_I48 x
+  | DI_I56 x
   | DI_I64 x => eq x (repr n)
   end
 .
 
 Definition di_unsigned (di : dynamic_int) : Z :=
   match di with
-  | DI_I1 n => unsigned n
-  | DI_I8 n => unsigned n
-  | DI_I16 n => unsigned n
-  | DI_I32 n => unsigned n
+  | DI_I1 n
+  | DI_I8 n
+  | DI_I16 n
+  | DI_I24 n
+  | DI_I32 n
+  | DI_I48 n
+  | DI_I56 n
   | DI_I64 n => unsigned n
   end
 .
@@ -696,6 +900,73 @@ Proof.
   }
 Qed.
 
+Lemma int24_eqb_eq : forall (x y : Int24.int),
+  Int24.eq x y = true -> x = y.
+Proof.
+  intros x y H.
+  assert(L : if Int24.eq x y then x = y else x <> y).
+  { apply Int24.eq_spec. }
+  rewrite H in L.
+  assumption.
+Qed.
+
+Lemma eq_zero_zext_i24_i64 : forall n : int24,
+  Int24.eq n Int24.zero = Int64.eq (Int64.repr (Int24.unsigned n)) Int64.zero.
+Proof.
+  intro n.
+  apply eq_true_iff_eq.
+  split; intros Heq.
+  {
+    apply int24_eqb_eq in Heq.
+    subst.
+    reflexivity.
+  }
+  {
+    destruct n as [x Hx].
+    simpl in Heq.
+    unfold Int64.eq in Heq.
+    replace (Int64.unsigned Int64.zero)%Z with 0%Z in Heq; try reflexivity.
+    rewrite (Int64.unsigned_repr_eq) in Heq.
+    replace (x mod Int64.modulus)%Z with x in Heq.
+    {
+      destruct (Coqlib.zeq x 0) as [H | H] eqn:E; try inversion Heq.
+      subst.
+      reflexivity.
+    }
+    {
+      symmetry.
+      apply Zmod_small.
+      unfold Int64.modulus, Int64.wordsize, two_power_nat.
+      unfold Int24.modulus, Int24.wordsize, two_power_nat in Hx.
+      simpl.
+      simpl in Hx.
+      lia.
+    }
+  }
+Qed.
+
+(* TODO: rename? *)
+Lemma ltu_zext_i24_i64 : forall n,
+  (Int24.ltu n (Int24.repr 24)) =
+  (Int64.ltu (Integers.Int64.repr (Int24.unsigned n)) (Integers.Int64.repr 24)).
+Proof.
+  intros n.
+  destruct n as [x Hx].
+  unfold Int24.ltu.
+  unfold Int64.ltu.
+  simpl.
+  rewrite (Int64.unsigned_repr_eq).
+  rewrite Zmod_small.
+  { reflexivity. }
+  {
+    unfold Int24.modulus, Int24.wordsize, two_power_nat in Hx.
+    simpl in Hx.
+    unfold Int64.modulus, Int64.wordsize, two_power_nat.
+    simpl.
+    lia.
+  }
+Qed.
+
 Lemma int32_eqb_eq : forall (x y : Int32.int),
   Int32.eq x y = true -> x = y.
 Proof.
@@ -766,6 +1037,140 @@ Proof.
   { reflexivity. }
   {
     unfold Int32.modulus, Int32.wordsize, two_power_nat in Hx.
+    simpl in Hx.
+    unfold Int64.modulus, Int64.wordsize, two_power_nat.
+    simpl.
+    lia.
+  }
+Qed.
+
+Lemma int48_eqb_eq : forall (x y : Int48.int),
+  Int48.eq x y = true -> x = y.
+Proof.
+  intros x y H.
+  assert(L : if Int48.eq x y then x = y else x <> y).
+  { apply Int48.eq_spec. }
+  rewrite H in L.
+  assumption.
+Qed.
+
+Lemma eq_zero_zext_i48_i64 : forall n : int48,
+  Int48.eq n Int48.zero = Int64.eq (Int64.repr (Int48.unsigned n)) Int64.zero.
+Proof.
+  intro n.
+  apply eq_true_iff_eq.
+  split; intros Heq.
+  {
+    apply int48_eqb_eq in Heq.
+    subst.
+    reflexivity.
+  }
+  {
+    destruct n as [x Hx].
+    simpl in Heq.
+    unfold Int64.eq in Heq.
+    replace (Int64.unsigned Int64.zero)%Z with 0%Z in Heq; try reflexivity.
+    rewrite (Int64.unsigned_repr_eq) in Heq.
+    replace (x mod Int64.modulus)%Z with x in Heq.
+    {
+      destruct (Coqlib.zeq x 0) as [H | H] eqn:E; try inversion Heq.
+      subst.
+      reflexivity.
+    }
+    {
+      symmetry.
+      apply Zmod_small.
+      unfold Int64.modulus, Int64.wordsize, two_power_nat.
+      unfold Int48.modulus, Int48.wordsize, two_power_nat in Hx.
+      simpl.
+      simpl in Hx.
+      lia.
+    }
+  }
+Qed.
+
+(* TODO: rename? *)
+Lemma ltu_zext_i48_i64 : forall n,
+  (Int48.ltu n (Int48.repr 48)) =
+  (Int64.ltu (Integers.Int64.repr (Int48.unsigned n)) (Integers.Int64.repr 48)).
+Proof.
+  intros n.
+  destruct n as [x Hx].
+  unfold Int48.ltu.
+  unfold Int64.ltu.
+  simpl.
+  rewrite (Int64.unsigned_repr_eq).
+  rewrite Zmod_small.
+  { reflexivity. }
+  {
+    unfold Int48.modulus, Int48.wordsize, two_power_nat in Hx.
+    simpl in Hx.
+    unfold Int64.modulus, Int64.wordsize, two_power_nat.
+    simpl.
+    lia.
+  }
+Qed.
+
+Lemma int56_eqb_eq : forall (x y : Int56.int),
+  Int56.eq x y = true -> x = y.
+Proof.
+  intros x y H.
+  assert(L : if Int56.eq x y then x = y else x <> y).
+  { apply Int56.eq_spec. }
+  rewrite H in L.
+  assumption.
+Qed.
+
+Lemma eq_zero_zext_i56_i64 : forall n : int56,
+  Int56.eq n Int56.zero = Int64.eq (Int64.repr (Int56.unsigned n)) Int64.zero.
+Proof.
+  intro n.
+  apply eq_true_iff_eq.
+  split; intros Heq.
+  {
+    apply int56_eqb_eq in Heq.
+    subst.
+    reflexivity.
+  }
+  {
+    destruct n as [x Hx].
+    simpl in Heq.
+    unfold Int64.eq in Heq.
+    replace (Int64.unsigned Int64.zero)%Z with 0%Z in Heq; try reflexivity.
+    rewrite (Int64.unsigned_repr_eq) in Heq.
+    replace (x mod Int64.modulus)%Z with x in Heq.
+    {
+      destruct (Coqlib.zeq x 0) as [H | H] eqn:E; try inversion Heq.
+      subst.
+      reflexivity.
+    }
+    {
+      symmetry.
+      apply Zmod_small.
+      unfold Int64.modulus, Int64.wordsize, two_power_nat.
+      unfold Int56.modulus, Int56.wordsize, two_power_nat in Hx.
+      simpl.
+      simpl in Hx.
+      lia.
+    }
+  }
+Qed.
+
+(* TODO: rename? *)
+Lemma ltu_zext_i56_i64 : forall n,
+  (Int56.ltu n (Int56.repr 56)) =
+  (Int64.ltu (Integers.Int64.repr (Int56.unsigned n)) (Integers.Int64.repr 56)).
+Proof.
+  intros n.
+  destruct n as [x Hx].
+  unfold Int56.ltu.
+  unfold Int64.ltu.
+  simpl.
+  rewrite (Int64.unsigned_repr_eq).
+  rewrite Zmod_small.
+  { reflexivity. }
+  {
+    unfold Int56.modulus, Int56.wordsize, two_power_nat in Hx.
     simpl in Hx.
     unfold Int64.modulus, Int64.wordsize, two_power_nat.
     simpl.

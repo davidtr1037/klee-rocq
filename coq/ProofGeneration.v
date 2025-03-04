@@ -617,7 +617,22 @@ Proof.
     reflexivity.
   }
   {
+    rewrite eq_zero_zext_i24_i64.
+    rewrite Int64.eq_sym.
+    reflexivity.
+  }
+  {
     rewrite eq_zero_zext_i32_i64.
+    rewrite Int64.eq_sym.
+    reflexivity.
+  }
+  {
+    rewrite eq_zero_zext_i48_i64.
+    rewrite Int64.eq_sym.
+    reflexivity.
+  }
+  {
+    rewrite eq_zero_zext_i56_i64.
     rewrite Int64.eq_sym.
     reflexivity.
   }
@@ -1238,7 +1253,7 @@ Definition sym_shift_error_condition_opt se :=
           Sort_BV64
           SMT_Ult
           (AST_ZExt sort ast Sort_BV64)
-          (AST_Const Sort_BV64 (create_int_by_sort Sort_BV64 (Zpos (smt_sort_to_width sort))))))
+          (AST_Const Sort_BV64 (repr_by_sort Sort_BV64 (Zpos (smt_sort_to_width sort))))))
   end
 .
 
@@ -1268,8 +1283,20 @@ Proof.
     destruct (Int16.ltu n (Int16.repr 16)); reflexivity.
   }
   {
+    rewrite <- ltu_zext_i24_i64.
+    destruct (Int24.ltu n (Int24.repr 24)); reflexivity.
+  }
+  {
     rewrite <- ltu_zext_i32_i64.
     destruct (Int32.ltu n (Int32.repr 32)); reflexivity.
+  }
+  {
+    rewrite <- ltu_zext_i48_i64.
+    destruct (Int48.ltu n (Int48.repr 48)); reflexivity.
+  }
+  {
+    rewrite <- ltu_zext_i56_i64.
+    destruct (Int56.ltu n (Int56.repr 56)); reflexivity.
   }
   {
     rewrite Int64.repr_unsigned.
