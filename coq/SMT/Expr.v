@@ -42,6 +42,7 @@ Inductive smt_sort : Type :=
   | Sort_BV16
   | Sort_BV24
   | Sort_BV32
+  | Sort_BV40
   | Sort_BV48
   | Sort_BV56
   | Sort_BV64
@@ -54,6 +55,7 @@ Definition smt_sort_to_int_type (s : smt_sort) :=
   | Sort_BV16 => int16
   | Sort_BV24 => int24
   | Sort_BV32 => int32
+  | Sort_BV40 => int40
   | Sort_BV48 => int48
   | Sort_BV56 => int56
   | Sort_BV64 => int64
@@ -67,6 +69,7 @@ Definition smt_sort_to_width (s : smt_sort) : positive :=
   | Sort_BV16 => 16
   | Sort_BV24 => 24
   | Sort_BV32 => 32
+  | Sort_BV40 => 40
   | Sort_BV48 => 48
   | Sort_BV56 => 56
   | Sort_BV64 => 64
@@ -139,6 +142,7 @@ Definition make_ast_const (n : Z) (s : smt_sort) : smt_ast s :=
   | Sort_BV16 => AST_Const Sort_BV16 (repr n)
   | Sort_BV24 => AST_Const Sort_BV24 (repr n)
   | Sort_BV32 => AST_Const Sort_BV32 (repr n)
+  | Sort_BV40 => AST_Const Sort_BV40 (repr n)
   | Sort_BV48 => AST_Const Sort_BV48 (repr n)
   | Sort_BV56 => AST_Const Sort_BV56 (repr n)
   | Sort_BV64 => AST_Const Sort_BV64 (repr n)

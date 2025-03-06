@@ -844,6 +844,7 @@ Definition get_sort_by_dynamic_int (x : dynamic_int) : smt_sort :=
   | DI_I16 n => Sort_BV16
   | DI_I24 n => Sort_BV24
   | DI_I32 n => Sort_BV32
+  | DI_I40 n => Sort_BV40
   | DI_I48 n => Sort_BV48
   | DI_I56 n => Sort_BV56
   | DI_I64 n => Sort_BV64
@@ -858,6 +859,7 @@ Definition make_dynamic_int (s : smt_sort) (x : smt_sort_to_int_type s) : dynami
     | Sort_BV16 => DI_I16
     | Sort_BV24 => DI_I24
     | Sort_BV32 => DI_I32
+    | Sort_BV40 => DI_I40
     | Sort_BV48 => DI_I48
     | Sort_BV56 => DI_I56
     | Sort_BV64 => DI_I64

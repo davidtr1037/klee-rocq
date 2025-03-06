@@ -874,8 +874,8 @@ Proof.
     ).
     { apply eval_exp_correspondence; assumption. }
     destruct
-      di1 as [n1 | n1 | n1 | n1 | n1 | n1 | n1 | n1],
-      di2 as [n2 | n2 | n2 | n2 | n2 | n2 | n2 | n2];
+      di1 as [n1 | n1 | n1 | n1 | n1 | n1 | n1 | n1 | n1],
+      di2 as [n2 | n2 | n2 | n2 | n2 | n2 | n2 | n2 | n2];
     try (discriminate H12);
     (
       rewrite E1 in L1;
@@ -1041,6 +1041,8 @@ Proof.
   }
   (* Sort_BV24 *)
   { inversion He. }
+  (* Sort_BV40 *)
+  { inversion He. }
   (* Sort_BV48 *)
   { inversion He. }
   (* Sort_BV56 *)
@@ -1115,8 +1117,8 @@ Proof.
     ).
     { apply eval_exp_correspondence; assumption. }
     destruct
-      di1 as [n1 | n1 | n1 | n1 | n1 | n1 | n1 | n1],
-      di2 as [n2 | n2 | n2 | n2 | n2 | n2 | n2 | n2];
+      di1 as [n1 | n1 | n1 | n1 | n1 | n1 | n1 | n1 | n1],
+      di2 as [n2 | n2 | n2 | n2 | n2 | n2 | n2 | n2 | n2];
     try (discriminate H11);
     (
       rewrite E1 in L1;
@@ -1803,8 +1805,8 @@ Proof.
         { rewrite H13 in H10. discriminate H10. }
         {
           destruct
-            di1 as [n1 | n1 | n1 | n1 | n1 | n1 | n1 | n1] eqn:Edi1,
-            di2 as [n2 | n2 | n2 | n2 | n2 | n2 | n2 | n2] eqn:Edi2;
+            di1 as [n1 | n1 | n1 | n1 | n1 | n1 | n1 | n1 | n1] eqn:Edi1,
+            di2 as [n2 | n2 | n2 | n2 | n2 | n2 | n2 | n2 | n2] eqn:Edi2;
           try (simpl in H14; discriminate H14).
           {
             rewrite H7 in H0.

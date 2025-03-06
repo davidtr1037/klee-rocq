@@ -627,6 +627,11 @@ Proof.
     reflexivity.
   }
   {
+    rewrite eq_zero_zext_i40_i64.
+    rewrite Int64.eq_sym.
+    reflexivity.
+  }
+  {
     rewrite eq_zero_zext_i48_i64.
     rewrite Int64.eq_sym.
     reflexivity.
@@ -1289,6 +1294,10 @@ Proof.
   {
     rewrite <- ltu_zext_i32_i64.
     destruct (Int32.ltu n (Int32.repr 32)); reflexivity.
+  }
+  {
+    rewrite <- ltu_zext_i40_i64.
+    destruct (Int40.ltu n (Int40.repr 40)); reflexivity.
   }
   {
     rewrite <- ltu_zext_i48_i64.

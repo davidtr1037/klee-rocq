@@ -30,6 +30,7 @@ Definition repr_by_sort (s : smt_sort) (n : Z) : (smt_sort_to_int_type s) :=
   | Sort_BV16
   | Sort_BV24
   | Sort_BV32
+  | Sort_BV40
   | Sort_BV48
   | Sort_BV56
   | Sort_BV64 => repr n
@@ -66,6 +67,7 @@ Definition smt_eval_binop_by_sort op s (x y : (smt_sort_to_int_type s)) : (smt_s
     | Sort_BV16
     | Sort_BV24
     | Sort_BV32
+    | Sort_BV40
     | Sort_BV48
     | Sort_BV56
     | Sort_BV64 => smt_eval_binop_generic
@@ -112,6 +114,7 @@ Definition smt_eval_cmpop_by_sort op s (x y : (smt_sort_to_int_type s)) : int1 :
     | Sort_BV16
     | Sort_BV24
     | Sort_BV32
+    | Sort_BV40
     | Sort_BV48
     | Sort_BV56
     | Sort_BV64 => smt_eval_cmpop_generic
@@ -126,6 +129,7 @@ Definition create_mone_by_sort (s : smt_sort) : (smt_sort_to_int_type s) :=
   | Sort_BV16 => Int16.mone
   | Sort_BV24 => Int24.mone
   | Sort_BV32 => Int32.mone
+  | Sort_BV40 => Int40.mone
   | Sort_BV48 => Int48.mone
   | Sort_BV56 => Int56.mone
   | Sort_BV64 => Int64.mone
@@ -148,6 +152,7 @@ Definition unsigned_by_sort s (x : (smt_sort_to_int_type s)) : Z :=
     | Sort_BV16
     | Sort_BV24
     | Sort_BV32
+    | Sort_BV40
     | Sort_BV48
     | Sort_BV56
     | Sort_BV64 => unsigned
@@ -162,6 +167,7 @@ Definition smt_eval_zext_by_sort s (x : (smt_sort_to_int_type s)) cast_sort : (s
   | Sort_BV16 => (Int16.repr (unsigned_by_sort s x))
   | Sort_BV24 => (Int24.repr (unsigned_by_sort s x))
   | Sort_BV32 => (Int32.repr (unsigned_by_sort s x))
+  | Sort_BV40 => (Int40.repr (unsigned_by_sort s x))
   | Sort_BV48 => (Int48.repr (unsigned_by_sort s x))
   | Sort_BV56 => (Int56.repr (unsigned_by_sort s x))
   | Sort_BV64 => (Int64.repr (unsigned_by_sort s x))
@@ -176,6 +182,7 @@ Definition signed_by_sort s (x : (smt_sort_to_int_type s)) : Z :=
     | Sort_BV16
     | Sort_BV24
     | Sort_BV32
+    | Sort_BV40
     | Sort_BV48
     | Sort_BV56
     | Sort_BV64 => signed
@@ -190,6 +197,7 @@ Definition smt_eval_sext_by_sort s (x : (smt_sort_to_int_type s)) cast_sort : (s
   | Sort_BV16 => (Int16.repr (signed_by_sort s x))
   | Sort_BV24 => (Int24.repr (signed_by_sort s x))
   | Sort_BV32 => (Int32.repr (signed_by_sort s x))
+  | Sort_BV40 => (Int40.repr (signed_by_sort s x))
   | Sort_BV48 => (Int48.repr (signed_by_sort s x))
   | Sort_BV56 => (Int56.repr (signed_by_sort s x))
   | Sort_BV64 => (Int64.repr (signed_by_sort s x))
@@ -203,6 +211,7 @@ Definition smt_eval_extract_by_sort s (x : (smt_sort_to_int_type s)) cast_sort :
   | Sort_BV16 => Int16.repr (unsigned (Int16.repr (unsigned_by_sort s x)))
   | Sort_BV24 => Int24.repr (unsigned (Int24.repr (unsigned_by_sort s x)))
   | Sort_BV32 => Int32.repr (unsigned (Int32.repr (unsigned_by_sort s x)))
+  | Sort_BV40 => Int40.repr (unsigned (Int40.repr (unsigned_by_sort s x)))
   | Sort_BV48 => Int48.repr (unsigned (Int48.repr (unsigned_by_sort s x)))
   | Sort_BV56 => Int56.repr (unsigned (Int56.repr (unsigned_by_sort s x)))
   | Sort_BV64 => Int64.repr (unsigned (Int64.repr (unsigned_by_sort s x)))
@@ -759,6 +768,11 @@ Proof.
   {
     unfold smt_eval_cmpop_by_sort.
     rewrite Int32.eq_sym.
+    reflexivity.
+  }
+  {
+    unfold smt_eval_cmpop_by_sort.
+    rewrite Int40.eq_sym.
     reflexivity.
   }
   {

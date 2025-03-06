@@ -20,6 +20,14 @@ Module Wordsize_24.
   Qed.
 End Wordsize_24.
 
+Module Wordsize_40.
+  Definition wordsize := 40%nat.
+  Remark wordsize_not_zero: wordsize <> 0%nat.
+  Proof.
+    unfold wordsize; congruence.
+  Qed.
+End Wordsize_40.
+
 Module Wordsize_48.
   Definition wordsize := 48%nat.
   Remark wordsize_not_zero: wordsize <> 0%nat.
@@ -40,6 +48,7 @@ Module Int1 := Make(Wordsize_1).
 Module Int8 := Byte.
 Module Int24 := Make(Wordsize_24).
 Module Int32 := Int.
+Module Int40 := Make(Wordsize_40).
 Module Int48 := Make(Wordsize_48).
 Module Int56 := Make(Wordsize_56).
 
@@ -48,6 +57,7 @@ Definition int8 := Int8.int.
 Definition int16 := Int16.int.
 Definition int24 := Int24.int.
 Definition int32 := Int32.int.
+Definition int40 := Int40.int.
 Definition int48 := Int48.int.
 Definition int56 := Int56.int.
 Definition int64 := Int64.int.
@@ -58,6 +68,7 @@ Inductive dynamic_int : Type :=
   | DI_I16 (n : int16)
   | DI_I24 (n : int24)
   | DI_I32 (n : int32)
+  | DI_I40 (n : int40)
   | DI_I48 (n : int48)
   | DI_I56 (n : int56)
   | DI_I64 (n : int64)
@@ -395,6 +406,61 @@ Global Instance VInt32 : VInt Int32.int := {
   add_assoc := Int32.add_assoc;
 }.
 
+Global Instance VInt40 : VInt Int40.int := {
+  (* Comparisons *)
+  eq := Int40.eq;
+  cmp := Int40.cmp;
+  cmpu := Int40.cmpu;
+
+  bitwidth := 40;
+
+  (* Constants *)
+  zero := Int40.zero;
+  one := Int40.one;
+
+  (* Arithmetic *)
+  add := Int40.add;
+  add_carry := Int40.add_carry;
+  add_overflow := Int40.add_overflow;
+
+  sub := Int40.sub;
+  sub_borrow := Int40.sub_borrow;
+  sub_overflow := Int40.sub_overflow;
+
+  mul := Int40.mul;
+
+  divu := Int40.divu;
+  divs := Int40.divs;
+  modu := Int40.modu;
+  mods := Int40.mods;
+
+  shl := Int40.shl;
+  shr := Int40.shr;
+  shru := Int40.shru;
+
+  negative := Int40.negative;
+
+  (* Logic *)
+  and := Int40.and;
+  or := Int40.or;
+  xor := Int40.xor;
+
+  (* Bounds *)
+  min_signed := Int40.min_signed;
+  max_signed := Int40.max_signed;
+
+  (* Conversion *)
+  to_dint := DI_I40;
+  unsigned := Int40.unsigned;
+  signed := Int40.signed;
+
+  repr := Int40.repr;
+
+  (* Lemmas *)
+  add_commut := Int40.add_commut;
+  add_assoc := Int40.add_assoc;
+}.
+
 Global Instance VInt48 : VInt Int48.int := {
   (* Comparisons *)
   eq := Int48.eq;
@@ -567,6 +633,7 @@ Definition di_eq_const (di : dynamic_int) (n : Z) : bool :=
   | DI_I16 x
   | DI_I24 x
   | DI_I32 x
+  | DI_I40 x
   | DI_I48 x
   | DI_I56 x
   | DI_I64 x => eq x (repr n)
@@ -580,6 +647,7 @@ Definition di_unsigned (di : dynamic_int) : Z :=
   | DI_I16 n
   | DI_I24 n
   | DI_I32 n
+  | DI_I40 n
   | DI_I48 n
   | DI_I56 n
   | DI_I64 n => unsigned n
@@ -1037,6 +1105,73 @@ Proof.
   { reflexivity. }
   {
     unfold Int32.modulus, Int32.wordsize, two_power_nat in Hx.
+    simpl in Hx.
+    unfold Int64.modulus, Int64.wordsize, two_power_nat.
+    simpl.
+    lia.
+  }
+Qed.
+
+Lemma int40_eqb_eq : forall (x y : Int40.int),
+  Int40.eq x y = true -> x = y.
+Proof.
+  intros x y H.
+  assert(L : if Int40.eq x y then x = y else x <> y).
+  { apply Int40.eq_spec. }
+  rewrite H in L.
+  assumption.
+Qed.
+
+Lemma eq_zero_zext_i40_i64 : forall n : int40,
+  Int40.eq n Int40.zero = Int64.eq (Int64.repr (Int40.unsigned n)) Int64.zero.
+Proof.
+  intro n.
+  apply eq_true_iff_eq.
+  split; intros Heq.
+  {
+    apply int40_eqb_eq in Heq.
+    subst.
+    reflexivity.
+  }
+  {
+    destruct n as [x Hx].
+    simpl in Heq.
+    unfold Int64.eq in Heq.
+    replace (Int64.unsigned Int64.zero)%Z with 0%Z in Heq; try reflexivity.
+    rewrite (Int64.unsigned_repr_eq) in Heq.
+    replace (x mod Int64.modulus)%Z with x in Heq.
+    {
+      destruct (Coqlib.zeq x 0) as [H | H] eqn:E; try inversion Heq.
+      subst.
+      reflexivity.
+    }
+    {
+      symmetry.
+      apply Zmod_small.
+      unfold Int64.modulus, Int64.wordsize, two_power_nat.
+      unfold Int40.modulus, Int40.wordsize, two_power_nat in Hx.
+      simpl.
+      simpl in Hx.
+      lia.
+    }
+  }
+Qed.
+
+(* TODO: rename? *)
+Lemma ltu_zext_i40_i64 : forall n,
+  (Int40.ltu n (Int40.repr 40)) =
+  (Int64.ltu (Integers.Int64.repr (Int40.unsigned n)) (Integers.Int64.repr 40)).
+Proof.
+  intros n.
+  destruct n as [x Hx].
+  unfold Int40.ltu.
+  unfold Int64.ltu.
+  simpl.
+  rewrite (Int64.unsigned_repr_eq).
+  rewrite Zmod_small.
+  { reflexivity. }
+  {
+    unfold Int40.modulus, Int40.wordsize, two_power_nat in Hx.
     simpl in Hx.
     unfold Int64.modulus, Int64.wordsize, two_power_nat.
     simpl.

@@ -652,6 +652,7 @@ Definition shift_error_condition di : bool :=
   | DI_I16 n => cmpu Cge n (repr 16)
   | DI_I24 n => cmpu Cge n (repr 24)
   | DI_I32 n => cmpu Cge n (repr 32)
+  | DI_I40 n => cmpu Cge n (repr 40)
   | DI_I48 n => cmpu Cge n (repr 48)
   | DI_I56 n => cmpu Cge n (repr 56)
   | DI_I64 n => cmpu Cge n (repr 64)
