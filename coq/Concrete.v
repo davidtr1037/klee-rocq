@@ -258,33 +258,6 @@ Inductive step : state -> state -> Prop :=
           gs
           mdl
         )
-(* TODO: remove
-  | Step_UDiv : forall ic cid v exact t e1 e2 c cs pbid ls stk gs mdl di2 dv,
-      (eval_exp ls gs (Some t) e2) = Some (DV_Int di2) ->
-      (di_is_zero di2) = false ->
-      (eval_exp ls gs None (OP_IBinop (UDiv exact) t e1 e2)) = Some dv ->
-      step
-        (mk_state
-          ic
-          (CMD_Inst cid (INSTR_Op v (OP_IBinop (UDiv exact) t e1 e2)))
-          (c :: cs)
-          pbid
-          ls
-          stk
-          gs
-          mdl
-        )
-        (mk_state
-          (next_inst_counter ic c)
-          c
-          cs
-          pbid
-          (v !-> Some dv; ls)
-          stk
-          gs
-          mdl
-        )
-*)
   | Step_Phi : forall ic cid v t args c cs pbid ls stk gs mdl dv,
       (eval_phi_args ls gs t args pbid) = Some dv ->
       step
