@@ -1616,14 +1616,6 @@ Proof using.
   split; lia.
 Qed.
 
-Lemma positive_eqb_eq : forall (a b : positive), (a =? b)%positive = true <-> a = b.
-Proof.
-Admitted.
-
-Lemma positive_eqb_ne : forall (a b : positive), (a =? b)%positive = false <-> a <> b.
-Proof.
-Admitted.
-
 Lemma injection_some : forall (A : Type) (x y : A),
   Some x = Some y -> x = y.
 Proof.

@@ -126,16 +126,77 @@ Definition find_function_by_exp (m : llvm_module) (e : llvm_exp) : option llvm_d
   end
 .
 
-(* TODO: rename *)
-Lemma LX1 : forall mdl d fid,
+Lemma find_map_match_function_in : forall defs fid d,
+  find_map (match_function fid) defs = Some d ->
+  In d defs.
+Proof.
+  intros defs fid d Hfm.
+  generalize dependent d; intros d Hfm.
+  induction defs as [|d' defs]; simpl in *.
+  { discriminate. }
+  {
+    destruct (match_function fid d') as [d'' | ] eqn:Em.
+    {
+      left.
+      inversion Hfm; subst.
+      unfold match_function in Em.
+      destruct (dc_name (df_prototype d') =? fid); try discriminate.
+      inversion Em; subst.
+      reflexivity.
+    }
+    {
+      right.
+      apply IHdefs.
+      assumption.
+    }
+  }
+Qed.
+
+Lemma find_function_in : forall mdl d fid,
   find_function mdl fid = Some d ->
   In d (m_definitions mdl).
 Proof.
-Admitted.
+  intros mdl d fid Hf.
+  unfold find_function in Hf.
+  destruct mdl.
+  simpl.
+  eapply find_map_match_function_in.
+  eassumption.
+Qed.
 
-(* TODO: rename *)
-Lemma LX2 : forall d bid b,
+Lemma find_block_in : forall bs bid b,
+  find_block bs bid = Some b ->
+  In b bs.
+Proof.
+  intros bs bid b Hfb.
+  generalize dependent b; intros b Hfb.
+  induction bs as [|b' bs]; simpl in *.
+  { discriminate. }
+  {
+    destruct (match_block bid b') eqn:Em.
+    {
+      left.
+      inversion Hfb; subst.
+      reflexivity.
+    }
+    {
+      right.
+      apply IHbs.
+      assumption.
+    }
+  }
+Qed.
+
+Lemma fetch_block_in : forall d bid b,
   fetch_block d bid = Some b ->
   In b (blks (df_body d)).
 Proof.
-Admitted.
+  intros d bid b Hfb.
+  unfold fetch_block in Hfb.
+  destruct d.
+  simpl in *.
+  destruct df_body.
+  simpl in *.
+  eapply find_block_in.
+  eassumption.
+Qed.
