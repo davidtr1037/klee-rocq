@@ -183,10 +183,10 @@ Lemma is_supported_propagation : forall mdl fid d bid b cs,
 Proof.
   intros mdl fid d bid b cs Hism Hf Hb Hcs.
   inversion Hism; subst.
-  apply LX1 in Hf.
+  apply find_function_in in Hf.
   apply H0 in Hf.
   inversion Hf; subst.
-  apply LX2 in Hb.
+  apply fetch_block_in in Hb.
   apply H1 in Hb.
   inversion Hb; subst.
   assumption.
