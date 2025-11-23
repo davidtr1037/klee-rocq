@@ -2293,4 +2293,40 @@ Lemma merge_lists_preserves_prop: forall (A B : Type) (xs : list A) (ys : list B
   merge_lists xs ys = Some l ->
   (forall x y, In (x, y) l -> f y).
 Proof.
-Admitted.
+  intros A B xs ys f l Hf Hm.
+  intros x y Hin.
+  generalize dependent l.
+  generalize dependent xs.
+  induction ys as [ | y' ys]; intros xs l Hm Hin.
+  {
+    destruct xs.
+    {
+      simpl in Hm.
+      inversion Hm; subst.
+      inversion Hin.
+    }
+    { discriminate. }
+  }
+  {
+    destruct xs.
+    { discriminate. }
+    {
+      simpl in Hm.
+      destruct (merge_lists xs ys) as [l' | ] eqn:Em; try discriminate.
+      inversion Hm; subst.
+      inversion Hin; subst.
+      {
+        inversion H; subst.
+        apply Hf.
+        apply in_eq.
+      }
+      {
+        eapply IHys; try eassumption.
+        intros y'' Hin''.
+        apply Hf.
+        apply in_cons.
+        assumption.
+      }
+    }
+  }
+Qed.
