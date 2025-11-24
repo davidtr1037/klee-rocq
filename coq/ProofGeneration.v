@@ -1,7 +1,7 @@
-From Coq Require Import Bool.
-From Coq Require Import List.
-From Coq Require Import Logic.Eqdep.
-From Coq Require Import ZArith.
+From Stdlib Require Import Bool.
+From Stdlib Require Import List.
+From Stdlib Require Import Logic.Eqdep.
+From Stdlib Require Import ZArith.
 
 Import ListNotations.
 

@@ -1,5 +1,5 @@
 (* TODO: rename module/type? *)
-From Coq Require Import ZArith.
+From Stdlib Require Import ZArith.
 
 From SE Require Import BitVectors.
 From SE.Numeric Require Import Integers.

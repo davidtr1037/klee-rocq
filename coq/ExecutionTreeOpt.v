@@ -1,5 +1,5 @@
-From Coq Require Import List.
-From Coq Require Import ZArith.
+From Stdlib Require Import List.
+From Stdlib Require Import ZArith.
 
 Import ListNotations.
 

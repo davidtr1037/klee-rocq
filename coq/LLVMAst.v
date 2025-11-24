@@ -1,6 +1,6 @@
 (* begin hide *)
 From SE.Numeric Require Import Floats.
-From Coq Require Import
+From Stdlib Require Import
      List
      String
      ZArith.

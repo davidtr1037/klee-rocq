@@ -1,4 +1,4 @@
-From Coq Require Import Bool.Bool.
+From Stdlib Require Import Bool.Bool.
 
 From SE Require Import LLVMAst.
 

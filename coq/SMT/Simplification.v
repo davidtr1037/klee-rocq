@@ -1,6 +1,6 @@
-From Coq Require Import Logic.Eqdep.
-From Coq Require Import Strings.String.
-From Coq Require Import ZArith.
+From Stdlib Require Import Logic.Eqdep.
+From Stdlib Require Import Strings.String.
+From Stdlib Require Import ZArith.
 
 Require Import Coq.Program.Equality.
 

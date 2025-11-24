@@ -2,7 +2,7 @@ From SE Require Import
      Utils.Tactics.
 
 From SE Require Coqlib.
-From Coq Require Import
+From Stdlib Require Import
      micromega.Lia
      Ascii
      Strings.String
@@ -403,7 +403,7 @@ Section nat_Show.
 
 End nat_Show.
 
-From Coq Require Import
+From Stdlib Require Import
      List
      Lia
      RelationClasses.

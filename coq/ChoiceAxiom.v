@@ -1,5 +1,5 @@
-From Coq Require Import List.
-From Coq Require Import String.
+From Stdlib Require Import List.
+From Stdlib Require Import String.
 
 Import ListNotations.
 

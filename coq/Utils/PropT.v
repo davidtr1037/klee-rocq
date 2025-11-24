@@ -15,7 +15,7 @@ From ITree Require Import
 From ExtLib Require Import
      Structures.Functor.
 
-From Coq Require Import
+From Stdlib Require Import
      RelationClasses
      Strings.String
      Logic
@@ -1012,7 +1012,7 @@ Section MonadLaws.
     auto.
   Qed.
 
-  (* From Coq.Logic.ChoiceFacts *)
+  (* From Stdlib.Logic.ChoiceFacts *)
 Definition GuardedFunctionalChoice_on {A B} :=
   forall P : A -> Prop, forall R : A -> B -> Prop,
     inhabited B ->

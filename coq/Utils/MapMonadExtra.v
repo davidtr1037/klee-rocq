@@ -1,4 +1,4 @@
-From Coq Require Import
+From Stdlib Require Import
   String
   List
   Morphisms.
@@ -17,8 +17,8 @@ From SE Require Import
   Utils.MonadEq1Laws
   Utils.Tactics.
 
-Require Import Lia.
-Require Import FunctionalExtensionality.
+From Stdlib Require Import Lia.
+From Stdlib Require Import FunctionalExtensionality.
 
 Import Monads.
 

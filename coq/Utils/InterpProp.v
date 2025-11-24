@@ -15,7 +15,7 @@ From ITree Require Import
 From ExtLib Require Import
      Structures.Functor.
 
-From Coq Require Import
+From Stdlib Require Import
      RelationClasses
      Strings.String
      Logic

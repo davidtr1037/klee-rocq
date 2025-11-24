@@ -1,7 +1,7 @@
 (* TODO: rename to LLVMCFG? *)
-Require Import Equalities.
+From Stdlib Require Import Equalities.
 
-From Coq Require Import ZArith List String.
+From Stdlib Require Import ZArith List String.
 
 From SE Require Import
      Utilities

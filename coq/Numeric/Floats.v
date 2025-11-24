@@ -17,12 +17,12 @@
 
 (** Formalization of floating-point numbers, using the Flocq library. *)
 
-Require Import Psatz.
-Require Import Reals.
+From Stdlib Require Import Psatz.
+From Stdlib Require Import Reals.
 From SE Require Import Coqlib Zbits Integers.
 From Flocq Require Import BinarySingleNaN Binary Bits Core.
 From SE Require Import IEEE754_extra.
-Require Import Program.
+From Stdlib Require Import Program.
 From SE Require Archi.
 Import ListNotations.
 
