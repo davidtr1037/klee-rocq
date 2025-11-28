@@ -24,7 +24,7 @@ From Stdlib Require Export Znumtheory.
 From Stdlib Require Export List.
 From Stdlib Require Export Bool.
 
-Require Import Coq.micromega.Lia.
+From Stdlib Require Import micromega.Lia.
 Global Set Asymmetric Patterns.
 
 (** * Useful tactics *)

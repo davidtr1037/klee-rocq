@@ -3,7 +3,7 @@ From Stdlib Require Import
   List
   Morphisms.
 
-Require Import Coq.Logic.ProofIrrelevance.
+From Stdlib Require Import Coq.Logic.ProofIrrelevance.
 
 From ITree Require Import
   Basics.Monad.

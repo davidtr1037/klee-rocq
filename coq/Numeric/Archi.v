@@ -17,7 +17,7 @@
 
 (** Architecture-dependent parameters for PowerPC *)
 
-Require Import ZArith List.
+From Stdlib Require Import ZArith List.
 
 
 Definition ptr64 := false.

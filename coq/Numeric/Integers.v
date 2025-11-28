@@ -20,7 +20,7 @@ From Stdlib Require Import Eqdep_dec Zquot.
 
 From SE Require Import Coqlib.
 
-Require Import Coq.micromega.Lia.
+From Stdlib Require Import micromega.Lia.
 
 From SE Require Archi.
 

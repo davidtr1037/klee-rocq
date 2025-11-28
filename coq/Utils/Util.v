@@ -11,7 +11,7 @@ From Stdlib Require Import
      Nat
      PeanoNat
      Psatz.
-Require Import FunInd Recdef.
+From Stdlib Require Import FunInd Recdef.
 
 Section nat_Show.
   #[local] Open Scope string.

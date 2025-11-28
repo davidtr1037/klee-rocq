@@ -6,7 +6,7 @@ From Stdlib Require Import
   Program
   Program.Wf.
 
-Require Import Coq.Logic.ProofIrrelevance.
+From Stdlib Require Import Logic.ProofIrrelevance.
 
 From SE.Utils Require Import
   Error
@@ -22,7 +22,7 @@ From ExtLib Require Import
 Import ListNotations.
 Import MonadNotation.
 
-Require Import Recdef.
+From Stdlib Require Import Recdef.
 
 Section FINDOPTION.
   Context {A B:Type}.
@@ -1118,7 +1118,7 @@ Proof.
   induction xxs; intros len INL.
   - cbn; lia.
   - rewrite concat_cons.
-    rewrite app_length.
+    rewrite length_app.
     cbn.
     rewrite INL; cbn; eauto.
     erewrite IHxxs.

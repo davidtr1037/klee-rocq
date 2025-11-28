@@ -18,14 +18,14 @@
 (** Additional operations and proofs about IEEE-754 binary
     floating-point numbers, on top of the Flocq library. *)
 
-Require Import Reals.
-Require Import SpecFloat.
+From Stdlib Require Import Reals.
+From Stdlib Require Import SpecFloat.
 From Flocq Require Import Core Digits Operations Round Bracket Sterbenz
                           BinarySingleNaN Binary Round_odd.
-Require Import ZArith.
-Require Import Psatz.
-Require Import Bool.
-Require Import Eqdep_dec.
+From Stdlib Require Import ZArith.
+From Stdlib Require Import Psatz.
+From Stdlib Require Import Bool.
+From Stdlib Require Import Eqdep_dec.
 
 Local Open Scope Z_scope.
 
