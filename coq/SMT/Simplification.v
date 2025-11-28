@@ -2,7 +2,7 @@ From Stdlib Require Import Logic.Eqdep.
 From Stdlib Require Import Strings.String.
 From Stdlib Require Import ZArith.
 
-Require Import Coq.Program.Equality.
+From Stdlib Require Import Program.Equality.
 
 From SE Require Import BitVectors.
 From SE Require Import DynamicValue.

@@ -3,7 +3,7 @@ From Stdlib Require Import
   List
   Morphisms.
 
-From Stdlib Require Import Coq.Logic.ProofIrrelevance.
+From Stdlib Require Import Logic.ProofIrrelevance.
 
 From ITree Require Import
   Basics.Monad.
@@ -1653,7 +1653,7 @@ Proof using.
   induction l; firstorder (subst; auto).
 Qed.
 
-Require Import FunctionalExtensionality.
+From Stdlib Require Import FunctionalExtensionality.
 Lemma map_monad_InT_OOM_cons_inv :
   forall {A B : Type} (l : list A) (f : forall a : A, InT a l -> OOM B) r res,
     map_monad_InT l f = ret (r :: res) ->

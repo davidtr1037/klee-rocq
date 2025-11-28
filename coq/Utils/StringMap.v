@@ -1,6 +1,6 @@
 From Stdlib Require Import Arith.Arith.
 From Stdlib Require Import Bool.Bool.
-Require Export Coq.Strings.String.
+From Stdlib Require Export Strings.String.
 
 Set Default Goal Selector "!".
 

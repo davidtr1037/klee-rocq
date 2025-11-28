@@ -16,7 +16,7 @@
 (** Additional operations and proofs about binary integers,
     on top of the ZArith standard library. *)
 
-Require Import Psatz Zquot.
+From Stdlib Require Import Psatz Zquot.
 From SE Require Import Coqlib.
 
 

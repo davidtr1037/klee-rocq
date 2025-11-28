@@ -732,7 +732,7 @@ Lemma interval_length : forall m n, length (interval n m) = m - n.
 Proof using.
   induction m; auto; intro; simpl.
   destruct (le_lt_dec n m).
-  - rewrite app_length, IHm; simpl.
+  - rewrite length_app, IHm; simpl.
     destruct n; lia.
   - destruct n; simpl; lia.
 Qed.        
