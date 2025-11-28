@@ -137,7 +137,7 @@ vector<klee::ref<CoqExpr>> ProofGenerator::getImports() {
     new CoqRequire("SE", "ChoiceAxiom"),
     new CoqRequire("SE", "Concrete"),
     new CoqRequire("SE", "DynamicValue"),
-    new CoqRequire("SE", "ExecutionTreeOpt"),
+    new CoqRequire("SE", "ExecutionTree"),
     new CoqRequire("SE", "IDMap"),
     new CoqRequire("SE", "LLVMAst"),
     new CoqRequire("SE", "ModuleAssumptions"),
