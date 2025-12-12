@@ -13,7 +13,7 @@ To build our extension of KLEE:
 ```
 mkdir <klee-build-dir>
 cd <klee-build-dir>
-CXXFLAGS="-fno-rtti -g" cmake \
+CXXFLAGS="-std=c++17" cmake \
     -DENABLE_SOLVER_STP=ON \
     -DENABLE_POSIX_RUNTIME=ON \
     -DKLEE_UCLIBC_PATH=<klee-uclibc-dir> \
@@ -26,6 +26,14 @@ make -j4
 ```
 
 ## Usage
+Consider the following program:
+```
+
+```
+To compile it, use the following command-line:
+```
+
+```
 To run our tool with proof generation, use the following command-line:
 ```
 klee \
