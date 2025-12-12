@@ -1,8 +1,8 @@
 # KLEE-Rocq
-This tool is an extension of KLEE which generates safety proof in Rocq.
-When the analysis is exhaustive, our tool generate a Rocq file (`.v` file),
+This tool is an extension of KLEE, which generates safety proof in Rocq.
+When the symbolic execution of the given program is exhaustive, our tool generates an additional Rocq file (`.v` file),
 in which the main theorem states that the program under test is safe with respect to the concrete LLVM semantics.
-To check the generated proof, one can use `coqc`.
+To validate the generated proof, one can use `coqc`.
 
 _Note: The current version supports a subset of LLVM with integers._
 
@@ -48,7 +48,7 @@ klee \
 ```
 This will create a well-known `<klee-out>` directory,
 and the generated proof will be located at `<klee-out>/proof.v`.
-To check the proof, run the following command:
+To validate the proof, run the following command:
 ```
 coqc -Q <klee-src-dir>/coq SE <klee-out>/proof.v
 ```
