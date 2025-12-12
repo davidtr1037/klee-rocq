@@ -1,6 +1,10 @@
 # KLEE-Rocq
-This is an extension of KLEE which generates safety proof in Rocq.
-The current version supports a subst of LLVM with integers.
+This tool is an extension of KLEE which generates safety proof in Rocq.
+When the analysis is exhaustive, our tool generate a `\.v` file,
+where the main theorem states that the program under test is safe under the concrete LLVM semantics.
+To check the generated proof, one can use `coqc`.
+
+_Note: The current version supports a subst of LLVM with integers._
 
 ## Build
 The current version was tested with LLVM 13 (and should work with earlier versions as well).
