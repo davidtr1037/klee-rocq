@@ -24,6 +24,11 @@ CXXFLAGS="-std=c++17" cmake \
     ../<klee-src-dir>
 make -j4
 ```
+To build our Rocq project, run the following command-line:
+```
+cd <klee-src-dir>/coq
+make
+```
 
 ## Usage
 Consider the following program:
