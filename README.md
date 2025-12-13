@@ -82,7 +82,7 @@ int main() {
 ```
 To compile it, use the following command-line:
 ```
-clang -c -g -emit-llvm -Xclang -disable-O0-optnone <c_file> -o <bc_file>
+clang -c -g -emit-llvm -Xclang -disable-O0-optnone -I <klee-src-dir>/include <c_file> -o <bc_file>
 opt -mem2reg <bc_file> -o <bc_file>
 ```
 To run our tool with proof generation, use the following command-line:
