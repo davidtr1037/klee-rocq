@@ -1,8 +1,9 @@
 # KLEE-Rocq
-This tool is an extension of KLEE, which generates safety proof in Rocq.
+This tool uses symbolic execution to generate machine-checked safety proofs.
+It is built as an extension of KLEE, and it produces proofs in Rocq.
 When the symbolic execution of the given program is exhaustive, our tool generates an additional Rocq file (.v file),
 in which the main theorem states that the program under test is safe with respect to the concrete LLVM semantics.
-To validate the generated proof, one can use _coqc_.
+To generated proofs can be validated using _coqc_.
 
 _Note: The current version supports a subset of LLVM with integers._
 
