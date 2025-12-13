@@ -90,13 +90,10 @@ To run our tool with proof generation, use the following command-line:
 klee \
   -libc=klee \
   -search=dfs \
-  -kdalloc=0 \
-  -linear-deterministic-allocation \
-  -allocate-external-objects=0 \
-  -allocate-function-objects=0 \
-  -allocate-global-objects=1 \
   -rewrite-equalities=0 \
-  -simplify-using-equalities=0 \
+  -simplify-eq-refl=0 \
+  -simplify-ext-expr=0 \
+  -simplify-extract-expr=0 \
   -generate-proof \
   -optimize-proof \
   -cache-pc-expr \
@@ -105,9 +102,9 @@ klee \
   -cache-sym-names \
   <bc_file>
 ```
-This will create a well-known `<klee-out>` directory,
+This will create a `<klee-out>` directory,
 and the generated proof will be located at `<klee-out>/proof.v`.
 To validate the proof, run the following command:
 ```
-coqc -Q <klee-src-dir>/coq SE <klee-out>/proof.v
+coqc -Q <klee-src-dir>/rocq SE <klee-out>/proof.v
 ```
