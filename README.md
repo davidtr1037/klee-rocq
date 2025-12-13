@@ -114,7 +114,7 @@ A docker image with the pre-built project can be found [here](https://doi.org/10
 To run the example from above, run the following commands:
 ```
 cd /example
-./compile.sh
-./run.sh
-./validate.sh
+./compile.sh prime.c prime.bc
+./run.sh prime.bc
+./validate.sh klee-last/proof.v
 ```
