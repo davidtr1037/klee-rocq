@@ -108,3 +108,13 @@ To validate the proof, run the following command:
 ```
 coqc -Q <klee-src-dir>/rocq SE <klee-out>/proof.v
 ```
+
+## Docker image
+A docker image with the pre-built project can be found [here](https://doi.org/10.6084/m9.figshare.30689198).
+To run the example from above, run the following commands:
+```
+cd /example
+./compile.sh
+./run.sh
+./validate.sh
+```
