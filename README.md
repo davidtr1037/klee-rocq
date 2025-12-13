@@ -7,9 +7,8 @@ To validate the generated proof, one can use _coqc_.
 _Note: The current version supports a subset of LLVM with integers._
 
 ## Build
-The current version was tested with LLVM 13 (and should work with earlier versions as well).
 The install the dependencies, follow the instructions [here](https://klee-se.org/build/build-from-source/).
-To build our extension of KLEE:
+To build our tool:
 ```
 mkdir <klee-build-dir>
 cd <klee-build-dir>
@@ -24,11 +23,13 @@ CXXFLAGS="-std=c++17" cmake \
     ../<klee-src-dir>
 make -j4
 ```
-To build our Rocq project, run the following command-line:
+To build our Rocq project:
 ```
 cd <klee-src-dir>/rocq
 make
 ```
+
+_Note: The current version was tested with LLVM 13 (and should work with earlier versions as well)._
 
 ## Usage
 Consider the following program:
