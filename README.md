@@ -35,7 +35,7 @@ make
 
 _Note: The current version was tested with LLVM 13 (and should work with earlier versions as well)._
 
-## Usage
+## Usage Example
 Consider the following program:
 ```
 #include <stdbool.h>
@@ -114,7 +114,7 @@ To validate the proof, run the following command:
 coqc -Q <klee-src-dir>/rocq SE <klee-out>/proof.v
 ```
 
-## Docker image
+## Docker Image
 A docker image with the pre-built project can be found [here](https://doi.org/10.6084/m9.figshare.30689198).
 To run the example from above, run the following commands:
 ```
