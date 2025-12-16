@@ -5,7 +5,7 @@ When the symbolic execution of the given program is exhaustive, this tool genera
 in which the main theorem claims that the program is safe with respect to the LLVM semantics.
 Then, the generated proofs can be validated using _coqc_.
 
-This tool is based on this paper:
+This tool is based on this [paper](https://davidtr1037.github.io/files/cpp2026.pdf):
 - Enhancing Symbolic Execution with Machine-Checked Safety Proofs
 
 _Note: The current version supports a subset of LLVM with integers._
